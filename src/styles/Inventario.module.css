@@ -1,0 +1,511 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: #7f8c8d;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.btnRefresh {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btnRefresh:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.headerButtons {
+  display: flex;
+  gap: 1rem;
+}
+
+.btnPrint {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.btnPrint:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+.searchBar {
+  margin-bottom: 2rem;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+/* Summary Cards */
+.summaryCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summaryCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.summaryCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.cardDisponible {
+  border-left: 4px solid #4CAF50;
+}
+
+.cardReservado {
+  border-left: 4px solid #FF9800;
+}
+
+.cardAsignado {
+  border-left: 4px solid #2196F3;
+}
+
+.cardIcon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.cardContent {
+  flex: 1;
+}
+
+.cardLabel {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.cardValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* Table */
+.tableWrapper {
+  background: white;
+  border-radius: 12px;
+  overflow: auto;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  max-height: 600px;
+}
+
+.inventoryTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.inventoryTable thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.inventoryTable th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.thEquipo {
+  width: 25%;
+}
+
+.thCategoria {
+  width: 15%;
+}
+
+.thTotal,
+.thDisponible,
+.thReservado,
+.thAsignado,
+.thRecoleccion,
+.thMantenimiento,
+.thNoDisponible {
+  width: 8.5%;
+  text-align: center !important;
+}
+
+.tableRow {
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.2s ease;
+}
+
+.tableRow:hover {
+  background-color: #f8f9fa;
+}
+
+.inventoryTable td {
+  padding: 1rem;
+  color: #2c3e50;
+}
+
+.tdEquipo {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.tdCategoria,
+.tdTotal,
+.tdDisponible,
+.tdReservado,
+.tdAsignado,
+.tdRecoleccion,
+.tdMantenimiento,
+.tdNoDisponible {
+  text-align: center;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  background: #ecf0f1;
+  color: #34495e;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.badgeTotal {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: #34495e;
+  color: white;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.badgeDisponible {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: #4CAF50;
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.badgeReservado {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: #FF9800;
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.badgeAsignado {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: #2196F3;
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.badgeRecoleccion {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: #9C27B0;
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.badgeMantenimiento {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: #FFC107;
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.badgeNoDisponible {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  background: #757575;
+  color: white;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.badgeEmpty {
+  color: #bdc3c7;
+  font-weight: 400;
+}
+
+/* No Data */
+.noData {
+  text-align: center !important;
+  padding: 3rem !important;
+}
+
+.noDataContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #95a5a6;
+}
+
+.noDataIcon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+/* Elementos solo para impresión (ocultos en pantalla) */
+.printHeader,
+.printSignature {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .summaryCards {
+    grid-template-columns: 1fr;
+  }
+
+  .tableWrapper {
+    overflow-x: auto;
+  }
+
+  .inventoryTable {
+    min-width: 1000px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  @page {
+    size: letter landscape;
+    margin: 0.5cm;
+  }
+
+  body > nav,
+  body > header,
+  body > footer {
+    display: none !important;
+  }
+
+  .container {
+    background: white !important;
+  }
+
+  /* Ocultar elementos innecesarios */
+  .searchBar,
+  .summaryCards,
+  .btnRefresh,
+  .btnPrint,
+  .headerButtons,
+  .header {
+    display: none !important;
+  }
+
+  .main {
+    padding: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Tabla optimizada para impresión */
+  .tableWrapper {
+    max-height: none !important;
+    box-shadow: none !important;
+    border: 1px solid #333;
+    margin: 0 !important;
+  }
+
+  .inventoryTable {
+    font-size: 0.7rem !important;
+  }
+
+  .inventoryTable thead {
+    background: #333 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .inventoryTable th,
+  .inventoryTable td {
+    padding: 0.4rem !important;
+    border: 1px solid #ddd !important;
+  }
+
+  .tableRow:hover {
+    background-color: transparent !important;
+  }
+
+  /* Badges optimizados */
+  .badge {
+    padding: 0.2rem 0.5rem !important;
+    font-size: 0.65rem !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badgeDisponible {
+    background: #4CAF50 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badgeReservado {
+    background: #FF9800 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badgeAsignado {
+    background: #2196F3 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badgeRecoleccion {
+    background: #9C27B0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badgeMantenimiento {
+    background: #F44336 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badgeNoDisponible {
+    background: #757575 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Elementos solo para impresión */
+  .printHeader {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #333;
+  }
+
+  .printHeader h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    color: #333;
+  }
+
+  .printDate {
+    margin: 0;
+    font-size: 1rem;
+    color: #666;
+  }
+
+  .printSignature {
+    display: block !important;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #ddd;
+  }
+
+  .printSignature p {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+  }
+}

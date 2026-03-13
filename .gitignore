@@ -1,0 +1,104 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Testing
+/coverage
+*.test.js
+*.spec.js
+
+# Next.js
+/.next/
+/out/
+.next
+out
+
+# Production
+/build
+/dist
+
+# Environment Variables
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+.tsbuildinfo
+
+# SQLite Database
+rentall.db
+rentall.db-journal
+*.db
+*.db-journal
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Temporary Files
+*.tmp
+*.temp
+*.cache
+.cache/
+
+# Vercel
+.vercel
+
+# Others
+*.pem
+*.key
+.npmrc
+
+# Scripts de migración y análisis (temporales)
+scripts/*.js
+scripts/*.ts
+!scripts/README.md
+
+# Archivos de documentación de migración
+MIGRATION_*.md
+INSTRUCCION_*.md
+INSTRUCCIONES_*.md
+RESUMEN_*.md
+
+# Archivos batch
+*.bat
+
+# Backups
+*.backup
+*.bak

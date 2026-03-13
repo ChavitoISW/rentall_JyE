@@ -1,0 +1,1156 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #4a90e2 0%, #2874d9 100%);
+}
+
+.main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  color: white;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btnAdd {
+  background: white;
+  color: #4a90e2;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btnAdd:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.searchBar {
+  margin-bottom: 2rem;
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 500px;
+  padding: 0.8rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  outline: none;
+  transition: box-shadow 0.3s;
+}
+
+.searchInput:focus {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btnEdit, .btnDelete, .btnView, .btnAnular, .btnContrato, .btnVerPDF, .btnImprimir {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btnView {
+  background: #2196F3;
+  color: white;
+  margin-right: 0.5rem;
+}
+
+.btnView:hover {
+  background: #0b7dda;
+  transform: translateY(-1px);
+}
+
+.btnEdit {
+  background: #00BCD4;
+  color: white;
+  margin-right: 0.5rem;
+}
+
+.btnEdit:hover {
+  background: #0097A7;
+  transform: translateY(-1px);
+}
+
+.btnContrato {
+  background: #4CAF50;
+  color: white;
+  margin-right: 0.5rem;
+}
+
+.btnContrato:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.btnImprimir {
+  background: #d3f510;
+  color: white;
+  margin-right: 0.5rem;
+}
+
+.btnImprimir:hover {
+  background: #dacc08;
+  transform: translateY(-1px);
+}
+
+.btnVerPDF {
+  background: #9C27B0;
+  color: white;
+  margin-right: 0.5rem;
+}
+
+.btnVerPDF:hover {
+  background: #7B1FA2;
+  transform: translateY(-1px);
+}
+
+.btnDelete {
+  background: #f44336;
+  color: white;
+}
+
+.btnDelete:hover {
+  background: #da190b;
+  transform: translateY(-1px);
+}
+
+.btnAnular {
+  background: #757575;
+  color: white;
+}
+
+.btnAnular:hover {
+  background: #616161;
+  transform: translateY(-1px);
+}
+
+.statusActive {
+  color: #FF5722;
+  font-weight: 600;
+}
+
+.statusInactive {
+  color: #9E9E9E;
+  font-weight: 600;
+}
+
+.statusSuccess {
+  color: #4CAF50;
+  font-weight: 600;
+}
+
+.statusContrato {
+  color: #2196F3;
+  font-weight: 600;
+}
+
+.statusSolicitud {
+  color: #FF9800;
+  font-weight: 600;
+}
+
+.statusFinalizado {
+  color: #1B5E20;
+  font-weight: 600;
+}
+
+.fechaVencida {
+  color: #f44336;
+  font-weight: 700;
+  background-color: rgba(244, 67, 54, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.fechaPorVencer {
+  color: #ff9800;
+  font-weight: 700;
+  background-color: rgba(255, 152, 0, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.linkSolicitud {
+  color: #4a90e2;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.linkSolicitud:hover {
+  color: #2874d9;
+  text-decoration: underline;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalHeader {
+  background: linear-gradient(135deg, #4a90e2 0%, #2874d9 100%);
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  border-radius: 12px 12px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.form {
+  padding: 2rem;
+}
+
+.section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.section h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #333;
+  font-size: 1.2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #4a90e2;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.formGroup input[type="text"],
+.formGroup input[type="date"],
+.formGroup input[type="number"],
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  border-color: #4a90e2;
+}
+
+.formGroup textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.btnAddDetalle {
+  background: #4a90e2;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: 1rem;
+}
+
+.btnAddDetalle:hover {
+  background: #2874d9;
+  transform: translateY(-1px);
+}
+
+.detallesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.detalleHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr 1.2fr 40px;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  border-radius: 6px;
+  font-weight: 600;
+  color: white;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.detalleHeader span {
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.detalleHeader span:first-child {
+  text-align: left;
+}
+
+.detalleRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr 1.2fr 110px;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.8rem;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+}
+
+.detalleRowVencida {
+  background: #ffebee !important;
+  border: 2px solid #f44336;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.detalleRowProxima {
+  background: #fff3e0 !important;
+  border: 2px solid #ff9800;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.selectEquipo {
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.inputSmall {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.inputMedium {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.montoFinal {
+  font-weight: 600;
+  color: #4a90e2;
+  text-align: right;
+}
+
+.btnDeleteDetalle {
+  width: 32px;
+  height: 32px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btnDeleteDetalle:hover {
+  background: #da190b;
+  transform: scale(1.1);
+}
+
+.btnRecoger {
+  padding: 0.5rem 1rem;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+  margin-right: 0.5rem;
+}
+
+.btnRecoger:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.totalesContainer {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 1rem;
+}
+
+.totalRow:last-child {
+  border-bottom: none;
+}
+
+.totalRow label {
+  font-weight: 500;
+  color: #555;
+}
+
+.inputDescuento {
+  width: 180px;
+  padding: 0.6rem 0.8rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  text-align: right;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  background: #f9f9f9;
+  transition: all 0.3s ease;
+  -moz-appearance: textfield;
+}
+
+.inputDescuento::-webkit-inner-spin-button,
+.inputDescuento::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.inputDescuento:hover {
+  border-color: #4a90e2;
+  background: white;
+}
+
+.inputDescuento:focus {
+  outline: none;
+  border-color: #4a90e2;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.totalFinal {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #4a90e2;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid #4a90e2 !important;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btnCancel, .btnSubmit {
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btnCancel {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.btnCancel:hover {
+  background: #d0d0d0;
+}
+
+.btnSubmit {
+  background: #4a90e2;
+  color: white;
+}
+
+.btnSubmit:hover {
+  background: #2874d9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+  }
+
+  .header h1 {
+    font-size: 1.8rem;
+  }
+
+  .modal {
+    max-width: 95%;
+  }
+
+  .form {
+    padding: 1rem;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .detalleRow {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+
+  .btnCancel, .btnSubmit {
+    width: 100%;
+  }
+}
+
+/* Dropdown de búsqueda de cliente */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.dropdownItem {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdownItem:hover {
+  background: #f0f0f0;
+}
+
+.dropdownItem:active {
+  background: #e0e0e0;
+}
+
+/* Toggle switches animados */
+.toggleContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  justify-content: center;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 0.5rem;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  position: relative;
+  width: 120px;
+  height: 36px;
+  appearance: none;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.checkboxLabel input[type="checkbox"]::after {
+  content: 'No';
+  position: absolute;
+  left: auto;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.checkboxLabel input[type="checkbox"]:hover {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 0 8px rgba(74, 144, 226, 0.3);
+}
+
+.checkboxLabel input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 12px rgba(39, 174, 96, 0.4);
+}
+
+.checkboxLabel input[type="checkbox"]:checked::after {
+  content: 'Sí';
+  left: 16px;
+  right: auto;
+}
+
+.checkboxLabel input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  top: 3px;
+  left: 3px;
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.15);
+  z-index: 1;
+}
+
+.checkboxLabel input[type="checkbox"]:checked::before {
+  transform: translateX(84px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos personalizados para toggle Pago de Envío */
+.togglePagoEnvio::after {
+  content: 'No paga' !important;
+}
+
+.togglePagoEnvio:checked::after {
+  content: 'Paga' !important;
+}
+
+/* Estilos personalizados para toggle Factura */
+.toggleFactura::after {
+  content: 'No usa' !important;
+}
+
+.toggleFactura:checked::after {
+  content: 'Usa' !important;
+}
+
+/* Modal Anulación */
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+
+.modalClose {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.modalClose:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modalBody {
+  padding: 2rem;
+}
+
+.modalDescription {
+  margin: 0 0 1.5rem 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.modalLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.modalTextarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+
+.modalTextarea:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.modalFooter {
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.btnCancel {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #ddd;
+  background: white;
+  color: #666;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btnCancel:hover {
+  background: #f5f5f5;
+  border-color: #ccc;
+}
+
+.btnAnularConfirm {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
+.btnAnularConfirm:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+}
+
+.btnAnularConfirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Estilos para impresión */
+@media print {
+  /* Resetear estilos del body */
+  body {
+    background: white !important;
+    font-size: 12pt !important;
+  }
+
+  /* Mostrar elementos solo para impresión */
+  :global(.print-only) {
+    display: block !important;
+  }
+
+  /* Ocultar solo elementos específicos de UI */
+  .header:not(.modalHeader),
+  .searchBar,
+  .modalActions,
+  .btnAdd,
+  .btnEdit,
+  .btnDelete,
+  .btnView,
+  .btnAnular,
+  .btnContrato,
+  .btnVerPDF,
+  .closeBtn,
+  :global(nav),
+  :global(header),
+  :global(footer),
+  :global(.navbar),
+  :global(.menu),
+  :global(.sidebar),
+  :global(table),
+  :global(.pagination),
+  :global(.table-info),
+  :global(.showing) {
+    display: none !important;
+  }
+
+  /* El contenedor principal */
+  .container {
+    background: white !important;
+  }
+
+  .main {
+    padding: 0 !important;
+  }
+
+  /* Ocultar completamente la tabla principal y todo su contenido */
+  .main > *:not(.modalOverlay) {
+    display: none !important;
+  }
+
+  /* Ajustar el modal para impresión */
+  .modalOverlay {
+    position: static !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .modal {
+    box-shadow: none !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .modalHeader {
+    border-bottom: 1px solid #000 !important;
+    padding: 0.25rem 0 !important;
+    margin: 0 !important;
+  }
+
+  .modalHeader h2 {
+    color: #000 !important;
+    font-size: 12pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .modalHeader span {
+    color: #000 !important;
+    font-size: 10pt !important;
+  }
+
+  .modalHeader > div {
+    display: flex !important;
+  }
+
+  /* Ocultar todos los elementos excepto la sección de paradas */
+  .form > *:not(:global(.seccion-paradas)) {
+    display: none !important;
+  }
+
+  /* Asegurar que la sección de paradas sea visible */
+  :global(.seccion-paradas) {
+    display: block !important;
+    page-break-inside: avoid;
+    margin-top: 0 !important;
+    padding-top: 0.25rem !important;
+  }
+
+  /* Ocultar el título y la línea */
+  :global(.seccion-paradas) > h3 {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  /* Reducir espacio del contenedor de paradas */
+  :global(.paradas-container) {
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* Asegurar que el formulario y todas las secciones sean visibles */
+  .form {
+    display: block !important;
+  }
+
+  .formRow {
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+
+  .formGroup {
+    display: block !important;
+  }
+
+  .formGroup input,
+  .formGroup textarea {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* Ajustar tamaños de fuente para impresión */
+  body {
+    font-size: 12pt !important;
+  }
+
+  .section h3 {
+    font-size: 16pt !important;
+    margin-top: 1rem !important;
+    border-bottom: 1px solid #000 !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  /* Asegurar que todo el contenido se imprima */
+  .form,
+  .section {
+    page-break-inside: avoid;
+  }
+
+  /* Mejorar contraste para impresión */
+  .formGroup label {
+    font-weight: bold !important;
+    color: #000 !important;
+  }
+
+  .formGroup input,
+  .formGroup select,
+  .formGroup textarea {
+    border: 1px solid #000 !important;
+    background: white !important;
+    color: #000 !important;
+  }
+
+  /* Mantener los badges de estado visibles con colores específicos */
+  .statusSuccess {
+    background: #4CAF50 !important;
+    color: white !important;
+    border: 1px solid #4CAF50 !important;
+    padding: 0.25rem 0.5rem !important;
+    font-weight: bold !important;
+  }
+
+  .statusActive {
+    background: #F44336 !important;
+    color: white !important;
+    border: 1px solid #F44336 !important;
+    padding: 0.25rem 0.5rem !important;
+    font-weight: bold !important;
+  }
+
+  .statusContrato,
+  .statusPending,
+  .statusCancelled,
+  .statusInactive {
+    background: white !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
+    padding: 0.25rem 0.5rem !important;
+    font-weight: bold !important;
+  }
+
+  /* Asegurar que las paradas se impriman bien */
+  :global(.paradas-container) {
+    max-height: none !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  :global(.parada-item) {
+    border: 1px solid #000 !important;
+    page-break-inside: avoid;
+    margin-bottom: 0.5rem !important;
+    padding: 1rem !important;
+    background: white !important;
+    display: block !important;
+  }
+
+  /* Agregar espacio para notas en cada parada */
+  :global(.parada-item)::after {
+    content: 'Notas: _______________________________________________';
+    display: block;
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed #ccc;
+    font-size: 10pt;
+    color: #666;
+  }
+
+  /* Asegurar visibilidad de todo el contenido */
+  .section {
+    display: block !important;
+    page-break-inside: avoid;
+  }
+
+  .section h3 {
+    display: block !important;
+  }
+
+  .section > div,
+  .section div {
+    display: block !important;
+  }
+
+  /* Mejorar visibilidad de números de orden */
+  :global(.parada-item) > div:first-child span:first-child {
+    font-weight: bold !important;
+    font-size: 14pt !important;
+  }
+
+  /* Forzar visibilidad de todos los divs dentro del contenedor de paradas */
+  :global(.paradas-container) > * {
+    display: block !important;
+  }
+
+  /* Asegurar que los span y texto sean visibles */
+  :global(.parada-item) span,
+  :global(.parada-item) div {
+    display: inline-block !important;
+  }
+
+  :global(.parada-item) > div {
+    display: block !important;
+  }
+}

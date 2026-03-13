@@ -1,0 +1,43 @@
+.footer {
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+  padding: 2rem 0;
+  margin-top: auto;
+  width: 100%;
+  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  text-align: center;
+}
+
+.text {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 1.5rem 0;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+
+  .text {
+    font-size: 0.8rem;
+  }
+}
+
+@media print {
+  .footer {
+    display: none !important;
+  }
+}
