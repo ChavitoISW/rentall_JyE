@@ -557,6 +557,9 @@ const HojaRuta: React.FC = () => {
           // No se modifica el inventario - el equipo permanece en cantidad_en_recoleccion
           // La orden sigue activa y puede ser reprogramada en otra hoja de ruta
         } else if (estadoFinal === EstadoDetalleRuta.COMPLETADO) {
+          // Capturar la fecha de gestión de la parada (será usada para la bitácora)
+          const fechaGestionParada = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+          
           // Actualizar estado del detalle
           const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
@@ -631,18 +634,16 @@ const HojaRuta: React.FC = () => {
                         })
                       });
                       
-                      // Actualizar bitácora: registrar devolución del equipo
+                      // Actualizar bitácora: registrar devolución del equipo con la fecha de gestión de la parada
                       try {
-                        const fechaDevolucion = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
-                        
-                        // Actualizar la bitácora del equipo devuelto
+                        // Usar la fecha de gestión de la parada (capturada al inicio)
                         await fetch(`/api/bitacora-equipo/devolver`, {
                           method: 'PUT',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
                             id_equipo: idEquipo,
                             id_solicitud_equipo: orden.id_solicitud_equipo,
-                            fecha_devolucion: fechaDevolucion,
+                            fecha_devolucion: fechaGestionParada,
                             estado_bitacora: 2 // 2 = DEVUELTO
                           })
                         });

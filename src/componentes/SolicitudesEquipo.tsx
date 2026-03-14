@@ -1930,6 +1930,8 @@ const SolicitudesEquipo: React.FC = () => {
           className = styles.statusActive; // Rojo/Naranja para recolección
         } else if (estado === EstadoSolicitudEquipo.SOLICITUD) {
           className = styles.statusSolicitud; // Naranja para solicitud
+        } else if (estado === EstadoSolicitudEquipo.EXTENDIDO) {
+          className = styles.statusExtendido; // Color especial para extendido
         }
         
         return <span className={className}>{label}</span>;
@@ -1956,7 +1958,8 @@ const SolicitudesEquipo: React.FC = () => {
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_ENTREGA &&
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_RECOLECCION &&
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.DONDE_CLIENTE &&
-        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO
+        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO &&
+        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EXTENDIDO
     },
     {
       label: '📄',
@@ -1988,7 +1991,8 @@ const SolicitudesEquipo: React.FC = () => {
          solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.CONTRATO_GENERADO &&
          solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_ENTREGA &&
          solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.ANULADO &&
-         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO)
+         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO &&
+         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EXTENDIDO)
     },
     {
       label: '🚫',
@@ -2000,7 +2004,8 @@ const SolicitudesEquipo: React.FC = () => {
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO &&
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_ENTREGA &&
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_RECOLECCION &&
-        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.DONDE_CLIENTE
+        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.DONDE_CLIENTE &&
+        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EXTENDIDO
     }
   ];
 
