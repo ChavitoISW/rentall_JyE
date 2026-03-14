@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse) {
-  const { id_hoja_ruta, estado, fecha_ruta, con_detalles } = req.query;
+  const { id_hoja_ruta, estado, fecha_creacion, con_detalles } = req.query;
 
   let query = 'SELECT * FROM hoja_ruta';
   const conditions: string[] = [];
@@ -37,31 +37,37 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (estado !== undefined) {
-    conditions.push(`estado = ?`);
+    conditions.push(`estado_hoja_ruta = ?`);
     values.push(estado);
   }
 
-  if (fecha_ruta) {
-    conditions.push(`fecha_ruta = ?`);
-    values.push(fecha_ruta);
+  if (fecha_creacion) {
+    conditions.push(`fecha_creacion = ?`);
+    values.push(fecha_creacion);
   }
 
   if (conditions.length > 0) {
     query += ' WHERE ' + conditions.join(' AND ');
   }
 
-  query += ' ORDER BY fecha_ruta DESC, numero_hoja_ruta DESC';
+  query += ' ORDER BY fecha_creacion DESC, numero_hoja_ruta DESC';
 
   const result = db.prepare(query).all(...values);
   
+  // Mapear campos de base de datos a nombres de interfaz
+  const resultadoMapeado = result.map((hoja: any) => ({
+    ...hoja,
+    estado: hoja.estado_hoja_ruta ?? hoja.estado
+  }));
+  
   // Si se solicitan los detalles, cargarlos
-  if (con_detalles === 'true' && result.length > 0) {
-    for (const hoja of result) {
+  if (con_detalles === 'true' && resultadoMapeado.length > 0) {
+    for (const hoja of resultadoMapeado) {
       const hojaConDetalles = hoja as any;
       const detalles = db.prepare(
         `SELECT * FROM detalle_hoja_ruta 
          WHERE id_hoja_ruta = ? 
-         ORDER BY orden_visita ASC`
+         ORDER BY orden_parada ASC`
       ).all(hojaConDetalles.id_hoja_ruta);
       
       // Enriquecer cada detalle con información de equipos
@@ -108,19 +114,25 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
         }
         
         detalle.equipos_info = equiposInfo;
+        // Mapear estado_detalle a estado para compatibilidad
+        detalle.estado = detalle.estado_detalle ?? detalle.estado;
+        // Mapear orden_parada a orden_visita para compatibilidad
+        detalle.orden_visita = detalle.orden_parada ?? detalle.orden_visita;
       }
       
       hojaConDetalles.detalles = detalles;
       hojaConDetalles.total_paradas = detalles.length;
+      // Mapear estado_hoja_ruta a estado para compatibilidad
+      hojaConDetalles.estado = hojaConDetalles.estado_hoja_ruta ?? hojaConDetalles.estado;
     }
   }
 
-  return res.status(200).json({ success: true, data: result });
+  return res.status(200).json({ success: true, data: resultadoMapeado });
 }
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
   const {
-    fecha_ruta,
+    fecha_creacion,
     conductor,
     vehiculo,
     estado,
@@ -143,15 +155,15 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     // Usar transacción con función
     const insertHoja = db.prepare(
       `INSERT INTO hoja_ruta (
-        numero_hoja_ruta, fecha_ruta, conductor, vehiculo, estado, observaciones
+        numero_hoja_ruta, fecha_creacion, conductor, vehiculo, estado_hoja_ruta, observaciones
       ) VALUES (?, ?, ?, ?, ?, ?)`
     );
 
     const insertDetalle = db.prepare(
       `INSERT INTO detalle_hoja_ruta (
         id_hoja_ruta, tipo_operacion, id_referencia, numero_referencia,
-        orden_visita, direccion, provincia, canton, distrito, otras_senas,
-        nombre_cliente, telefono_cliente, estado, hora_estimada, notas
+        orden_parada, direccion, provincia, canton, distrito, otras_senas,
+        nombre_cliente, telefono_cliente, estado_detalle, hora_estimada, notas
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
 
@@ -166,7 +178,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     const transaction = db.transaction(() => {
       // Insertar hoja de ruta
       const resultHoja = insertHoja.run(
-        nuevoNumero, fecha_ruta, conductor, vehiculo, estado || 0, observaciones
+        nuevoNumero, fecha_creacion, conductor, vehiculo, estado || 0, observaciones
       );
 
       const id_hoja_ruta = resultHoja.lastInsertRowid;
@@ -180,7 +192,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
             detalle.tipo_operacion,
             detalle.id_referencia,
             detalle.numero_referencia,
-            i + 1, // orden_visita
+            i + 1, // orden_parada
             detalle.direccion,
             detalle.provincia,
             detalle.canton,
@@ -193,8 +205,14 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
             detalle.notas
           );
 
-          // Actualizar estado de la orden referenciada a "En Ruta"
-          if (detalle.tipo_operacion === 1) { // Recolección
+          // Actualizar estado de la orden/SE referenciada a "En Ruta"
+          if (detalle.tipo_operacion === 0) { // Entrega
+            // Actualizar estado de la SE a EN_RUTA_ENTREGA (3)
+            db.prepare(
+              `UPDATE encabezado_solicitud_equipo SET estado_solicitud_equipo = 3, updated_at = CURRENT_TIMESTAMP
+               WHERE id_solicitud_equipo = ?`
+            ).run(detalle.id_referencia);
+          } else if (detalle.tipo_operacion === 1) { // Recolección
             updateRecoleccion.run(detalle.id_referencia);
           } else if (detalle.tipo_operacion === 2) { // Cambio
             updateCambio.run(detalle.id_referencia);
@@ -209,7 +227,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
     // Cargar la hoja completa con detalles
     const hojaCompleta = db.prepare('SELECT * FROM hoja_ruta WHERE id_hoja_ruta = ?').get(id_hoja_ruta) as any;
-    const detallesResultado = db.prepare('SELECT * FROM detalle_hoja_ruta WHERE id_hoja_ruta = ? ORDER BY orden_visita').all(id_hoja_ruta);
+    const detallesResultado = db.prepare('SELECT * FROM detalle_hoja_ruta WHERE id_hoja_ruta = ? ORDER BY orden_parada').all(id_hoja_ruta);
 
     hojaCompleta.detalles = detallesResultado;
     hojaCompleta.total_paradas = detallesResultado.length;
@@ -224,7 +242,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   const { id_hoja_ruta } = req.query;
   const {
-    fecha_ruta,
+    fecha_creacion,
     conductor,
     vehiculo,
     estado,
@@ -238,9 +256,9 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
   const updates: string[] = [];
   const values: any[] = [];
 
-  if (fecha_ruta !== undefined) {
-    updates.push('fecha_ruta = ?');
-    values.push(fecha_ruta);
+  if (fecha_creacion !== undefined) {
+    updates.push('fecha_creacion = ?');
+    values.push(fecha_creacion);
   }
   if (conductor !== undefined) {
     updates.push('conductor = ?');
@@ -251,7 +269,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
     values.push(vehiculo);
   }
   if (estado !== undefined) {
-    updates.push('estado = ?');
+    updates.push('estado_hoja_ruta = ?');
     values.push(estado);
   }
   if (observaciones !== undefined) {
@@ -324,16 +342,8 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
          AND e.id_equipo_especifico IS NOT NULL`
       ).all(id_hoja_ruta);
 
-      if (equiposRecoleccionActivar.length > 0) {
-        const placeholdersActivar = equiposRecoleccionActivar.map(() => '?').join(',');
-        const updateEquiposRecoleccion = db.prepare(
-          `UPDATE equipo
-           SET id_estado_equipo = 4, updated_at = CURRENT_TIMESTAMP
-           WHERE id_equipo_especifico IN (${placeholdersActivar})
-           AND id_estado_equipo = 3`
-        );
-        updateEquiposRecoleccion.run(...equiposRecoleccionActivar.map((e: any) => e.id_equipo_especifico));
-      }
+      // Ya no necesitamos actualizar estado - el sistema de columnas maneja esto automáticamente
+      // Los equipos ya están en cantidad_alquilado desde que se generó el contrato
 
       // Actualizar órdenes de cambio a estado EN_RUTA (1)
       const updateCambios = db.prepare(
@@ -372,16 +382,8 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
          AND e.id_equipo_especifico IS NOT NULL`
       ).all(id_hoja_ruta);
 
-      if (equiposCambioActivar.length > 0) {
-        const placeholdersCambioActivar = equiposCambioActivar.map(() => '?').join(',');
-        const updateEquiposCambioActual = db.prepare(
-          `UPDATE equipo
-           SET id_estado_equipo = 4, updated_at = CURRENT_TIMESTAMP
-           WHERE id_equipo_especifico IN (${placeholdersCambioActivar})
-           AND id_estado_equipo = 3`
-        );
-        updateEquiposCambioActual.run(...equiposCambioActivar.map((e: any) => e.id_equipo_especifico));
-      }
+      // Ya no necesitamos actualizar estado - el sistema de columnas maneja esto automáticamente
+      // Los equipos ya están en cantidad_alquilado desde que se generó el contrato
     }
 
     // Si se está completando la hoja (estado = 2), actualizar estados finales
@@ -397,39 +399,17 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       );
       updateEntregasCompletas.run(id_hoja_ruta);
 
-      // Para recolecciones: actualizar SE a FINALIZADO (6) y equipos a EN_MANTENIMIENTO (5)
-      // Primero obtener los equipos de las recolecciones
-      const equiposRecoleccion = db.prepare(
-        `SELECT DISTINCT e.id_equipo_especifico
-         FROM orden_recoleccion ore
-         INNER JOIN detalle_solicitud_equipo dse ON ore.id_detalle_solicitud_equipo = dse.id_detalle_solicitud_equipo
-         INNER JOIN equipo e ON dse.id_equipo = e.id_equipo
-         WHERE ore.id_orden_recoleccion IN (
-           SELECT id_referencia FROM detalle_hoja_ruta 
-           WHERE id_hoja_ruta = ? AND tipo_operacion = 1
-         )
-         AND e.id_equipo_especifico IS NOT NULL`
-      ).all(id_hoja_ruta);
+      // Para recolecciones: NO es necesario mover inventario aquí
+      // El movimiento de inventario ya se hace en handleCompletarParada cuando se marca cada parada como COMPLETADA
+      // Esto evita la duplicación de movimientos de inventario
 
-      // Actualizar estado de equipos de EN_RECOLECCION (4) a EN_MANTENIMIENTO (5)
-      if (equiposRecoleccion.length > 0) {
-        const placeholders = equiposRecoleccion.map(() => '?').join(',');
-        const updateEquipos = db.prepare(
-          `UPDATE equipo
-           SET id_estado_equipo = 5, updated_at = CURRENT_TIMESTAMP
-           WHERE id_equipo_especifico IN (${placeholders})
-           AND id_estado_equipo = 4`
-        );
-        updateEquipos.run(...equiposRecoleccion.map((e: any) => e.id_equipo_especifico));
-      }
-
-      // Actualizar órdenes de recolección a estado COMPLETADA (2)
+      // Actualizar órdenes de recolección a estado COMPLETADA (2) solo si el detalle está completado
       const updateRecoleccionesCompletas = db.prepare(
         `UPDATE orden_recoleccion
          SET estado = 2
          WHERE id_orden_recoleccion IN (
            SELECT id_referencia FROM detalle_hoja_ruta 
-           WHERE id_hoja_ruta = ? AND tipo_operacion = 1
+           WHERE id_hoja_ruta = ? AND tipo_operacion = 1 AND estado_detalle = 1
          )`
       );
       updateRecoleccionesCompletas.run(id_hoja_ruta);
@@ -485,15 +465,21 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
          AND e.id_equipo_especifico IS NOT NULL`
       ).all(id_hoja_ruta);
 
+      // Mover equipos de cantidad_alquilado a cantidad_en_mantenimiento
       if (equiposCambio.length > 0) {
-        const placeholdersCambio = equiposCambio.map(() => '?').join(',');
-        const updateEquiposCambio = db.prepare(
-          `UPDATE equipo
-           SET id_estado_equipo = 5, updated_at = CURRENT_TIMESTAMP
-           WHERE id_equipo_especifico IN (${placeholdersCambio})
-           AND id_estado_equipo = 4`
-        );
-        updateEquiposCambio.run(...equiposCambio.map((e: any) => e.id_equipo_especifico));
+        (equiposCambio as any[]).forEach((equipoItem: any) => {
+          const equipoActual = db.prepare('SELECT * FROM equipo WHERE id_equipo_especifico = ?').get(equipoItem.id_equipo_especifico) as any;
+          if (equipoActual) {
+            const cantidadRecolectar = equipoActual.cantidad_equipo || 0;
+            db.prepare(`
+              UPDATE equipo
+              SET cantidad_alquilado = COALESCE(cantidad_alquilado, 0) - ?,
+                  cantidad_en_mantenimiento = COALESCE(cantidad_en_mantenimiento, 0) + ?,
+                  updated_at = CURRENT_TIMESTAMP
+              WHERE id_equipo_especifico = ?
+            `).run(cantidadRecolectar, cantidadRecolectar, equipoItem.id_equipo_especifico);
+          }
+        });
       }
 
       // Actualizar SE a FINALIZADO solo si TODAS sus órdenes de cambio están completadas
@@ -563,6 +549,7 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
        )`
     );
 
+    const deleteDetalles = db.prepare('DELETE FROM detalle_hoja_ruta WHERE id_hoja_ruta = ?');
     const deleteHoja = db.prepare('DELETE FROM hoja_ruta WHERE id_hoja_ruta = ?');
     const selectHoja = db.prepare('SELECT * FROM hoja_ruta WHERE id_hoja_ruta = ?');
 
@@ -577,7 +564,10 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
       updateRecoleccion.run(id);
       updateCambio.run(id);
 
-      // Eliminar hoja de ruta (los detalles se eliminan por CASCADE)
+      // Eliminar detalles primero (por foreign key constraint)
+      deleteDetalles.run(id);
+
+      // Eliminar hoja de ruta
       deleteHoja.run(id);
 
       return hojaAEliminar;

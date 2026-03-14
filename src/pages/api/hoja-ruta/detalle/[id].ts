@@ -51,12 +51,12 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse, id: string) 
   // Actualizar el detalle
   const update = db.prepare(
     `UPDATE detalle_hoja_ruta 
-     SET estado = ?, hora_real = ?, notas = ?
+     SET estado_detalle = ?, hora_real = ?, notas = ?
      WHERE id_detalle_hoja_ruta = ?`
   );
 
   update.run(
-    estado !== undefined ? estado : (detalle as any).estado,
+    estado !== undefined ? estado : (detalle as any).estado_detalle,
     hora_real !== undefined ? hora_real : (detalle as any).hora_real,
     notas !== undefined ? notas : (detalle as any).notas,
     id

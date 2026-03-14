@@ -62,7 +62,7 @@ const HojaRuta: React.FC = () => {
   const [notasParada, setNotasParada] = useState('');
 
   const [currentHoja, setCurrentHoja] = useState<HojaRutaExtendida>({
-    fecha_ruta: new Date().toISOString().split('T')[0],
+    fecha_creacion: new Date().toISOString().split('T')[0],
     conductor: '',
     vehiculo: '',
     estado: EstadoHojaRuta.BORRADOR,
@@ -95,7 +95,6 @@ const HojaRuta: React.FC = () => {
       const result = await response.json();
       setHojas(Array.isArray(result.data) ? result.data : []);
     } catch (error) {
-      console.error('Error al cargar hojas de ruta:', error);
       setHojas([]);
     } finally {
       setIsLoading(false);
@@ -168,7 +167,6 @@ const HojaRuta: React.FC = () => {
         setOrdenesDisponibles(ordenes);
       }
     } catch (error) {
-      console.error('Error al cargar órdenes disponibles:', error);
     } finally {
       setIsLoading(false);
     }
@@ -187,7 +185,6 @@ const HojaRuta: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error al cargar detalles de la hoja:', error);
     } finally {
       setIsLoading(false);
     }
@@ -250,7 +247,6 @@ const HojaRuta: React.FC = () => {
       setEquiposParada(equipos);
       setIsGestionParadaOpen(true);
     } catch (error) {
-      console.error('Error al cargar equipos de la parada:', error);
       setConfirmDialog({
         isOpen: true,
         title: 'Error',
@@ -275,7 +271,6 @@ const HojaRuta: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error('Error al recargar hoja:', error);
     }
   };
 
@@ -300,7 +295,6 @@ const HojaRuta: React.FC = () => {
           
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
-            console.error('Error del servidor:', errorData);
             throw new Error(errorData.error || 'Error al actualizar la parada');
           }
           
@@ -324,27 +318,18 @@ const HojaRuta: React.FC = () => {
           
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
-            console.error('Error del servidor:', errorData);
             throw new Error(errorData.error || 'Error al actualizar la parada');
           }
           
-          // No ejecutada: revertir SE a CONTRATO_GENERADO y liberar inventario
+          // No ejecutada: revertir SE a CONTRATO_GENERADO y mantener equipos en alquilado
           await fetch(`/api/solicitud-equipo/${paradaActual.id_referencia}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ estado_solicitud_equipo: 2 }) // CONTRATO_GENERADO
           });
           
-          // Liberar inventario reservado
-          try {
-            await fetch('/api/solicitud-equipo/liberar-inventario', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id_solicitud_equipo: paradaActual.id_referencia })
-            });
-          } catch (error) {
-            console.error('Error al liberar inventario:', error);
-          }
+          // Los equipos permanecen en cantidad_alquilado
+          // El contrato sigue activo, solo no se pudo entregar ese día
         } else if (estadoFinal === EstadoDetalleRuta.FALLIDO) {
           // Fallido: eliminar detalle de hoja de ruta, revertir SE y liberar inventario
           // para que pueda ser reasignada a otra ruta
@@ -354,7 +339,6 @@ const HojaRuta: React.FC = () => {
           
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
-            console.error('Error del servidor:', errorData);
             throw new Error(errorData.error || 'Error al eliminar la parada');
           }
           
@@ -365,19 +349,66 @@ const HojaRuta: React.FC = () => {
             body: JSON.stringify({ estado_solicitud_equipo: 2 }) // CONTRATO_GENERADO
           });
           
-          // Liberar inventario reservado
-          try {
-            await fetch('/api/solicitud-equipo/liberar-inventario', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id_solicitud_equipo: paradaActual.id_referencia })
-            });
-          } catch (error) {
-            console.error('Error al liberar inventario:', error);
-          }
+          // Los equipos permanecen en cantidad_alquilado
+          // El contrato sigue activo y puede ser reasignado a otra ruta
         }
       } else if (paradaActual.tipo_operacion === TipoOperacionRuta.RECOLECCION) {
         if (estadoFinal === EstadoDetalleRuta.FALLIDO) {
+          // Si el detalle estaba COMPLETADO, necesitamos revertir el inventario
+          // de en_mantenimiento → en_recoleccion antes de eliminar el detalle
+          if (paradaActual.estado === EstadoDetalleRuta.COMPLETADO) {
+            try {
+              // Obtener la orden de recolección para obtener el id_detalle_solicitud_equipo
+              const ordenResponse = await fetch(`/api/orden-recoleccion?id_orden_recoleccion=${paradaActual.id_referencia}`);
+              if (ordenResponse.ok) {
+                const ordenResult = await ordenResponse.json();
+                
+                if (ordenResult.success && ordenResult.data) {
+                  const orden = Array.isArray(ordenResult.data) ? ordenResult.data[0] : ordenResult.data;
+                  
+                  if (orden && orden.id_detalle_solicitud_equipo) {
+                    const detalleResponse = await fetch(`/api/detalle-solicitud-equipo/${orden.id_detalle_solicitud_equipo}`);
+                    if (detalleResponse.ok) {
+                      const detalleResult = await detalleResponse.json();
+                      
+                      if (detalleResult.success && detalleResult.data && detalleResult.data.id_equipo) {
+                        const idEquipo = detalleResult.data.id_equipo;
+                        const cantidadRecolectar = orden.cantidad || 0;
+                        
+                        // Obtener el equipo actual
+                        const equipoResponse = await fetch(`/api/equipo/${idEquipo}`);
+                        if (equipoResponse.ok) {
+                          const equipoResult = await equipoResponse.json();
+                          
+                          if (equipoResult.success && equipoResult.data) {
+                            const equipoActual = equipoResult.data;
+                            
+                            // Revertir el movimiento: en_mantenimiento → en_recoleccion
+                            const cantidadEnMantenimiento = equipoActual.cantidad_en_mantenimiento || 0;
+                            const cantidadAReverir = Math.min(cantidadRecolectar, cantidadEnMantenimiento);
+                            
+                            if (cantidadAReverir > 0) {
+                              await fetch(`/api/equipo/${idEquipo}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  cantidad_en_mantenimiento: cantidadEnMantenimiento - cantidadAReverir,
+                                  cantidad_en_recoleccion: (equipoActual.cantidad_en_recoleccion || 0) + cantidadAReverir
+                                })
+                              });
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Error revirtiendo inventario:', error);
+            }
+          }
+          
           // Fallido: eliminar detalle de hoja de ruta para que pueda ser reasignada
           const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'DELETE'
@@ -385,7 +416,6 @@ const HojaRuta: React.FC = () => {
           
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
-            console.error('Error del servidor:', errorData);
             throw new Error(errorData.error || 'Error al eliminar la parada');
           }
           
@@ -395,8 +425,90 @@ const HojaRuta: React.FC = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ estado: 0 }) // PENDIENTE
           });
+          
+          // Si la orden estaba completada, revisar si la SE debe revertirse de FINALIZADO a EN_RUTA_RECOLECCION
+          if (paradaActual.estado === EstadoDetalleRuta.COMPLETADO) {
+            try {
+              const ordenResponse = await fetch(`/api/orden-recoleccion?id_orden_recoleccion=${paradaActual.id_referencia}`);
+              if (ordenResponse.ok) {
+                const ordenResult = await ordenResponse.json();
+                if (ordenResult.success && ordenResult.data) {
+                  const orden = Array.isArray(ordenResult.data) ? ordenResult.data[0] : ordenResult.data;
+                  if (orden && orden.id_solicitud_equipo) {
+                    // Actualizar SE a EN_RUTA_RECOLECCION ya que la orden volvió a PENDIENTE
+                    await fetch(`/api/solicitud-equipo/${orden.id_solicitud_equipo}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ estado_solicitud_equipo: 5 }) // EN_RUTA_RECOLECCION
+                    });
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Error revirtiendo estado de SE:', error);
+            }
+          }
+          
+          // Si no estaba completado, el equipo ya está en cantidad_en_recoleccion
+          // La orden puede ser reasignada a otra hoja de ruta
         } else if (estadoFinal === EstadoDetalleRuta.NO_EJECUTADA) {
-          // Actualizar estado del detalle
+          // Si el detalle estaba COMPLETADO, necesitamos revertir el inventario
+          // de en_mantenimiento → en_recoleccion antes de marcarlo como NO_EJECUTADA
+          if (paradaActual.estado === EstadoDetalleRuta.COMPLETADO) {
+            try {
+              // Obtener la orden de recolección para obtener el id_detalle_solicitud_equipo
+              const ordenResponse = await fetch(`/api/orden-recoleccion?id_orden_recoleccion=${paradaActual.id_referencia}`);
+              if (ordenResponse.ok) {
+                const ordenResult = await ordenResponse.json();
+                
+                if (ordenResult.success && ordenResult.data) {
+                  const orden = Array.isArray(ordenResult.data) ? ordenResult.data[0] : ordenResult.data;
+                  
+                  if (orden && orden.id_detalle_solicitud_equipo) {
+                    const detalleResponse = await fetch(`/api/detalle-solicitud-equipo/${orden.id_detalle_solicitud_equipo}`);
+                    if (detalleResponse.ok) {
+                      const detalleResult = await detalleResponse.json();
+                      
+                      if (detalleResult.success && detalleResult.data && detalleResult.data.id_equipo) {
+                        const idEquipo = detalleResult.data.id_equipo;
+                        const cantidadRecolectar = orden.cantidad || 0;
+                        
+                        // Obtener el equipo actual
+                        const equipoResponse = await fetch(`/api/equipo/${idEquipo}`);
+                        if (equipoResponse.ok) {
+                          const equipoResult = await equipoResponse.json();
+                          
+                          if (equipoResult.success && equipoResult.data) {
+                            const equipoActual = equipoResult.data;
+                            
+                            // Revertir el movimiento: en_mantenimiento → en_recoleccion
+                            const cantidadEnMantenimiento = equipoActual.cantidad_en_mantenimiento || 0;
+                            const cantidadAReverir = Math.min(cantidadRecolectar, cantidadEnMantenimiento);
+                            
+                            if (cantidadAReverir > 0) {
+                              await fetch(`/api/equipo/${idEquipo}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  cantidad_en_mantenimiento: cantidadEnMantenimiento - cantidadAReverir,
+                                  cantidad_en_recoleccion: (equipoActual.cantidad_en_recoleccion || 0) + cantidadAReverir
+                                })
+                              });
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Error revirtiendo inventario:', error);
+            }
+          }
+          
+          // NO_EJECUTADA: No se mueve el inventario a mantenimiento
+          // El equipo permanece en cantidad_en_recoleccion
           const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -409,7 +521,6 @@ const HojaRuta: React.FC = () => {
           
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
-            console.error('Error del servidor:', errorData);
             throw new Error(errorData.error || 'Error al actualizar la parada');
           }
           
@@ -420,41 +531,31 @@ const HojaRuta: React.FC = () => {
             body: JSON.stringify({ estado: 0 }) // PENDIENTE
           });
           
-          // Obtener la orden de recolección para obtener el id_detalle_solicitud_equipo
-          try {
-            const ordenResponse = await fetch(`/api/orden-recoleccion?id_orden_recoleccion=${paradaActual.id_referencia}`);
-            if (!ordenResponse.ok) {
-              throw new Error('Error obteniendo orden de recolección');
-            }
-            const ordenResult = await ordenResponse.json();
-            
-            if (ordenResult.success && ordenResult.data) {
-              // Si es un array, tomar el primer elemento
-              const orden = Array.isArray(ordenResult.data) ? ordenResult.data[0] : ordenResult.data;
-              
-              // Obtener el detalle de solicitud para obtener el id_equipo
-              if (orden && orden.id_detalle_solicitud_equipo) {
-                const detalleResponse = await fetch(`/api/detalle-solicitud-equipo/${orden.id_detalle_solicitud_equipo}`);
-                if (!detalleResponse.ok) {
-                  throw new Error('Error obteniendo detalle de solicitud');
-                }
-                const detalleResult = await detalleResponse.json();
-                
-                if (detalleResult.success && detalleResult.data && detalleResult.data.id_equipo) {
-                  // Mantener estado del equipo en EN_RECOLECCION (4) ya que la orden sigue pendiente
-                  await fetch(`/api/equipo/${detalleResult.data.id_equipo}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      id_estado_equipo: 4 // EN_RECOLECCION
-                    })
-                  });
+          // Si la orden estaba completada, revisar si la SE debe revertirse de FINALIZADO a EN_RUTA_RECOLECCION
+          if (paradaActual.estado === EstadoDetalleRuta.COMPLETADO) {
+            try {
+              const ordenResponse = await fetch(`/api/orden-recoleccion?id_orden_recoleccion=${paradaActual.id_referencia}`);
+              if (ordenResponse.ok) {
+                const ordenResult = await ordenResponse.json();
+                if (ordenResult.success && ordenResult.data) {
+                  const orden = Array.isArray(ordenResult.data) ? ordenResult.data[0] : ordenResult.data;
+                  if (orden && orden.id_solicitud_equipo) {
+                    // Actualizar SE a EN_RUTA_RECOLECCION ya que la orden volvió a PENDIENTE
+                    await fetch(`/api/solicitud-equipo/${orden.id_solicitud_equipo}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ estado_solicitud_equipo: 5 }) // EN_RUTA_RECOLECCION
+                    });
+                  }
                 }
               }
+            } catch (error) {
+              console.error('Error revirtiendo estado de SE:', error);
             }
-          } catch (error) {
-            console.error('Error actualizando estado del equipo:', error);
           }
+          
+          // No se modifica el inventario - el equipo permanece en cantidad_en_recoleccion
+          // La orden sigue activa y puede ser reprogramada en otra hoja de ruta
         } else if (estadoFinal === EstadoDetalleRuta.COMPLETADO) {
           // Actualizar estado del detalle
           const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
@@ -513,45 +614,22 @@ const HojaRuta: React.FC = () => {
                   
                   if (equipoResult.success && equipoResult.data) {
                     const equipoActual = equipoResult.data;
-                    const cantidadActual = equipoActual.cantidad_equipo || 0;
                     
-                    console.log(`🔧 Recolección: ${cantidadRecolectar} de ${cantidadActual} equipos (ID: ${idEquipo})`);
+                    // Validar que haya suficiente cantidad en recolección
+                    const cantidadEnRecoleccionActual = equipoActual.cantidad_en_recoleccion || 0;
+                    const cantidadAMover = Math.min(cantidadRecolectar, cantidadEnRecoleccionActual);
                     
-                    if (cantidadRecolectar < cantidadActual) {
-                      // Dividir el equipo: crear nuevo registro con la cantidad a recolectar
-                      const nuevoEquipoResponse = await fetch('/api/equipo', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          cantidad_equipo: cantidadRecolectar,
-                          nombre_equipo: equipoActual.nombre_equipo,
-                          id_equipo_categoria: equipoActual.id_equipo_categoria,
-                          id_estado_equipo: 5, // EN_MANTENIMIENTO
-                          id_equipo_especifico: equipoActual.id_equipo_especifico
-                        })
-                      });
-                      
-                      if (nuevoEquipoResponse.ok) {
-                        // Reducir la cantidad del equipo original
-                        await fetch(`/api/equipo/${idEquipo}`, {
-                          method: 'PUT',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            cantidad_equipo: cantidadActual - cantidadRecolectar
-                          })
-                        });
-                        console.log(`✅ Equipo dividido: ${cantidadRecolectar} en mantenimiento, ${cantidadActual - cantidadRecolectar} restantes`);
-                      }
-                    } else {
-                      // Actualizar todo el equipo a EN_MANTENIMIENTO
+                    if (cantidadAMover > 0) {
+                      // Actualizar usando el nuevo sistema de columnas por estado
+                      // en_recoleccion → en_mantenimiento
                       await fetch(`/api/equipo/${idEquipo}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                          id_estado_equipo: 5 // EN_MANTENIMIENTO
+                          cantidad_en_recoleccion: cantidadEnRecoleccionActual - cantidadAMover,
+                          cantidad_en_mantenimiento: (equipoActual.cantidad_en_mantenimiento || 0) + cantidadAMover
                         })
                       });
-                      console.log(`✅ Equipo completo a mantenimiento: ${cantidadActual} unidades`);
                     }
                   }
                 }
@@ -564,7 +642,9 @@ const HojaRuta: React.FC = () => {
                   const todasOrdenesResult = await todasOrdenesResponse.json();
                   
                   if (todasOrdenesResult.success && Array.isArray(todasOrdenesResult.data)) {
-                    const todasCompletadas = todasOrdenesResult.data.every((o: any) => o.estado === 2); // 2 = COMPLETADA
+                    // Ignorar órdenes canceladas (estado 3) en la validación
+                    const ordenesActivas = todasOrdenesResult.data.filter((o: any) => o.estado !== 3);
+                    const todasCompletadas = ordenesActivas.length > 0 && ordenesActivas.every((o: any) => o.estado === 2); // 2 = COMPLETADA
                     
                     if (todasCompletadas && orden.id_solicitud_equipo) {
                       // Actualizar SE a FINALIZADO (6)
@@ -767,7 +847,60 @@ const HojaRuta: React.FC = () => {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ estado: EstadoHojaRuta.COMPLETADA })
             });
+            
             if (response.ok) {
+              // Actualizar las SE de las paradas de RECOLECCION completadas a FINALIZADO
+              const hojaResponse = await fetch(`/api/hoja-ruta?id_hoja_ruta=${hoja.id_hoja_ruta}&con_detalles=true`);
+              const hojaResult = await hojaResponse.json();
+              
+              if (hojaResult.success && hojaResult.data && hojaResult.data.length > 0) {
+                const hojaConDetalles = hojaResult.data[0];
+                const paradasRecoleccionCompletadas = hojaConDetalles.detalles?.filter(
+                  (d: DetalleHojaRuta) => d.tipo_operacion === TipoOperacionRuta.RECOLECCION && 
+                                          (d.estado === EstadoDetalleRuta.COMPLETADO || d.estado === EstadoDetalleRuta.COMPLETADO_PARCIAL)
+                ) || [];
+                
+                // Para cada recolección completada, verificar si todas las órdenes de esa SE están completadas
+                for (const detalle of paradasRecoleccionCompletadas) {
+                  try {
+                    // Obtener la orden de recolección
+                    const ordenResponse = await fetch(`/api/orden-recoleccion?id_orden_recoleccion=${detalle.id_referencia}`);
+                    if (ordenResponse.ok) {
+                      const ordenResult = await ordenResponse.json();
+                      
+                      if (ordenResult.success && ordenResult.data) {
+                        const orden = Array.isArray(ordenResult.data) ? ordenResult.data[0] : ordenResult.data;
+                        
+                        // Verificar si todas las órdenes de recolección de esta SE están completadas
+                        if (orden && orden.numero_solicitud_equipo) {
+                          const todasOrdenesResponse = await fetch(`/api/orden-recoleccion?numero_solicitud_equipo=${orden.numero_solicitud_equipo}`);
+                          if (todasOrdenesResponse.ok) {
+                            const todasOrdenesResult = await todasOrdenesResponse.json();
+                            
+                            if (todasOrdenesResult.success && Array.isArray(todasOrdenesResult.data)) {
+                              // Ignorar órdenes canceladas (estado 3) en la validación
+                              const ordenesActivas = todasOrdenesResult.data.filter((o: any) => o.estado !== 3);
+                              const todasCompletadas = ordenesActivas.length > 0 && ordenesActivas.every((o: any) => o.estado === 2); // 2 = COMPLETADA
+                              
+                              if (todasCompletadas && orden.id_solicitud_equipo) {
+                                // Actualizar SE a FINALIZADO (6)
+                                await fetch(`/api/solicitud-equipo/${orden.id_solicitud_equipo}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ estado_solicitud_equipo: 6 }) // FINALIZADO
+                                });
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  } catch (error) {
+                    console.error(`Error actualizando SE de recolección ${detalle.id_referencia}:`, error);
+                  }
+                }
+              }
+              
               fetchHojas();
             }
           } catch (error) {
@@ -818,7 +951,7 @@ const HojaRuta: React.FC = () => {
   const openCrearModal = async () => {
     await fetchOrdenesDisponibles();
     setCurrentHoja({
-      fecha_ruta: new Date().toISOString().split('T')[0],
+      fecha_creacion: new Date().toISOString().split('T')[0],
       conductor: '',
       vehiculo: '',
       estado: EstadoHojaRuta.BORRADOR,
@@ -833,7 +966,7 @@ const HojaRuta: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentHoja({
-      fecha_ruta: new Date().toISOString().split('T')[0],
+      fecha_creacion: new Date().toISOString().split('T')[0],
       conductor: '',
       vehiculo: '',
       estado: EstadoHojaRuta.BORRADOR,
@@ -941,7 +1074,7 @@ const HojaRuta: React.FC = () => {
 
   const columns: Column<HojaRutaExtendida>[] = [
     { key: 'numero_hoja_ruta', header: 'Número', width: '120px' },
-    { key: 'fecha_ruta', header: 'Fecha Ruta', width: '150px' },
+    { key: 'fecha_creacion', header: 'Fecha', width: '150px' },
     { key: 'conductor', header: 'Conductor', width: '200px' },
     { key: 'vehiculo', header: 'Vehículo', width: '150px' },
     {
@@ -1070,9 +1203,9 @@ const HojaRuta: React.FC = () => {
               <div className={styles.modalHeader}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                   <h2 style={{ margin: 0 }}>{isViewing ? `Hoja de Ruta N° ${currentHoja.numero_hoja_ruta || ''}` : 'Nueva Hoja de Ruta'}</h2>
-                  {isViewing && currentHoja.fecha_ruta && (
+                  {isViewing && currentHoja.fecha_creacion && (
                     <span style={{ fontSize: '1rem', fontWeight: 'normal' }}>
-                      {new Date(currentHoja.fecha_ruta).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {new Date(currentHoja.fecha_creacion).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </span>
                   )}
                 </div>
@@ -1106,8 +1239,8 @@ const HojaRuta: React.FC = () => {
                       <label>Fecha Ruta *</label>
                       <input
                         type="date"
-                        value={currentHoja.fecha_ruta || ''}
-                        onChange={(e) => setCurrentHoja({ ...currentHoja, fecha_ruta: e.target.value })}
+                        value={currentHoja.fecha_creacion || ''}
+                        onChange={(e) => setCurrentHoja({ ...currentHoja, fecha_creacion: e.target.value })}
                         disabled={isViewing}
                         required
                       />

@@ -83,6 +83,13 @@ export interface Equipo {
   id_equipo_categoria?: number;
   id_estado_equipo?: number;
   id_equipo_especifico?: number;
+  // Nuevas columnas para sistema de inventario por estados
+  cantidad_disponible?: number;
+  cantidad_alquilado?: number;
+  cantidad_en_transito?: number;
+  cantidad_en_recoleccion?: number;
+  cantidad_en_mantenimiento?: number;
+  cantidad_reservado?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -670,16 +677,64 @@ export const equipoModel = {
         nombre_equipo, 
         id_equipo_categoria,
         id_estado_equipo,
-        id_equipo_especifico
+        id_equipo_especifico,
+        cantidad_disponible,
+        cantidad_alquilado,
+        cantidad_en_transito,
+        cantidad_en_recoleccion,
+        cantidad_en_mantenimiento,
+        cantidad_reservado
       ) 
-      VALUES (?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
+    
+    // Distribuir la cantidad según el estado seleccionado
+    let cantDisponible = 0;
+    let cantAlquilado = 0;
+    let cantEnTransito = 0;
+    let cantEnRecoleccion = 0;
+    let cantEnMantenimiento = 0;
+    let cantReservado = 0;
+    
+    const cantidad = equipo.cantidad_equipo;
+    const estado = equipo.id_estado_equipo;
+    
+    switch (estado) {
+      case EstadoEquipo.DISPONIBLE:
+        cantDisponible = cantidad;
+        break;
+      case EstadoEquipo.RESERVADO:
+        cantReservado = cantidad;
+        break;
+      case EstadoEquipo.ASIGNADO:
+        cantAlquilado = cantidad;
+        break;
+      case EstadoEquipo.EN_RECOLECCION:
+        cantEnRecoleccion = cantidad;
+        break;
+      case EstadoEquipo.EN_MANTENIMIENTO:
+        cantEnMantenimiento = cantidad;
+        break;
+      case EstadoEquipo.NO_DISPONIBLE:
+        // No se asigna a ninguna columna, queda en 0
+        break;
+      default:
+        // Si no se especifica estado, por defecto está disponible
+        cantDisponible = cantidad;
+    }
+    
     const result = stmt.run(
       equipo.cantidad_equipo,
       equipo.nombre_equipo,
       equipo.id_equipo_categoria || null,
-      equipo.id_estado_equipo || null,
-      equipo.id_equipo_especifico || null
+      equipo.id_estado_equipo || EstadoEquipo.DISPONIBLE,
+      equipo.id_equipo_especifico || null,
+      cantDisponible,
+      cantAlquilado,
+      cantEnTransito,
+      cantEnRecoleccion,
+      cantEnMantenimiento,
+      cantReservado
     );
     return result.lastInsertRowid;
   },
@@ -688,10 +743,71 @@ export const equipoModel = {
     const fields = [];
     const values = [];
 
-    if (equipo.cantidad_equipo !== undefined) {
-      fields.push('cantidad_equipo = ?');
-      values.push(equipo.cantidad_equipo);
+    // Obtener el equipo actual
+    const equipoActual = db.prepare('SELECT * FROM equipo WHERE id_equipo = ?').get(id) as Equipo;
+    
+    if (!equipoActual) {
+      throw new Error('Equipo no encontrado');
     }
+
+    // Verificar si cambia el estado
+    const cambiaEstado = equipo.id_estado_equipo !== undefined && equipo.id_estado_equipo !== equipoActual.id_estado_equipo;
+    const cambiaCantidad = equipo.cantidad_equipo !== undefined && equipo.cantidad_equipo !== equipoActual.cantidad_equipo;
+
+    // Si cambia el estado o la cantidad, redistribuir las cantidades por estado
+    if (cambiaEstado || cambiaCantidad) {
+      const nuevoEstado = equipo.id_estado_equipo ?? equipoActual.id_estado_equipo;
+      const nuevaCantidad = equipo.cantidad_equipo ?? equipoActual.cantidad_equipo;
+      
+      // Resetear todas las cantidades
+      let cantDisponible = 0;
+      let cantAlquilado = 0;
+      let cantEnTransito = 0;
+      let cantEnRecoleccion = 0;
+      let cantEnMantenimiento = 0;
+      let cantReservado = 0;
+      
+      // Asignar la cantidad total al estado correspondiente
+      switch (nuevoEstado) {
+        case EstadoEquipo.DISPONIBLE:
+          cantDisponible = nuevaCantidad;
+          break;
+        case EstadoEquipo.RESERVADO:
+          cantReservado = nuevaCantidad;
+          break;
+        case EstadoEquipo.ASIGNADO:
+          cantAlquilado = nuevaCantidad;
+          break;
+        case EstadoEquipo.EN_RECOLECCION:
+          cantEnRecoleccion = nuevaCantidad;
+          break;
+        case EstadoEquipo.EN_MANTENIMIENTO:
+          cantEnMantenimiento = nuevaCantidad;
+          break;
+        case EstadoEquipo.NO_DISPONIBLE:
+          // No se asigna a ninguna columna
+          break;
+        default:
+          cantDisponible = nuevaCantidad;
+      }
+      
+      // Actualizar todas las cantidades por estado
+      fields.push('cantidad_equipo = ?');
+      values.push(nuevaCantidad);
+      fields.push('cantidad_disponible = ?');
+      values.push(cantDisponible);
+      fields.push('cantidad_alquilado = ?');
+      values.push(cantAlquilado);
+      fields.push('cantidad_en_transito = ?');
+      values.push(cantEnTransito);
+      fields.push('cantidad_en_recoleccion = ?');
+      values.push(cantEnRecoleccion);
+      fields.push('cantidad_en_mantenimiento = ?');
+      values.push(cantEnMantenimiento);
+      fields.push('cantidad_reservado = ?');
+      values.push(cantReservado);
+    }
+    
     if (equipo.nombre_equipo) {
       fields.push('nombre_equipo = ?');
       values.push(equipo.nombre_equipo);
@@ -700,13 +816,47 @@ export const equipoModel = {
       fields.push('id_equipo_categoria = ?');
       values.push(equipo.id_equipo_categoria);
     }
-    if (equipo.id_estado_equipo !== undefined) {
+    if (equipo.id_estado_equipo !== undefined && !cambiaEstado && !cambiaCantidad) {
+      // Si solo se actualiza el estado sin cambiar cantidad (caso edge)
       fields.push('id_estado_equipo = ?');
       values.push(equipo.id_estado_equipo);
+    } else if (cambiaEstado || cambiaCantidad) {
+      // Ya se procesó arriba, solo actualizar el campo
+      fields.push('id_estado_equipo = ?');
+      values.push(equipo.id_estado_equipo ?? equipoActual.id_estado_equipo);
     }
     if (equipo.id_equipo_especifico !== undefined) {
       fields.push('id_equipo_especifico = ?');
       values.push(equipo.id_equipo_especifico);
+    }
+    
+    // Permitir actualizar cantidades por estado manualmente si se especifican explícitamente
+    // (esto sobrescribirá la lógica automática si es necesario)
+    if (!cambiaEstado && !cambiaCantidad) {
+      if (equipo.cantidad_disponible !== undefined) {
+        fields.push('cantidad_disponible = ?');
+        values.push(equipo.cantidad_disponible);
+      }
+      if (equipo.cantidad_alquilado !== undefined) {
+        fields.push('cantidad_alquilado = ?');
+        values.push(equipo.cantidad_alquilado);
+      }
+      if (equipo.cantidad_en_transito !== undefined) {
+        fields.push('cantidad_en_transito = ?');
+        values.push(equipo.cantidad_en_transito);
+      }
+      if (equipo.cantidad_en_recoleccion !== undefined) {
+        fields.push('cantidad_en_recoleccion = ?');
+        values.push(equipo.cantidad_en_recoleccion);
+      }
+      if (equipo.cantidad_en_mantenimiento !== undefined) {
+        fields.push('cantidad_en_mantenimiento = ?');
+        values.push(equipo.cantidad_en_mantenimiento);
+      }
+      if (equipo.cantidad_reservado !== undefined) {
+        fields.push('cantidad_reservado = ?');
+        values.push(equipo.cantidad_reservado);
+      }
     }
 
     fields.push('updated_at = CURRENT_TIMESTAMP');
@@ -1665,7 +1815,7 @@ export const contratoModel = {
         throw new Error('La solicitud no tiene equipos asociados');
       }
 
-      // 3. Validar inventario y actualizar estados
+      // 3. Actualizar inventario: reservado → alquilado
       for (const detalle of detalles) {
         const equipo = db.prepare(`
           SELECT * FROM equipo WHERE id_equipo = ?
@@ -1675,57 +1825,30 @@ export const contratoModel = {
           throw new Error(`Equipo con id ${detalle.id_equipo} no encontrado`);
         }
 
-        // Validar que hay suficiente cantidad
-        const cantidadDisponible = equipo.cantidad_equipo || 0;
+        const cantidadReservado = equipo.cantidad_reservado || 0;
         const cantidadSolicitada = detalle.cantidad_equipo || 0;
 
-        if (cantidadDisponible < cantidadSolicitada) {
-          throw new Error(`No hay suficiente cantidad del equipo ${equipo.nombre_equipo}. Disponible: ${cantidadDisponible}, Solicitado: ${cantidadSolicitada}`);
+        // Validar que hay suficiente cantidad reservada
+        if (cantidadReservado < cantidadSolicitada) {
+          throw new Error(`No hay suficiente cantidad reservada del equipo ${equipo.nombre_equipo}. Reservado: ${cantidadReservado}, Solicitado: ${cantidadSolicitada}`);
         }
 
-        // Nueva lógica: dividir inventario
-        const nuevaCantidad = cantidadDisponible - cantidadSolicitada;
+        // Actualizar usando el nuevo sistema de columnas
+        // reservado → alquilado
+        const nuevaCantidadReservado = cantidadReservado - cantidadSolicitada;
+        const nuevaCantidadAlquilado = (equipo.cantidad_alquilado || 0) + cantidadSolicitada;
         
-        if (nuevaCantidad === 0) {
-          // Si se reserva todo, cambiar el estado del registro existente a ASIGNADO
-          db.prepare(`
-            UPDATE equipo 
-            SET id_estado_equipo = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id_equipo = ?
-          `).run(EstadoEquipo.ASIGNADO, detalle.id_equipo);
-        } else {
-          // Si queda inventario, dividir en dos registros:
-          // 1. Actualizar el registro existente con la cantidad restante en DISPONIBLE
-          db.prepare(`
-            UPDATE equipo 
-            SET cantidad_equipo = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id_equipo = ?
-          `).run(nuevaCantidad, detalle.id_equipo);
-          
-          // 2. Crear un nuevo registro con la cantidad reservada en estado ASIGNADO
-          const nuevoRegistroResult = db.prepare(`
-            INSERT INTO equipo (
-              cantidad_equipo, 
-              nombre_equipo, 
-              id_equipo_categoria, 
-              id_estado_equipo,
-              id_equipo_especifico
-            ) VALUES (?, ?, ?, ?, ?)
-          `).run(
-            cantidadSolicitada,
-            equipo.nombre_equipo,
-            equipo.id_equipo_categoria,
-            EstadoEquipo.ASIGNADO,
-            equipo.id_equipo_especifico
-          );
-          
-          // Actualizar el detalle para referenciar al nuevo registro ASIGNADO
-          // (esto es importante para la bitácora)
-          const nuevoIdEquipo = nuevoRegistroResult.lastInsertRowid;
-          detalle.id_equipo = nuevoIdEquipo;
-        }
+        db.prepare(`
+          UPDATE equipo 
+          SET cantidad_reservado = ?,
+              cantidad_alquilado = ?,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id_equipo = ?
+        `).run(nuevaCantidadReservado, nuevaCantidadAlquilado, detalle.id_equipo);
+      }
 
-        // 4. Registrar en la bitácora
+      // 4. Registrar en bitácora de equipos (CRÍTICO para poder revertir en caso de anulación)
+      for (const detalle of detalles) {
         db.prepare(`
           INSERT INTO bitacora_equipo (
             id_equipo,
@@ -1733,19 +1856,17 @@ export const contratoModel = {
             numero_solicitud_equipo,
             cantidad_equipo,
             fecha_inicio,
-            fecha_devolucion,
             estado_bitacora,
             observaciones
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
         `).run(
           detalle.id_equipo,
           id_solicitud_equipo,
           solicitud.numero_solicitud_equipo,
-          cantidadSolicitada,
-          solicitud.fecha_inicio,
-          detalle.fecha_devolucion,
+          detalle.cantidad_equipo,
+          solicitud.fecha_vencimiento,
           1, // Estado activo
-          `Contrato generado automáticamente`
+          'Equipo asignado al generar contrato'
         );
       }
 

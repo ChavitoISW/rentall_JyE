@@ -59,6 +59,11 @@ db.exec(`
     apellido_usuario TEXT NOT NULL,
     telefono_usuario TEXT,
     email_usuario TEXT,
+    contrasena_usuario TEXT,
+    provincia TEXT,
+    canton TEXT,
+    distrito TEXT,
+    otras_senas TEXT,
     direccion_usuario TEXT,
     estado_usuario INTEGER DEFAULT 1 CHECK(estado_usuario IN (0, 1)),
     usuario_rol INTEGER,
@@ -77,6 +82,12 @@ db.exec(`
     id_equipo_categoria INTEGER,
     id_estado_equipo INTEGER DEFAULT 1,
     id_equipo_especifico INTEGER,
+    cantidad_disponible INTEGER DEFAULT 0,
+    cantidad_alquilado INTEGER DEFAULT 0,
+    cantidad_en_transito INTEGER DEFAULT 0,
+    cantidad_en_recoleccion INTEGER DEFAULT 0,
+    cantidad_en_mantenimiento INTEGER DEFAULT 0,
+    cantidad_reservado INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_equipo_categoria) REFERENCES categoria_equipo(id)
@@ -240,6 +251,186 @@ db.exec(`
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (numero_solicitud_equipo) REFERENCES encabezado_solicitud_equipo(numero_solicitud_equipo),
     FOREIGN KEY (id_equipo) REFERENCES equipo(id_equipo)
+  )
+`);
+
+// Crear tabla de contrato
+db.exec(`
+  CREATE TABLE IF NOT EXISTS contrato (
+    id_contrato INTEGER PRIMARY KEY AUTOINCREMENT,
+    numero_contrato TEXT UNIQUE,
+    id_solicitud_equipo INTEGER,
+    estado INTEGER DEFAULT 1,
+    observaciones TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_solicitud_equipo) REFERENCES encabezado_solicitud_equipo(id_solicitud_equipo)
+  )
+`);
+
+// Crear tabla de hoja_ruta
+db.exec(`
+  CREATE TABLE IF NOT EXISTS hoja_ruta (
+    id_hoja_ruta INTEGER PRIMARY KEY AUTOINCREMENT,
+    numero_hoja_ruta TEXT UNIQUE,
+    usuario_id INTEGER,
+    fecha_creacion DATE,
+    conductor TEXT,
+    vehiculo TEXT,
+    estado_hoja_ruta INTEGER DEFAULT 0,
+    observaciones TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id_usuario)
+  )
+`);
+
+// Crear tabla de detalle_hoja_ruta
+db.exec(`
+  CREATE TABLE IF NOT EXISTS detalle_hoja_ruta (
+    id_detalle_hoja_ruta INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_hoja_ruta INTEGER,
+    numero_hoja_ruta TEXT,
+    tipo_operacion INTEGER,
+    id_referencia INTEGER,
+    numero_referencia TEXT,
+    orden_parada INTEGER,
+    direccion TEXT,
+    provincia TEXT,
+    canton TEXT,
+    distrito TEXT,
+    otras_senas TEXT,
+    nombre_cliente TEXT,
+    telefono_cliente TEXT,
+    estado_detalle INTEGER DEFAULT 0,
+    hora_estimada TEXT,
+    hora_real TEXT,
+    notas TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_hoja_ruta) REFERENCES hoja_ruta(id_hoja_ruta) ON DELETE CASCADE
+  )
+`);
+
+// Crear tabla de orden_recoleccion
+db.exec(`
+  CREATE TABLE IF NOT EXISTS orden_recoleccion (
+    id_orden_recoleccion INTEGER PRIMARY KEY AUTOINCREMENT,
+    numero_orden_recoleccion TEXT UNIQUE,
+    id_detalle_solicitud_equipo INTEGER,
+    id_solicitud_equipo INTEGER,
+    numero_solicitud_equipo TEXT,
+    fecha_creacion DATE,
+    fecha_programada_recoleccion DATE,
+    nombre_equipo TEXT,
+    cantidad INTEGER,
+    estado INTEGER DEFAULT 0,
+    observaciones TEXT,
+    provincia TEXT,
+    canton TEXT,
+    distrito TEXT,
+    otras_senas TEXT,
+    nombre_cliente TEXT,
+    telefono_cliente TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_detalle_solicitud_equipo) REFERENCES detalle_solicitud_equipo(id_detalle_solicitud_equipo)
+  )
+`);
+
+// Crear tabla de orden_cambio_equipo
+db.exec(`
+  CREATE TABLE IF NOT EXISTS orden_cambio_equipo (
+    id_orden_cambio INTEGER PRIMARY KEY AUTOINCREMENT,
+    numero_orden_cambio TEXT UNIQUE NOT NULL,
+    id_solicitud_equipo INTEGER,
+    numero_solicitud_equipo TEXT,
+    id_equipo_actual INTEGER,
+    nombre_equipo_actual TEXT,
+    id_equipo_nuevo INTEGER,
+    nombre_equipo_nuevo TEXT,
+    motivo_cambio TEXT,
+    fecha_creacion TEXT NOT NULL DEFAULT (date('now')),
+    fecha_programada TEXT,
+    estado INTEGER DEFAULT 0 CHECK(estado IN (0, 1, 2, 3)),
+    observaciones TEXT,
+    provincia TEXT,
+    canton TEXT,
+    distrito TEXT,
+    otras_senas TEXT,
+    nombre_cliente TEXT,
+    telefono_cliente TEXT,
+    FOREIGN KEY (id_solicitud_equipo) REFERENCES encabezado_solicitud_equipo(id_solicitud_equipo)
+  )
+`);
+
+// Crear tabla usuarios (diferente de usuario)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS usuarios (
+    usuario_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_nombre TEXT NOT NULL,
+    usuario_apellido TEXT,
+    usuario_cedula TEXT,
+    usuario_correo TEXT,
+    usuario_telefono TEXT,
+    usuario_direccion TEXT,
+    usuario_contrasena TEXT NOT NULL,
+    usuario_rol INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_rol) REFERENCES rol(id_rol)
+  )
+`);
+
+// Crear tabla bitacora_equipo
+db.exec(`
+  CREATE TABLE IF NOT EXISTS bitacora_equipo (
+    id_bitacora INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_equipo INTEGER NOT NULL,
+    id_solicitud_equipo INTEGER NOT NULL,
+    numero_solicitud_equipo TEXT,
+    cantidad_equipo INTEGER NOT NULL,
+    fecha_inicio DATE,
+    fecha_devolucion DATE,
+    estado_bitacora INTEGER DEFAULT 1,
+    observaciones TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_equipo) REFERENCES equipo(id_equipo),
+    FOREIGN KEY (id_solicitud_equipo) REFERENCES encabezado_solicitud_equipo(id_solicitud_equipo)
+  )
+`);
+
+// Crear tabla anulacion_contrato
+db.exec(`
+  CREATE TABLE IF NOT EXISTS anulacion_contrato (
+    id_anulacion INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_contrato INTEGER NOT NULL,
+    numero_contrato TEXT,
+    id_solicitud_equipo INTEGER NOT NULL,
+    fecha_anulacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    motivo_anulacion TEXT NOT NULL,
+    usuario_anulacion TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_contrato) REFERENCES contrato(id_contrato),
+    FOREIGN KEY (id_solicitud_equipo) REFERENCES encabezado_solicitud_equipo(id_solicitud_equipo)
+  )
+`);
+
+// Tabla de pagos de contratos
+db.exec(`
+  CREATE TABLE IF NOT EXISTS pago_contrato (
+    id_pago_contrato INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_contrato INTEGER NOT NULL,
+    tipo_pago TEXT NOT NULL CHECK(tipo_pago IN ('efectivo', 'simpe', 'transferencia')),
+    monto REAL NOT NULL,
+    fecha_pago DATE NOT NULL,
+    numero_comprobante TEXT,
+    banco TEXT,
+    numero_transferencia TEXT,
+    observaciones TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_contrato) REFERENCES contrato(id_contrato) ON DELETE CASCADE
   )
 `);
 

@@ -82,7 +82,6 @@ const OrdenesRecoleccion: React.FC = () => {
             fetchOrdenes();
           }
         } catch (error) {
-          console.error('Error al cancelar orden:', error);
         } finally {
           setIsLoading(false);
         }

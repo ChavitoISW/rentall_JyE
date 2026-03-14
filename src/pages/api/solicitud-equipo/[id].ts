@@ -9,7 +9,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     const { id } = req.query;
     const solicitudEquipoId = Number(id);
 
-    console.log('API [id].ts - Método:', req.method, 'ID:', solicitudEquipoId);
+    // console.log('API [id].ts - Método:', req.method, 'ID:', solicitudEquipoId);
 
     if (isNaN(solicitudEquipoId)) {
       return res.status(400).json({ success: false, error: 'ID de solicitud de equipo inválido' });
@@ -41,10 +41,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         estado_solicitud_equipo: req.body.estado_solicitud_equipo !== undefined ? Number(req.body.estado_solicitud_equipo) : seActual.estado_solicitud_equipo
       };
 
-      console.log('Estado recibido en API:', solicitudEquipoData.estado_solicitud_equipo, 'Tipo:', typeof solicitudEquipoData.estado_solicitud_equipo);
-      console.log('FINALIZADO enum value:', EstadoSolicitudEquipo.FINALIZADO);
-      console.log('Comparación ===:', solicitudEquipoData.estado_solicitud_equipo === EstadoSolicitudEquipo.FINALIZADO);
-      console.log('Comparación ==:', solicitudEquipoData.estado_solicitud_equipo == EstadoSolicitudEquipo.FINALIZADO);
+      // console.log('Estado recibido en API:', solicitudEquipoData.estado_solicitud_equipo, 'Tipo:', typeof solicitudEquipoData.estado_solicitud_equipo);
+      // console.log('FINALIZADO enum value:', EstadoSolicitudEquipo.FINALIZADO);
+      // console.log('Comparación ===:', solicitudEquipoData.estado_solicitud_equipo === EstadoSolicitudEquipo.FINALIZADO);
+      // console.log('Comparación ==:', solicitudEquipoData.estado_solicitud_equipo == EstadoSolicitudEquipo.FINALIZADO);
 
       // Si se está anulando la SE, liberar el inventario reservado
       if (solicitudEquipoData.estado_solicitud_equipo === EstadoSolicitudEquipo.ANULADO) {
@@ -65,29 +65,29 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
             WHERE numero_solicitud_equipo = ?
           `).all(solicitud.numero_solicitud_equipo) as any[];
 
-          // 2. Para cada equipo, cambiar el estado de RESERVADO a DISPONIBLE
+          // 2. Para cada equipo, mover de cantidad_reservado a cantidad_disponible
           for (const item of equiposReservados) {
             const equipo = db.prepare(`
-              SELECT id_equipo, cantidad_equipo, id_estado_equipo, nombre_equipo
+              SELECT id_equipo, cantidad_equipo, cantidad_reservado, cantidad_disponible, nombre_equipo
               FROM equipo
               WHERE id_equipo = ?
             `).get(item.id_equipo) as any;
 
             if (!equipo) {
-              console.warn(`Equipo ${item.id_equipo} no encontrado`);
+              // console.warn(`Equipo ${item.id_equipo} no encontrado`);
               continue;
             }
 
-            // Solo liberar si está en estado RESERVADO
-            if (equipo.id_estado_equipo === EstadoEquipo.RESERVADO) {
-              console.log(`Liberando equipo ${equipo.nombre_equipo} (ID: ${equipo.id_equipo}) - Cantidad: ${equipo.cantidad_equipo}`);
-              
-              db.prepare(`
-                UPDATE equipo
-                SET id_estado_equipo = ?, updated_at = CURRENT_TIMESTAMP
-                WHERE id_equipo = ?
-              `).run(EstadoEquipo.DISPONIBLE, equipo.id_equipo);
-            }
+            const cantidadLiberar = equipo.cantidad_equipo || 0;
+            // console.log(`Liberando equipo ${equipo.nombre_equipo} (ID: ${equipo.id_equipo}) - Cantidad: ${cantidadLiberar}`);
+            
+            db.prepare(`
+              UPDATE equipo
+              SET cantidad_reservado = COALESCE(cantidad_reservado, 0) - ?,
+                  cantidad_disponible = COALESCE(cantidad_disponible, 0) + ?,
+                  updated_at = CURRENT_TIMESTAMP
+              WHERE id_equipo = ?
+            `).run(cantidadLiberar, cantidadLiberar, equipo.id_equipo);
           }
 
           // 3. Actualizar el estado de la SE
@@ -97,7 +97,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         transaction();
       } else if (solicitudEquipoData.estado_solicitud_equipo === EstadoSolicitudEquipo.FINALIZADO) {
         // Si se está finalizando la SE, actualizar también el contrato asociado
-        console.log('Entrando en lógica de FINALIZADO para SE:', solicitudEquipoId);
+        // console.log('Entrando en lógica de FINALIZADO para SE:', solicitudEquipoId);
         
         const transaction = db.transaction(() => {
           // 1. Actualizar el estado de la SE
@@ -110,7 +110,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
             WHERE id_solicitud_equipo = ?
           `).get(solicitudEquipoId) as any;
 
-          console.log('Contrato encontrado:', contratoExistente);
+          // console.log('Contrato encontrado:', contratoExistente);
 
           // 3. Actualizar el contrato que tenga el mismo id_solicitud_equipo y estado = 1 (generado)
           const updateContrato = db.prepare(`
@@ -123,12 +123,12 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
           const result = updateContrato.run(solicitudEquipoId);
           
-          console.log('Resultado del UPDATE:', result);
+          // console.log('Resultado del UPDATE:', result);
           
           if (result.changes > 0) {
-            console.log(`Contrato actualizado a estado 2 (Finalizado) para SE ${solicitudEquipoId}`);
+            // console.log(`Contrato actualizado a estado 2 (Finalizado) para SE ${solicitudEquipoId}`);
           } else {
-            console.log(`No se actualizó ningún contrato. SE: ${solicitudEquipoId}`);
+            // console.log(`No se actualizó ningún contrato. SE: ${solicitudEquipoId}`);
           }
         });
 

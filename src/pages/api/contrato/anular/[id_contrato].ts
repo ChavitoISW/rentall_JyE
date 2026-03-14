@@ -46,11 +46,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         WHERE id_solicitud_equipo = ? AND estado_bitacora = 1
       `).all(contrato.id_solicitud_equipo) as any[];
 
-      // 3. Reversar equipos de ASIGNADO (3) a RESERVADO (2)
+      // 3. Reversar equipos: mover de cantidad_alquilado de vuelta a cantidad_reservado
       for (const item of equiposContrato) {
-        // Obtener información del equipo ASIGNADO
         const equipoAsignado = db.prepare(`
-          SELECT id_equipo, cantidad_equipo, nombre_equipo, id_equipo_categoria, id_equipo_especifico, id_estado_equipo
+          SELECT id_equipo, cantidad_equipo, nombre_equipo, cantidad_alquilado, cantidad_reservado
           FROM equipo
           WHERE id_equipo = ?
         `).get(item.id_equipo) as any;
@@ -60,24 +59,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           continue;
         }
 
-        console.log('Equipo ASIGNADO encontrado:', equipoAsignado);
+        console.log('Equipo encontrado:', equipoAsignado);
 
-        // Si el estado no es ASIGNADO, saltar
-        if (equipoAsignado.id_estado_equipo !== EstadoEquipo.ASIGNADO) {
-          console.warn(`Equipo ${item.id_equipo} no está en estado ASIGNADO (estado actual: ${equipoAsignado.id_estado_equipo})`);
+        // Usar la cantidad de la bitácora (cantidad contratada), no la cantidad total del equipo
+        const cantidadContratada = item.cantidad_equipo || 0;
+        const cantidadAlquilado = equipoAsignado.cantidad_alquilado || 0;
+
+        // Validar que hay cantidad alquilada para liberar
+        if (cantidadAlquilado < cantidadContratada) {
+          console.warn(`Equipo ${item.id_equipo} no tiene suficiente cantidad alquilada. Alquilado: ${cantidadAlquilado}, Contratado: ${cantidadContratada}`);
+          // Revertir solo lo que está alquilado
+          const cantidadRevertir = Math.min(cantidadAlquilado, cantidadContratada);
+          if (cantidadRevertir <= 0) continue;
+          
+          db.prepare(`
+            UPDATE equipo
+            SET cantidad_alquilado = MAX(0, COALESCE(cantidad_alquilado, 0) - ?),
+                cantidad_reservado = COALESCE(cantidad_reservado, 0) + ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id_equipo = ?
+          `).run(cantidadRevertir, cantidadRevertir, equipoAsignado.id_equipo);
+          
+          console.log(`Inventario actualizado parcialmente para equipo ${equipoAsignado.id_equipo} - Cantidad: ${cantidadRevertir}`);
           continue;
         }
 
-        // Simplemente cambiar el estado del equipo ASIGNADO a RESERVADO
-        console.log(`Cambiando equipo ${equipoAsignado.id_equipo} (${equipoAsignado.nombre_equipo}) de ASIGNADO a RESERVADO - Cantidad: ${equipoAsignado.cantidad_equipo}`);
+        // Mover de cantidad_alquilado a cantidad_reservado
+        console.log(`Moviendo equipo ${equipoAsignado.id_equipo} de alquilado a reservado - Cantidad: ${cantidadContratada}`);
         
         db.prepare(`
           UPDATE equipo
-          SET id_estado_equipo = ?, updated_at = CURRENT_TIMESTAMP
+          SET cantidad_alquilado = MAX(0, COALESCE(cantidad_alquilado, 0) - ?),
+              cantidad_reservado = COALESCE(cantidad_reservado, 0) + ?,
+              updated_at = CURRENT_TIMESTAMP
           WHERE id_equipo = ?
-        `).run(EstadoEquipo.RESERVADO, equipoAsignado.id_equipo);
+        `).run(cantidadContratada, cantidadContratada, equipoAsignado.id_equipo);
 
-        console.log(`Estado actualizado a RESERVADO para equipo ${equipoAsignado.id_equipo}`);
+        console.log(`Inventario actualizado para equipo ${equipoAsignado.id_equipo}`);
       }
 
       // 4. Cambiar estado de la solicitud a SOLICITUD (1)

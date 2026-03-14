@@ -27,6 +27,12 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         id_equipo_categoria,
         id_estado_equipo,
         id_equipo_especifico,
+        cantidad_disponible,
+        cantidad_alquilado,
+        cantidad_en_transito,
+        cantidad_en_recoleccion,
+        cantidad_en_mantenimiento,
+        cantidad_reservado,
       } = req.body;
 
       equipoModel.update(equipoId, {
@@ -35,6 +41,12 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         id_equipo_categoria,
         id_estado_equipo,
         id_equipo_especifico,
+        cantidad_disponible,
+        cantidad_alquilado,
+        cantidad_en_transito,
+        cantidad_en_recoleccion,
+        cantidad_en_mantenimiento,
+        cantidad_reservado,
       });
 
       const updatedEquipo = equipoModel.getById(equipoId);

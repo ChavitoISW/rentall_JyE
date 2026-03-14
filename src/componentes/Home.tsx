@@ -64,13 +64,12 @@ const Home: React.FC = () => {
         for (const categoria of catEquipo.data) {
           const equiposCategoria = equipos.data.filter((e: any) => e.id_equipo_categoria === categoria.id);
           
-          // Total = suma de cantidad_equipo de TODOS los equipos de esta categoría (sin importar estado)
+          // Total = suma de cantidad_equipo de TODOS los equipos de esta categoría
           const total = equiposCategoria.reduce((sum: number, e: any) => sum + (e.cantidad_equipo || 0), 0);
           
-          // Disponibles = suma de cantidad_equipo de equipos que están en estado DISPONIBLE (1)
+          // Disponibles = suma de cantidad_disponible de todos los equipos
           const disponibles = equiposCategoria
-            .filter((e: any) => parseInt(e.id_estado_equipo) === 1)
-            .reduce((sum: number, e: any) => sum + (e.cantidad_equipo || 0), 0);
+            .reduce((sum: number, e: any) => sum + (e.cantidad_disponible || 0), 0);
           
           // Porcentaje de disponibilidad
           const porcentaje = total > 0 ? Math.round((disponibles / total) * 100) : 0;
