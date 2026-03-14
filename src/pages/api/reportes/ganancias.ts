@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       LEFT JOIN equipo e ON dse.id_equipo = e.id_equipo
       LEFT JOIN categoria_equipo ce ON e.id_equipo_categoria = ce.id
       WHERE DATE(pc.fecha_pago) BETWEEN DATE(?) AND DATE(?)
-        AND co.estado = 1
+        AND co.estado != 0
         AND NOT EXISTS (
           SELECT 1 FROM anulacion_contrato ac 
           WHERE ac.id_contrato = co.id_contrato
@@ -69,7 +69,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ) pagos ON c.id_contrato = pagos.id_contrato
       LEFT JOIN detalle_solicitud_equipo dse ON se.numero_solicitud_equipo = dse.numero_solicitud_equipo
       LEFT JOIN equipo e ON dse.id_equipo = e.id_equipo
-      WHERE c.estado = 1
+      WHERE c.estado != 0
         AND DATE(se.fecha_elaboracion) BETWEEN DATE(?) AND DATE(?)
         AND (se.total_solicitud_equipo - COALESCE(pagos.total_pagado, 0)) > 0
         AND NOT EXISTS (

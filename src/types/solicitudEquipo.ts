@@ -8,7 +8,8 @@ export enum EstadoSolicitudEquipo {
   EN_RUTA_RECOLECCION = 5,
   FINALIZADO = 6,
   CANCELADO = 7,
-  ANULADO = 8
+  ANULADO = 8,
+  EXTENDIDO = 9
 }
 
 export const EstadoSolicitudEquipoLabels: Record<EstadoSolicitudEquipo, string> = {
@@ -19,7 +20,8 @@ export const EstadoSolicitudEquipoLabels: Record<EstadoSolicitudEquipo, string> 
   [EstadoSolicitudEquipo.EN_RUTA_RECOLECCION]: 'En Ruta Recolección',
   [EstadoSolicitudEquipo.FINALIZADO]: 'Finalizado',
   [EstadoSolicitudEquipo.CANCELADO]: 'Cancelado',
-  [EstadoSolicitudEquipo.ANULADO]: 'Anulado'
+  [EstadoSolicitudEquipo.ANULADO]: 'Anulado',
+  [EstadoSolicitudEquipo.EXTENDIDO]: 'Extendido'
 };
 
 export interface EncabezadoSolicitudEquipo {

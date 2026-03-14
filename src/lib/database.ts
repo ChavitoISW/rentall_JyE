@@ -229,6 +229,10 @@ db.exec(`
     estado_solicitud_equipo INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    numero_se_origen TEXT,
+    es_extension INTEGER DEFAULT 0,
+    id_contrato_origen INTEGER,
+    id_solicitud_origen INTEGER,
     FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente)
   )
 `);
@@ -258,7 +262,7 @@ db.exec(`
 db.exec(`
   CREATE TABLE IF NOT EXISTS contrato (
     id_contrato INTEGER PRIMARY KEY AUTOINCREMENT,
-    numero_contrato TEXT UNIQUE,
+    numero_contrato TEXT,
     id_solicitud_equipo INTEGER,
     estado INTEGER DEFAULT 1,
     observaciones TEXT,
@@ -272,15 +276,15 @@ db.exec(`
 db.exec(`
   CREATE TABLE IF NOT EXISTS hoja_ruta (
     id_hoja_ruta INTEGER PRIMARY KEY AUTOINCREMENT,
-    numero_hoja_ruta TEXT UNIQUE,
+    numero_hoja_ruta TEXT,
     usuario_id INTEGER,
     fecha_creacion DATE,
-    conductor TEXT,
-    vehiculo TEXT,
     estado_hoja_ruta INTEGER DEFAULT 0,
     observaciones TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    conductor TEXT,
+    vehiculo TEXT,
     FOREIGN KEY (usuario_id) REFERENCES usuario(id_usuario)
   )
 `);
@@ -293,21 +297,21 @@ db.exec(`
     numero_hoja_ruta TEXT,
     tipo_operacion INTEGER,
     id_referencia INTEGER,
-    numero_referencia TEXT,
     orden_parada INTEGER,
-    direccion TEXT,
+    estado_detalle INTEGER DEFAULT 0,
     provincia TEXT,
     canton TEXT,
     distrito TEXT,
     otras_senas TEXT,
-    nombre_cliente TEXT,
-    telefono_cliente TEXT,
-    estado_detalle INTEGER DEFAULT 0,
-    hora_estimada TEXT,
-    hora_real TEXT,
-    notas TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    numero_referencia TEXT,
+    direccion TEXT,
+    nombre_cliente TEXT,
+    telefono_cliente TEXT,
+    hora_estimada TEXT,
+    notas TEXT,
+    hora_real TEXT,
     FOREIGN KEY (id_hoja_ruta) REFERENCES hoja_ruta(id_hoja_ruta) ON DELETE CASCADE
   )
 `);
@@ -395,6 +399,7 @@ db.exec(`
     estado_bitacora INTEGER DEFAULT 1,
     observaciones TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME,
     FOREIGN KEY (id_equipo) REFERENCES equipo(id_equipo),
     FOREIGN KEY (id_solicitud_equipo) REFERENCES encabezado_solicitud_equipo(id_solicitud_equipo)
   )
@@ -434,6 +439,6 @@ db.exec(`
   )
 `);
 
-console.log('✅ Base de datos inicializada correctamente');
+// Base de datos inicializada correctamente
 
 export default db;
