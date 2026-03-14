@@ -65,10 +65,10 @@ const Contratos: React.FC = () => {
                       
                       const diferenciaDias = Math.ceil((fechaDevolucion.getTime() - fechaActual.getTime()) / (1000 * 60 * 60 * 24));
                       
-                      if (diferenciaDias <= 0) {
+                      if (diferenciaDias <= 1) {
                         hayVencido = true;
                         break;
-                      } else if (diferenciaDias <= 2) {
+                      } else if (diferenciaDias <= 3) {
                         hayPorVencer = true;
                       }
                     }

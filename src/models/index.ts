@@ -1864,7 +1864,7 @@ export const contratoModel = {
           id_solicitud_equipo,
           solicitud.numero_solicitud_equipo,
           detalle.cantidad_equipo,
-          solicitud.fecha_vencimiento,
+          solicitud.fecha_inicio,
           1, // Estado activo
           'Equipo asignado al generar contrato'
         );

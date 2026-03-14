@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import Menu from './Menu';
 import Footer from './Footer';
+import Table, { Column } from './Table';
 import Spinner from './Spinner';
-import styles from '../styles/BitacoraEquipo.module.css';
+import styles from '../styles/SolicitudEquipo.module.css';
+import bitacoraStyles from '../styles/BitacoraEquipo.module.css';
 
 interface BitacoraEquipo {
   id_bitacora: number;
@@ -17,6 +19,7 @@ interface BitacoraEquipo {
   estado_bitacora: number;
   observaciones: string;
   nombre_cliente: string;
+  id_contrato: number | null;
   created_at: string;
 }
 
@@ -31,7 +34,6 @@ const BitacoraEquipo: React.FC = () => {
   const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [selectedEquipo, setSelectedEquipo] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchEquipos();
@@ -65,7 +67,6 @@ const BitacoraEquipo: React.FC = () => {
   const handleEquipoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const id = parseInt(e.target.value);
     setSelectedEquipo(id);
-    setSearchTerm('');
     if (id) {
       fetchBitacora(id);
     } else {
@@ -73,11 +74,7 @@ const BitacoraEquipo: React.FC = () => {
     }
   };
 
-  const filteredBitacora = bitacora.filter(item =>
-    item.nombre_equipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.numero_solicitud_equipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.nombre_cliente.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredBitacora = bitacora.filter(item => item.estado_bitacora !== 0);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
@@ -85,14 +82,85 @@ const BitacoraEquipo: React.FC = () => {
   };
 
   const getEstadoBadge = (estado: string) => {
-    const badgeClass = {
-      'En uso': styles.badgeEnUso,
-      'Programado': styles.badgeProgramado,
-      'Devuelto': styles.badgeDevuelto
-    }[estado] || '';
+    let className = styles.statusActive;
+    
+    switch(estado) {
+      case 'En uso':
+        className = styles.statusActive;
+        break;
+      case 'Programado':
+        className = styles.statusSuccess;
+        break;
+      case 'Devuelto':
+        className = styles.statusInactive;
+        break;
+    }
 
-    return <span className={`${styles.badge} ${badgeClass}`}>{estado}</span>;
+    return <span className={className}>{estado}</span>;
   };
+
+  const columns: Column<BitacoraEquipo>[] = [
+    {
+      key: 'nombre_equipo',
+      header: 'Equipo',
+      width: '200px'
+    },
+    {
+      key: 'nombre_cliente',
+      header: 'Cliente',
+      width: '200px'
+    },
+    {
+      key: 'numero_solicitud_equipo',
+      header: 'N° Solicitud',
+      width: '130px',
+      render: (item) => (
+        <a 
+          href={`/solicitudes-equipos?numero=${item.numero_solicitud_equipo}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.linkSolicitud}
+        >
+          {item.numero_solicitud_equipo}
+        </a>
+      )
+    },
+    {
+      key: 'id_contrato',
+      header: '# Contrato',
+      width: '110px',
+      render: (item) => item.id_contrato ? `#${item.id_contrato}` : '-'
+    },
+    {
+      key: 'cantidad_equipo',
+      header: 'Cantidad',
+      width: '100px',
+      render: (item) => <span style={{ fontWeight: '600' }}>{item.cantidad_equipo}</span>
+    },
+    {
+      key: 'fecha_inicio',
+      header: 'Fecha Inicio',
+      width: '140px',
+      render: (item) => formatDate(item.fecha_inicio)
+    },
+    {
+      key: 'fecha_devolucion',
+      header: 'Fecha Devolución',
+      width: '150px',
+      render: (item) => formatDate(item.fecha_devolucion)
+    },
+    {
+      key: 'estado_uso',
+      header: 'Estado',
+      width: '130px',
+      render: (item) => getEstadoBadge(item.estado_uso)
+    },
+    {
+      key: 'observaciones',
+      header: 'Observaciones',
+      render: (item) => item.observaciones || '-'
+    }
+  ];
 
   return (
     <div className={styles.container}>
@@ -103,24 +171,25 @@ const BitacoraEquipo: React.FC = () => {
         <div className={styles.header}>
           <div>
             <h1>📋 Bitácora de Equipos</h1>
-            <p className={styles.subtitle}>Historial de uso y asignación de equipos</p>
+            <p className={bitacoraStyles.subtitle} style={{ color: 'white' }}>Historial de uso y asignación de equipos</p>
           </div>
           {selectedEquipo && (
-            <button className={styles.btnRefresh} onClick={() => fetchBitacora(selectedEquipo)}>
+            <button className={styles.btnEdit} onClick={() => fetchBitacora(selectedEquipo)}>
               ↻ Actualizar
             </button>
           )}
         </div>
 
-        <div className={styles.selectorBar}>
-          <label htmlFor="equipoSelector" className={styles.selectorLabel}>
+        <div className={bitacoraStyles.selectorBar}>
+          <label htmlFor="equipoSelector" className={bitacoraStyles.selectorLabel}>
             Seleccionar Equipo:
           </label>
           <select
             id="equipoSelector"
             value={selectedEquipo || ''}
             onChange={handleEquipoChange}
-            className={styles.equipoSelector}
+            className={styles.searchInput}
+            style={{ width: '400px' }}
           >
             <option value="">-- Seleccione un equipo --</option>
             {equipos.map((equipo) => (
@@ -132,103 +201,20 @@ const BitacoraEquipo: React.FC = () => {
         </div>
 
         {!selectedEquipo ? (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>🔍</div>
+          <div className={bitacoraStyles.emptyState}>
+            <div className={bitacoraStyles.emptyIcon}>🔍</div>
             <h2>Seleccione un equipo para ver su bitácora</h2>
             <p>Utilice el selector arriba para elegir un equipo y visualizar su historial de uso</p>
           </div>
         ) : (
           <>
-            <div className={styles.searchBar}>
-              <input
-                type="text"
-                placeholder="🔍 Buscar por solicitud o cliente..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={styles.searchInput}
-              />
-            </div>
-
-        <div className={styles.summaryCards}>
-          <div className={styles.summaryCard}>
-            <div className={styles.cardIcon}>📦</div>
-            <div className={styles.cardContent}>
-              <div className={styles.cardLabel}>Total Registros</div>
-              <div className={styles.cardValue}>{bitacora.length}</div>
-            </div>
-          </div>
-          <div className={`${styles.summaryCard} ${styles.cardEnUso}`}>
-            <div className={styles.cardIcon}>🔧</div>
-            <div className={styles.cardContent}>
-              <div className={styles.cardLabel}>En Uso</div>
-              <div className={styles.cardValue}>
-                {bitacora.filter(b => b.estado_uso === 'En uso').length}
-              </div>
-            </div>
-          </div>
-          <div className={`${styles.summaryCard} ${styles.cardProgramado}`}>
-            <div className={styles.cardIcon}>📅</div>
-            <div className={styles.cardContent}>
-              <div className={styles.cardLabel}>Programado</div>
-              <div className={styles.cardValue}>
-                {bitacora.filter(b => b.estado_uso === 'Programado').length}
-              </div>
-            </div>
-          </div>
-          <div className={`${styles.summaryCard} ${styles.cardDevuelto}`}>
-            <div className={styles.cardIcon}>✓</div>
-            <div className={styles.cardContent}>
-              <div className={styles.cardLabel}>Devueltos</div>
-              <div className={styles.cardValue}>
-                {bitacora.filter(b => b.estado_uso === 'Devuelto').length}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.tableWrapper}>
-          <table className={styles.bitacoraTable}>
-            <thead>
-              <tr>
-                <th>Equipo</th>
-                <th>Cliente</th>
-                <th>N° Solicitud</th>
-                <th>Cantidad</th>
-                <th>Fecha Inicio</th>
-                <th>Fecha Devolución</th>
-                <th>Estado</th>
-                <th>Observaciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredBitacora.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className={styles.noData}>
-                    <div className={styles.noDataContent}>
-                      <div className={styles.noDataIcon}>📭</div>
-                      <div>No se encontraron registros en la bitácora</div>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredBitacora.map((item) => (
-                  <tr key={item.id_bitacora} className={styles.tableRow}>
-                    <td className={styles.tdEquipo}>{item.nombre_equipo}</td>
-                    <td className={styles.tdCliente}>{item.nombre_cliente}</td>
-                    <td className={styles.tdSolicitud}>{item.numero_solicitud_equipo}</td>
-                    <td className={styles.tdCantidad}>{item.cantidad_equipo}</td>
-                    <td className={styles.tdFecha}>{formatDate(item.fecha_inicio)}</td>
-                    <td className={styles.tdFecha}>{formatDate(item.fecha_devolucion)}</td>
-                    <td className={styles.tdEstado}>{getEstadoBadge(item.estado_uso)}</td>
-                    <td className={styles.tdObservaciones}>
-                      {item.observaciones || '-'}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+            <Table
+              columns={columns}
+              data={filteredBitacora}
+              keyExtractor={(item) => item.id_bitacora}
+              noDataMessage="No se encontraron registros en la bitácora"
+              itemsPerPage={15}
+            />
           </>
         )}
       </main>

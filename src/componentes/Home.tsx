@@ -10,6 +10,8 @@ interface DashboardStats {
   usuarios: number;
   categorias_equipo: number;
   solicitudesEquipo: number;
+  contratosPorVencer: number;
+  contratosVencidos: number;
   ocupacionPorCategoria: Array<{
     nombre: string;
     total: number;
@@ -25,6 +27,8 @@ const Home: React.FC = () => {
     usuarios: 0,
     categorias_equipo: 0,
     solicitudesEquipo: 0,
+    contratosPorVencer: 0,
+    contratosVencidos: 0,
     ocupacionPorCategoria: [],
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -36,20 +40,22 @@ const Home: React.FC = () => {
   const fetchDashboardData = async () => {
     setIsLoading(true);
     try {
-      const [equiposRes, clientesRes, usuariosRes, catEquipoRes, solicitudesEquipoRes] = await Promise.all([
+      const [equiposRes, clientesRes, usuariosRes, catEquipoRes, solicitudesEquipoRes, contratosRes] = await Promise.all([
         fetch('/api/equipo'),
         fetch('/api/cliente'),
         fetch('/api/usuario'),
         fetch('/api/categoria-equipo'),
         fetch('/api/solicitud-equipo'),
+        fetch('/api/contrato'),
       ]);
 
-      const [equipos, clientes, usuarios, catEquipo, solicitudesEquipo] = await Promise.all([
+      const [equipos, clientes, usuarios, catEquipo, solicitudesEquipo, contratos] = await Promise.all([
         equiposRes.json(),
         clientesRes.json(),
         usuariosRes.json(),
         catEquipoRes.json(),
         solicitudesEquipoRes.json(),
+        contratosRes.json(),
       ]);
 
       // Calcular ocupación por categoría
@@ -83,12 +89,36 @@ const Home: React.FC = () => {
         }
       }
 
+      // Calcular contratos que vencen en los próximos 3 días y contratos vencidos
+      let contratosPorVencer = 0;
+      let contratosVencidos = 0;
+      if (Array.isArray(contratos.data)) {
+        const fechaActual = new Date();
+        fechaActual.setHours(0, 0, 0, 0);
+        
+        contratos.data.forEach((contrato: any) => {
+          if (contrato.fecha_vencimiento && contrato.estado === 1) { // Solo contratos generados
+            const fechaVencimiento = new Date(contrato.fecha_vencimiento);
+            fechaVencimiento.setHours(0, 0, 0, 0);
+            const diferenciaDias = Math.ceil((fechaVencimiento.getTime() - fechaActual.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (diferenciaDias < 0) {
+              contratosVencidos++;
+            } else if (diferenciaDias <= 3) {
+              contratosPorVencer++;
+            }
+          }
+        });
+      }
+
       setStats({
         equipos: Array.isArray(equipos.data) ? equipos.data.length : 0,
         clientes: Array.isArray(clientes.data) ? clientes.data.length : 0,
         usuarios: Array.isArray(usuarios.data) ? usuarios.data.length : 0,
         categorias_equipo: Array.isArray(catEquipo.data) ? catEquipo.data.length : 0,
         solicitudesEquipo: Array.isArray(solicitudesEquipo.data) ? solicitudesEquipo.data.length : 0,
+        contratosPorVencer,
+        contratosVencidos,
         ocupacionPorCategoria,
       });
     } catch (error) {
@@ -118,6 +148,22 @@ const Home: React.FC = () => {
         </section>
 
         <section className={styles.features}>
+          {/* Card de Contratos por Vencer */}
+          <div className={styles.featureCard} style={{ backgroundColor: stats.contratosPorVencer > 0 ? '#fff3e0' : undefined, borderLeft: stats.contratosPorVencer > 0 ? '4px solid #ff9800' : undefined }}>
+            <div className={styles.icon}>⚠️</div>
+            <h3>Contratos por Vencer</h3>
+            <p className={styles.statNumber} style={{ color: stats.contratosPorVencer > 0 ? '#ff9800' : undefined }}>{stats.contratosPorVencer}</p>
+            <span className={styles.statDetail}>Próximos 3 días</span>
+          </div>
+          
+          {/* Card de Contratos Vencidos */}
+          <div className={styles.featureCard} style={{ backgroundColor: stats.contratosVencidos > 0 ? '#ffebee' : undefined, borderLeft: stats.contratosVencidos > 0 ? '4px solid #f44336' : undefined }}>
+            <div className={styles.icon}>🛑</div>
+            <h3>Contratos Vencidos</h3>
+            <p className={styles.statNumber} style={{ color: stats.contratosVencidos > 0 ? '#f44336' : undefined }}>{stats.contratosVencidos}</p>
+            <span className={styles.statDetail}>Requieren atención</span>
+          </div>
+          
           {stats.ocupacionPorCategoria.length > 0 ? (
             stats.ocupacionPorCategoria.map((cat, index) => (
               <div key={index} className={styles.featureCard}>
