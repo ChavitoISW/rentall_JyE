@@ -630,6 +630,26 @@ const HojaRuta: React.FC = () => {
                           cantidad_en_mantenimiento: (equipoActual.cantidad_en_mantenimiento || 0) + cantidadAMover
                         })
                       });
+                      
+                      // Actualizar bitácora: registrar devolución del equipo
+                      try {
+                        const fechaDevolucion = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+                        
+                        // Actualizar la bitácora del equipo devuelto
+                        await fetch(`/api/bitacora-equipo/devolver`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            id_equipo: idEquipo,
+                            id_solicitud_equipo: orden.id_solicitud_equipo,
+                            fecha_devolucion: fechaDevolucion,
+                            estado_bitacora: 2 // 2 = DEVUELTO
+                          })
+                        });
+                      } catch (errorBitacora) {
+                        console.error('Error al actualizar bitácora:', errorBitacora);
+                        // No lanzar error para no interrumpir el flujo principal
+                      }
                     }
                   }
                 }

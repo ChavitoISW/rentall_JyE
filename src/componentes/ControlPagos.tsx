@@ -208,7 +208,34 @@ const ControlPagos: React.FC = () => {
       key: 'fecha_vencimiento',
       header: 'Vencimiento',
       width: '120px',
-      render: (c) => c.fecha_vencimiento ? new Date(c.fecha_vencimiento).toLocaleDateString() : '-'
+      render: (c) => {
+        if (!c.fecha_vencimiento) return '-';
+        
+        const fechaVencimiento = new Date(c.fecha_vencimiento);
+        const fechaActual = new Date();
+        fechaActual.setHours(0, 0, 0, 0);
+        fechaVencimiento.setHours(0, 0, 0, 0);
+        
+        // No aplicar colores si está pagado
+        if (c.estado_pago === EstadoPagoContrato.PAGADO) {
+          return fechaVencimiento.toLocaleDateString('es-CR');
+        }
+        
+        const diferenciaDias = Math.ceil((fechaVencimiento.getTime() - fechaActual.getTime()) / (1000 * 60 * 60 * 24));
+        
+        let className = '';
+        if (diferenciaDias <= 1) {
+          className = styles.fechaVencida;
+        } else if (diferenciaDias <= 3) {
+          className = styles.fechaPorVencer;
+        }
+        
+        return (
+          <span className={className}>
+            {fechaVencimiento.toLocaleDateString('es-CR')}
+          </span>
+        );
+      }
     },
     {
       key: 'total_contrato',

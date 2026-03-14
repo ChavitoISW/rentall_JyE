@@ -27,9 +27,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         estado_bitacora,
         observaciones,
         nombre_cliente,
+        id_contrato,
         created_at
       FROM vista_bitacora_equipo
-      WHERE estado_bitacora = 1 AND id_equipo = ?
+      WHERE id_equipo = ?
       ORDER BY created_at DESC
     `).all(id_equipo);
 
