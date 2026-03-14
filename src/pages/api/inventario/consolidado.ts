@@ -44,33 +44,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const consolidado = consolidadoMap.get(key)!;
-      const cantidad = equipo.cantidad_equipo || 0;
-      const estado = equipo.id_estado_equipo || EstadoEquipo.DISPONIBLE;
 
-      // Sumar al total
-      consolidado.total += cantidad;
-
-      // Sumar a la columna correspondiente según el estado
-      switch (estado) {
-        case EstadoEquipo.DISPONIBLE:
-          consolidado.disponible += cantidad;
-          break;
-        case EstadoEquipo.RESERVADO:
-          consolidado.reservado += cantidad;
-          break;
-        case EstadoEquipo.ASIGNADO:
-          consolidado.asignado += cantidad;
-          break;
-        case EstadoEquipo.EN_RECOLECCION:
-          consolidado.en_recoleccion += cantidad;
-          break;
-        case EstadoEquipo.EN_MANTENIMIENTO:
-          consolidado.en_mantenimiento += cantidad;
-          break;
-        case EstadoEquipo.NO_DISPONIBLE:
-          consolidado.no_disponible += cantidad;
-          break;
-      }
+      // Sumar desde las columnas de cantidad del nuevo sistema
+      const disponible = equipo.cantidad_disponible || 0;
+      const reservado = equipo.cantidad_reservado || 0;
+      const asignado = equipo.cantidad_alquilado || 0; // alquilado = asignado
+      const en_recoleccion = equipo.cantidad_en_recoleccion || 0;
+      const en_mantenimiento = equipo.cantidad_en_mantenimiento || 0;
+      
+      consolidado.disponible += disponible;
+      consolidado.reservado += reservado;
+      consolidado.asignado += asignado;
+      consolidado.en_recoleccion += en_recoleccion;
+      consolidado.en_mantenimiento += en_mantenimiento;
+      
+      // El total es la suma de todas las columnas de estado
+      // (esto asegura que total = disponible + reservado + asignado + en_recoleccion + en_mantenimiento + no_disponible)
+      consolidado.total += disponible + reservado + asignado + en_recoleccion + en_mantenimiento;
     }
 
     // Convertir el Map a array

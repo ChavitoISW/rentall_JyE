@@ -11,8 +11,13 @@ interface EquipoMantenimiento {
   nombre_equipo: string;
   id_estado_equipo: number;
   nombre_estado: string;
-  cantidad_disponible: number;
   cantidad_equipo: number;
+  cantidad_disponible?: number;
+  cantidad_en_mantenimiento?: number;
+  cantidad_alquilado?: number;
+  cantidad_en_transito?: number;
+  cantidad_en_recoleccion?: number;
+  cantidad_reservado?: number;
 }
 
 interface EquipoSeleccionado {
@@ -43,16 +48,22 @@ const EquiposMantenimiento: React.FC = () => {
   const fetchEquiposMantenimiento = async () => {
     setIsLoading(true);
     try {
-      // Obtener equipos en estado EN_MANTENIMIENTO (5)
-      const response = await fetch('/api/equipo?id_estado_equipo=5');
+      // Obtener todos los equipos y filtrar los que tienen cantidad_en_mantenimiento > 0
+      const response = await fetch('/api/equipo');
       const result = await response.json();
       
       console.log('Datos recibidos de la API:', result);
-      console.log('Total de equipos:', result.data?.length);
       
       if (result.success && Array.isArray(result.data)) {
-        setEquipos(result.data);
-        agruparEquipos(result.data);
+        // Filtrar solo los equipos que tienen cantidad en mantenimiento
+        const equiposEnMantenimiento = result.data.filter((equipo: any) => 
+          (equipo.cantidad_en_mantenimiento || 0) > 0
+        );
+        
+        console.log('Equipos con cantidad en mantenimiento:', equiposEnMantenimiento.length);
+        
+        setEquipos(equiposEnMantenimiento);
+        agruparEquipos(equiposEnMantenimiento);
       } else {
         setEquipos([]);
       }
@@ -71,7 +82,8 @@ const EquiposMantenimiento: React.FC = () => {
 
     equiposData.forEach(equipo => {
       const nombreEquipo = equipo.nombre_equipo;
-      const cantidadEquipo = equipo.cantidad_equipo || 1;
+      // Usar cantidad_en_mantenimiento en lugar de cantidad_equipo
+      const cantidadEquipo = equipo.cantidad_en_mantenimiento || 0;
       
       if (!agrupados.has(nombreEquipo)) {
         agrupados.set(nombreEquipo, {
@@ -84,12 +96,11 @@ const EquiposMantenimiento: React.FC = () => {
 
       const grupo = agrupados.get(nombreEquipo)!;
       
-      // Sumar la cantidad_equipo de este registro
+      // Sumar la cantidad en mantenimiento de este registro
       grupo.cantidad_total += cantidadEquipo;
       
-      // Agregar el ID tantas veces como indique cantidad_equipo
-      // Esto permite actualizar equipos individualmente
-      for (let i = 0; i < cantidadEquipo; i++) {
+      // Solo agregar si hay equipos en mantenimiento
+      if (cantidadEquipo > 0) {
         grupo.equipos_especificos.push({
           id_equipo: equipo.id_equipo,
           id_equipo_especifico: equipo.id_equipo_especifico
@@ -167,63 +178,27 @@ const EquiposMantenimiento: React.FC = () => {
                 
                 if (equipoResult.success && equipoResult.data) {
                   const equipoActual = equipoResult.data;
-                  const cantidadActual = equipoActual.cantidad_equipo || 0;
                   const cantidadMarcar = equipoSel.cantidad_seleccionada;
                   
-                  console.log(`🔧 Marcar disponible: ${cantidadMarcar} de ${cantidadActual} equipos (ID: ${idEquipo})`);
+                  console.log(`🔧 Marcar disponible: ${cantidadMarcar} unidades de ${equipoActual.nombre_equipo}`);
                   
-                  if (cantidadMarcar < cantidadActual) {
-                    // Dividir el equipo: crear nuevo registro con la cantidad a marcar como disponible
-                    const nuevoEquipoResponse = await fetch('/api/equipo', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        cantidad_equipo: cantidadMarcar,
-                        nombre_equipo: equipoActual.nombre_equipo,
-                        id_equipo_categoria: equipoActual.id_equipo_categoria,
-                        id_estado_equipo: 1, // DISPONIBLE
-                        id_equipo_especifico: equipoActual.id_equipo_especifico
-                      })
-                    });
-                    
-                    if (nuevoEquipoResponse.ok) {
-                      // Reducir la cantidad del equipo original (permanece EN_MANTENIMIENTO)
-                      const updateResponse = await fetch(`/api/equipo/${idEquipo}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          cantidad_equipo: cantidadActual - cantidadMarcar
-                        })
-                      });
-                      
-                      if (updateResponse.ok) {
-                        exitosos++;
-                        console.log(`✅ Equipo dividido: ${cantidadMarcar} disponibles, ${cantidadActual - cantidadMarcar} en mantenimiento`);
-                      } else {
-                        errores++;
-                        console.error(`✗ Error al reducir cantidad del equipo original`);
-                      }
-                    } else {
-                      errores++;
-                      console.error(`✗ Error al crear nuevo equipo disponible`);
-                    }
+                  // Actualizar usando el nuevo sistema de columnas por estado
+                  // en_mantenimiento → disponible
+                  const response = await fetch(`/api/equipo/${idEquipo}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      cantidad_en_mantenimiento: (equipoActual.cantidad_en_mantenimiento || 0) - cantidadMarcar,
+                      cantidad_disponible: (equipoActual.cantidad_disponible || 0) + cantidadMarcar
+                    })
+                  });
+                  
+                  if (response.ok) {
+                    exitosos++;
+                    console.log(`✅ ${cantidadMarcar} unidades marcadas como disponibles`);
                   } else {
-                    // Actualizar todo el equipo a DISPONIBLE
-                    const response = await fetch(`/api/equipo/${idEquipo}`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        id_estado_equipo: 1 // DISPONIBLE
-                      })
-                    });
-                    
-                    if (response.ok) {
-                      exitosos++;
-                      console.log(`✅ Equipo completo marcado como disponible: ${cantidadActual} unidades`);
-                    } else {
-                      errores++;
-                      console.error(`✗ Error al actualizar equipo ${idEquipo}`);
-                    }
+                    errores++;
+                    console.error(`✗ Error al actualizar equipo ${idEquipo}`);
                   }
                 }
               } catch (error) {

@@ -181,12 +181,12 @@ const CategoriaEquipo: React.FC = () => {  const router = useRouter();
       label: 'Editar',
       onClick: handleEdit,
       className: styles.btnEdit
-    },
-    {
-      label: 'Eliminar',
-      onClick: (cat) => handleDelete(cat.id!),
-      className: styles.btnDelete
     }
+    // {
+    //   label: 'Eliminar',
+    //   onClick: (cat) => handleDelete(cat.id!),
+    //   className: styles.btnDelete
+    // }
   ];
 
   return (

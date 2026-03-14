@@ -542,11 +542,13 @@
   color: #333;
   background: #f9f9f9;
   transition: all 0.3s ease;
+  appearance: textfield;
   -moz-appearance: textfield;
 }
 
 .inputDescuento::-webkit-inner-spin-button,
 .inputDescuento::-webkit-outer-spin-button {
+  appearance: none;
   -webkit-appearance: none;
   margin: 0;
 }

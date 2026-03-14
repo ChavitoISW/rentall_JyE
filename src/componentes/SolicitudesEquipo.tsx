@@ -34,6 +34,9 @@ interface Equipo {
   id_equipo_especifico?: number;
   nombre_categoria?: string;
   cantidad_equipo?: number;
+  cantidad_disponible?: number;
+  cantidad_alquilado?: number;
+  cantidad_reservado?: number;
   precio_dia?: number;
   precio_semana?: number;
   precio_quincena?: number;
@@ -262,11 +265,12 @@ const SolicitudesEquipo: React.FC = () => {
           }
           
           const consolidado = consolidadoMap.get(key)!;
-          const cantidadEquipo = equipo.cantidad_equipo || 0;
-          consolidado.cantidad_disponible += cantidadEquipo;
+          // Usar cantidad_disponible del sistema de inventario por estados
+          const cantidadDisponible = equipo.cantidad_disponible || 0;
+          consolidado.cantidad_disponible += cantidadDisponible;
           consolidado.equipos_con_cantidades.push({
             id_equipo: equipo.id_equipo,
-            cantidad: cantidadEquipo
+            cantidad: cantidadDisponible
           });
         }
         
@@ -427,20 +431,8 @@ const SolicitudesEquipo: React.FC = () => {
           const result = await response.json();
 
           if (response.ok && result.success) {
-            // Actualizar estado del equipo a EN_RECOLECCION
-            if (detalle.id_equipo) {
-              try {
-                await fetch(`/api/equipo/${detalle.id_equipo}`, {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    id_estado_equipo: 4 // EN_RECOLECCION
-                  })
-                });
-              } catch (error) {
-                console.error('Error actualizando estado del equipo:', error);
-              }
-            }
+            // El equipo ya está en cantidad_alquilado desde que se generó el contrato
+            // No necesitamos actualizar nada aquí - la orden de recolección está lista para la hoja de ruta
             
             // Agregar el ID del detalle a la lista de órdenes de recolección
             if (detalle.id_detalle_solicitud_equipo) {
@@ -574,20 +566,8 @@ const SolicitudesEquipo: React.FC = () => {
               if (ordenResponse.ok && ordenResult.success) {
                 ordenesCreadas++;
                 
-                // Actualizar estado del equipo a EN_RECOLECCION
-                if (detalle.id_equipo) {
-                  try {
-                    await fetch(`/api/equipo/${detalle.id_equipo}`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        id_estado_equipo: 4 // EN_RECOLECCION
-                      })
-                    });
-                  } catch (error) {
-                    console.error('Error actualizando estado del equipo:', error);
-                  }
-                }
+                // El equipo ya está en cantidad_alquilado desde que se generó el contrato
+                // No necesitamos actualizar nada aquí - la orden de recolección está lista para la hoja de ruta
               } else {
                 errores++;
               }
@@ -747,12 +727,12 @@ const SolicitudesEquipo: React.FC = () => {
       try {
         setIsLoading(true);
         
-        // Liberar el equipo directamente cambiando su estado a DISPONIBLE
-        const response = await fetch(`/api/equipo/${detalleAEliminar.id_equipo}`, {
-          method: 'PUT',
+        // Liberar el inventario usando la API especializada
+        const response = await fetch('/api/solicitud-equipo/liberar-inventario', {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            id_estado_equipo: EstadoEquipo.DISPONIBLE
+            id_solicitud_equipo: currentSolicitudEquipo.id_solicitud_equipo
           })
         });
         
@@ -2003,12 +1983,12 @@ const SolicitudesEquipo: React.FC = () => {
       className: styles.btnRecoger,
       tooltip: 'Recoger todos los equipos',
       condition: (solicitud) => 
-        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.SOLICITUD &&
-        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.CONTRATO_GENERADO &&
-        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_ENTREGA &&
-        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_RECOLECCION &&
-        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.ANULADO &&
-        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO
+        solicitud.estado_solicitud_equipo === EstadoSolicitudEquipo.EN_RUTA_RECOLECCION ||
+        (solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.SOLICITUD &&
+         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.CONTRATO_GENERADO &&
+         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_ENTREGA &&
+         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.ANULADO &&
+         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO)
     },
     {
       label: '🚫',

@@ -46,8 +46,16 @@ next-env.d.ts
 # SQLite Database
 rentall.db
 rentall.db-journal
+rentall-old.db
+rentall-nueva.db
+database.db
 *.db
 *.db-journal
+
+# Backups
+backups/
+*.backup
+*.bak
 
 # Operating System Files
 .DS_Store

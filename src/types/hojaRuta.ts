@@ -47,9 +47,9 @@ export interface HojaRuta {
   id_hoja_ruta?: number;
   numero_hoja_ruta?: string;
   fecha_creacion?: string;
-  fecha_ruta?: string;
   conductor?: string;
   vehiculo?: string;
+  estado_hoja_ruta?: EstadoHojaRuta;
   estado?: EstadoHojaRuta;
   observaciones?: string;
 }
@@ -60,6 +60,7 @@ export interface DetalleHojaRuta {
   tipo_operacion?: TipoOperacionRuta;
   id_referencia?: number;
   numero_referencia?: string;
+  orden_parada?: number;
   orden_visita?: number;
   direccion?: string;
   provincia?: string;
@@ -68,6 +69,7 @@ export interface DetalleHojaRuta {
   otras_senas?: string;
   nombre_cliente?: string;
   telefono_cliente?: string;
+  estado_detalle?: EstadoDetalleRuta;
   estado?: EstadoDetalleRuta;
   hora_estimada?: string;
   hora_real?: string;

@@ -46,10 +46,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         throw new Error(`Equipo con id ${detalle.id_equipo} no encontrado`);
       }
 
-      const cantidadDisponible = equipo.cantidad_equipo || 0;
+      const cantidadDisponible = equipo.cantidad_disponible || 0;
       const cantidadSolicitada = detalle.cantidad_equipo || 0;
 
-      // Validación estricta: la cantidad solicitada NUNCA puede ser mayor que la cantidad disponible
+      // Validación: la cantidad solicitada no puede ser mayor que la cantidad disponible
       if (cantidadSolicitada > cantidadDisponible) {
         return res.status(400).json({
           success: false,
@@ -57,45 +57,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      // Validación adicional: asegurar que el equipo esté en estado DISPONIBLE
-      if (equipo.id_estado_equipo !== EstadoEquipo.DISPONIBLE) {
-        return res.status(400).json({
-          success: false,
-          error: `El equipo ${equipo.nombre_equipo} no está disponible para reservar.`
-        });
-      }
-
-      // Actualizar el registro original restando la cantidad solicitada
-      const nuevaCantidad = cantidadDisponible - cantidadSolicitada;
+      // Actualizar el equipo usando el nuevo sistema de columnas
+      // disponible → reservado
+      const nuevaCantidadDisponible = cantidadDisponible - cantidadSolicitada;
+      const nuevaCantidadReservado = (equipo.cantidad_reservado || 0) + cantidadSolicitada;
+      
       db.prepare(`
         UPDATE equipo 
-        SET cantidad_equipo = ?, updated_at = CURRENT_TIMESTAMP
+        SET cantidad_disponible = ?,
+            cantidad_reservado = ?,
+            updated_at = CURRENT_TIMESTAMP
         WHERE id_equipo = ?
-      `).run(nuevaCantidad, detalle.id_equipo);
-
-      // Crear un nuevo registro con la cantidad reservada
-      const nuevoEquipo = db.prepare(`
-        INSERT INTO equipo (
-          nombre_equipo, 
-          id_equipo_categoria, 
-          id_estado_equipo, 
-          id_equipo_especifico, 
-          cantidad_equipo
-        ) VALUES (?, ?, ?, ?, ?)
-      `).run(
-        equipo.nombre_equipo,
-        equipo.id_equipo_categoria,
-        EstadoEquipo.RESERVADO,
-        equipo.id_equipo_especifico,
-        cantidadSolicitada
-      );
-
-      // Actualizar el detalle para que apunte al nuevo registro RESERVADO
-      db.prepare(`
-        UPDATE detalle_solicitud_equipo 
-        SET id_equipo = ?
-        WHERE id_detalle_solicitud_equipo = ?
-      `).run(nuevoEquipo.lastInsertRowid, detalle.id_detalle_solicitud_equipo);
+      `).run(nuevaCantidadDisponible, nuevaCantidadReservado, detalle.id_equipo);
 
       equiposProcesados++;
     }
