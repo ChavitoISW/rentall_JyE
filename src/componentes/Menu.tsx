@@ -180,6 +180,9 @@ const Menu: React.FC = () => {
                   <li className={styles.dropdownItem}>
                     <Link href="/ordenes-recoleccion">Órdenes de Recolección</Link>
                   </li>
+                  <li className={styles.dropdownItem}>
+                    <Link href="/ordenes-cambio">Órdenes de Cambio</Link>
+                  </li>
                 </ul>
               )}
             </li>
@@ -272,6 +275,9 @@ const Menu: React.FC = () => {
                   </li>                
                   <li className={styles.dropdownItem}>
                     <Link href="/categoria-equipo">Mant. de Categorias de Equipos</Link>
+                  </li>
+                  <li className={styles.dropdownItem}>
+                    <Link href="/ajuste-inventario">Ajuste Manual de Inventario</Link>
                   </li>
                   
                 </ul>

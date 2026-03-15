@@ -356,19 +356,9 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       );
       updateCambios.run(id_hoja_ruta);
 
-      // Actualizar SE asociadas a cambios a estado EN_RUTA_RECOLECCION (5)
-      const updateSECambios = db.prepare(
-        `UPDATE encabezado_solicitud_equipo
-         SET estado_solicitud_equipo = 5
-         WHERE id_solicitud_equipo IN (
-           SELECT id_solicitud_equipo FROM orden_cambio_equipo
-           WHERE id_orden_cambio IN (
-             SELECT id_referencia FROM detalle_hoja_ruta 
-             WHERE id_hoja_ruta = ? AND tipo_operacion = 2
-           )
-         )`
-      );
-      updateSECambios.run(id_hoja_ruta);
+      // NO se actualiza el estado de la SE cuando hay un cambio
+      // La SE debe permanecer en su estado actual (generalmente DONDE_CLIENTE/Contrato Activo)
+      // porque el cambio de equipo no significa fin de contrato
 
       // Actualizar equipos actuales en cambios a estado EN_RECOLECCION (4)
       const equiposCambioActivar = db.prepare(
@@ -443,72 +433,21 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse) {
       }
 
       // Actualizar órdenes de cambio a estado COMPLETADA (2)
+      // NOTA: NO se actualiza inventario aquí porque ya se hizo cuando se completó cada parada individual
+      // Esto evita la duplicación de movimientos de inventario
       const updateCambiosCompletos = db.prepare(
         `UPDATE orden_cambio_equipo
          SET estado = 2
          WHERE id_orden_cambio IN (
            SELECT id_referencia FROM detalle_hoja_ruta 
-           WHERE id_hoja_ruta = ? AND tipo_operacion = 2
+           WHERE id_hoja_ruta = ? AND tipo_operacion = 2 AND estado_detalle = 1
          )`
       );
       updateCambiosCompletos.run(id_hoja_ruta);
 
-      // Para cambios: también actualizar equipos a EN_MANTENIMIENTO
-      const equiposCambio = db.prepare(
-        `SELECT DISTINCT e.id_equipo_especifico
-         FROM orden_cambio_equipo oce
-         INNER JOIN equipo e ON oce.id_equipo_actual = e.id_equipo
-         WHERE oce.id_orden_cambio IN (
-           SELECT id_referencia FROM detalle_hoja_ruta 
-           WHERE id_hoja_ruta = ? AND tipo_operacion = 2
-         )
-         AND e.id_equipo_especifico IS NOT NULL`
-      ).all(id_hoja_ruta);
-
-      // Mover equipos de cantidad_alquilado a cantidad_en_mantenimiento
-      if (equiposCambio.length > 0) {
-        (equiposCambio as any[]).forEach((equipoItem: any) => {
-          const equipoActual = db.prepare('SELECT * FROM equipo WHERE id_equipo_especifico = ?').get(equipoItem.id_equipo_especifico) as any;
-          if (equipoActual) {
-            const cantidadRecolectar = equipoActual.cantidad_equipo || 0;
-            db.prepare(`
-              UPDATE equipo
-              SET cantidad_alquilado = COALESCE(cantidad_alquilado, 0) - ?,
-                  cantidad_en_mantenimiento = COALESCE(cantidad_en_mantenimiento, 0) + ?,
-                  updated_at = CURRENT_TIMESTAMP
-              WHERE id_equipo_especifico = ?
-            `).run(cantidadRecolectar, cantidadRecolectar, equipoItem.id_equipo_especifico);
-          }
-        });
-      }
-
-      // Actualizar SE a FINALIZADO solo si TODAS sus órdenes de cambio están completadas
-      // Primero, obtener las SE afectadas por cambios en esta hoja
-      const seAfectadasCambio = db.prepare(
-        `SELECT DISTINCT id_solicitud_equipo FROM orden_cambio_equipo
-         WHERE id_orden_cambio IN (
-           SELECT id_referencia FROM detalle_hoja_ruta 
-           WHERE id_hoja_ruta = ? AND tipo_operacion = 2
-         )`
-      ).all(id_hoja_ruta);
-
-      // Para cada SE afectada, verificar si todas sus órdenes de cambio están completadas
-      for (const se of seAfectadasCambio as any[]) {
-        const cambiosIncompletos = db.prepare(
-          `SELECT COUNT(*) as count FROM orden_cambio_equipo
-           WHERE id_solicitud_equipo = ? AND estado != 2`
-        ).get(se.id_solicitud_equipo) as any;
-
-        // Solo actualizar a FINALIZADO si no hay cambios incompletos
-        if (cambiosIncompletos.count === 0) {
-          const updateSECambio = db.prepare(
-            `UPDATE encabezado_solicitud_equipo
-             SET estado_solicitud_equipo = 6
-             WHERE id_solicitud_equipo = ?`
-          );
-          updateSECambio.run(se.id_solicitud_equipo);
-        }
-      }
+      // NOTA: NO se finaliza el contrato/SE al completar órdenes de cambio
+      // El contrato debe seguir ACTIVO porque solo se cambió un equipo, pero el contrato sigue vigente
+      // La SE solo debe finalizarse cuando se complete una orden de RECOLECCIÓN, no de CAMBIO
     }
 
     return db.prepare('SELECT * FROM hoja_ruta WHERE id_hoja_ruta = ?').get(id_hoja_ruta);

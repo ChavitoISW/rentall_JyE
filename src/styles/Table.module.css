@@ -114,6 +114,8 @@
   display: flex;
   gap: 0.5rem;
   justify-content: flex-start;
+  width: 180px;
+  max-width: 180px;
 }
 
 .btnAction {
@@ -147,6 +149,31 @@
 .paginationInfo {
   color: #666;
   font-size: 0.9rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.itemsPerPageSelect {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  color: #333;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.itemsPerPageSelect:hover {
+  border-color: #4a90e2;
+}
+
+.itemsPerPageSelect:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
 }
 
 .pagination {

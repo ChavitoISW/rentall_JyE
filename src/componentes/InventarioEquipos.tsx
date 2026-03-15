@@ -87,10 +87,7 @@ const InventarioEquipos: React.FC = () => {
 
       <main className={styles.main}>
         <div className={styles.header}>
-          <div>
-            <h1>📊 Inventario Consolidado de Equipos</h1>
-            <p className={styles.subtitle}>Vista general del estado de todos los equipos</p>
-          </div>
+          <h1>📊 Inventario Consolidado de Equipos</h1>
           <div className={styles.headerButtons}>
             <button className={styles.btnPrint} onClick={handlePrint}>
               🖨️ Imprimir

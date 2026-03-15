@@ -2,7 +2,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, #4a90e2 0%, #2874d9 100%);
 }
 
 .main {
@@ -16,43 +16,38 @@
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 2rem;
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: white;
 }
 
 .header h1 {
-  margin: 0 0 0.5rem 0;
-  color: #2c3e50;
-  font-size: 2rem;
-  font-weight: 700;
+  margin: 0;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.subtitle {
-  color: #7f8c8d;
-  margin: 0;
-  font-size: 0.95rem;
+.headerButtons {
+  display: flex;
+  gap: 1rem;
 }
 
 .btnRefresh {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #00BCD4;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.2s;
 }
 
 .btnRefresh:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  background: #0097A7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 188, 212, 0.3);
 }
 
 .headerButtons {
@@ -62,20 +57,20 @@
 
 .btnPrint {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  background: #4CAF50;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  transition: all 0.2s;
 }
 
 .btnPrint:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  background: #45a049;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
 }
 
 .searchBar {
@@ -84,19 +79,18 @@
 
 .searchInput {
   width: 100%;
-  padding: 1rem 1.5rem;
+  padding: 0.8rem 1.2rem;
   font-size: 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
+  border: none;
+  border-radius: 8px;
   background: white;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  outline: none;
 }
 
 .searchInput:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Summary Cards */
@@ -111,16 +105,16 @@
   background: white;
   padding: 1.5rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .summaryCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
 }
 
 .cardDisponible {
@@ -162,10 +156,10 @@
 .tableWrapper {
   background: white;
   border-radius: 12px;
-  overflow: auto;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
   margin-bottom: 2rem;
-  max-height: 600px;
 }
 
 .inventoryTable {
@@ -175,25 +169,35 @@
 }
 
 .inventoryTable thead {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4a90e2 0%, #2874d9 100%);
   color: white;
-  position: sticky;
-  top: 0;
-  z-index: 10;
 }
 
 .inventoryTable th {
   padding: 1rem;
-  text-align: left;
+  text-align: center;
   font-weight: 600;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-size: 0.95rem;
+  border-right: 1px solid white;
+  vertical-align: middle;
+}
+
+.inventoryTable th {
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-right: 1px solid white;
+  vertical-align: middle;
+}
+
+.inventoryTable th:last-child {
+  border-right: none;
 }
 
 .thEquipo {
   width: 25%;
+  text-align: left !important;
 }
 
 .thCategoria {
@@ -212,22 +216,32 @@
 }
 
 .tableRow {
-  border-bottom: 1px solid #f0f0f0;
-  transition: all 0.2s ease;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.2s;
+}
+
+.tableRow:nth-child(even) {
+  background-color: #f9f9f9;
 }
 
 .tableRow:hover {
-  background-color: #f8f9fa;
+  background-color: #e3f2fd;
 }
 
 .inventoryTable td {
   padding: 1rem;
-  color: #2c3e50;
+  color: #333;
+  border-right: 1px solid #e0e0e0;
+}
+
+.inventoryTable td:last-child {
+  border-right: none;
 }
 
 .tdEquipo {
   font-weight: 600;
   color: #2c3e50;
+  text-align: left;
 }
 
 .tdCategoria,
@@ -255,7 +269,7 @@
 .badgeTotal {
   display: inline-block;
   padding: 0.4rem 0.8rem;
-  background: #34495e;
+  background: #4a90e2;
   color: white;
   border-radius: 6px;
   font-weight: 700;
@@ -325,6 +339,8 @@
 .noData {
   text-align: center !important;
   padding: 3rem !important;
+  color: #999;
+  font-style: italic;
 }
 
 .noDataContent {
@@ -332,7 +348,7 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  color: #95a5a6;
+  color: #666;
 }
 
 .noDataIcon {
