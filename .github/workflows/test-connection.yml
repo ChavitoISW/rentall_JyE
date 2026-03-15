@@ -1,6 +1,8 @@
 name: 🧪 Test SSH Connection
 
 on:
+  push:
+    branches: [ testqa ]
   workflow_dispatch:
 
 jobs:
