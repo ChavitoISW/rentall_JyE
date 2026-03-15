@@ -47,6 +47,14 @@ const Contratos: React.FC = () => {
   const [totalExtension, setTotalExtension] = useState(0);
   const [usaFactura, setUsaFactura] = useState(false);
   
+  // Estados para orden de cambio
+  const [showCambioModal, setShowCambioModal] = useState(false);
+  const [contratoParaCambio, setContratoParaCambio] = useState<ContratoExtendido | null>(null);
+  const [equipoACambiar, setEquipoACambiar] = useState<{id_equipo: number, nombre_equipo: string} | null>(null);
+  const [equiposDisponibles, setEquiposDisponibles] = useState<any[]>([]);
+  const [equipoNuevoSeleccionado, setEquipoNuevoSeleccionado] = useState<number | null>(null);
+  const [motivoCambio, setMotivoCambio] = useState('');
+  
   const [confirmDialog, setConfirmDialog] = useState({
     isOpen: false,
     title: '',
@@ -140,12 +148,12 @@ const Contratos: React.FC = () => {
     { 
       key: 'id_contrato', 
       header: '# Contrato', 
-      width: '140px' 
+      width: '150px' 
     },
     { 
       key: 'numero_solicitud_equipo', 
       header: 'Solicitud', 
-      width: '160px',
+      width: '140px',
       render: (c) => (
         <a 
           href={`/solicitudes-equipos?numero=${c.numero_solicitud_equipo}`}
@@ -160,12 +168,12 @@ const Contratos: React.FC = () => {
     { 
       key: 'nombre_cliente', 
       header: 'Cliente', 
-      width: '250px' 
+      width: '280px' 
     },
     { 
       key: 'estado', 
       header: 'Estado',
-      width: '180px',
+      width: '150px',
       render: (c) => {
         const estado = c.estado !== undefined && c.estado !== null ? c.estado : EstadoContrato.GENERADO;
         const label = EstadoContratoLabels[estado as EstadoContrato] || 'Desconocido';
@@ -185,7 +193,7 @@ const Contratos: React.FC = () => {
     { 
       key: 'fecha_vencimiento', 
       header: 'Vencimiento',
-      width: '180px',
+      width: '150px',
       render: (c) => {
         if (!c.fecha_vencimiento) return '-';
         
@@ -208,7 +216,7 @@ const Contratos: React.FC = () => {
     { 
       key: 'created_at', 
       header: 'Creación',
-      width: '180px',
+      width: '150px',
       render: (c) => c.created_at ? new Date(c.created_at).toLocaleDateString('es-CR') : '-'
     }
   ];
@@ -391,6 +399,280 @@ const Contratos: React.FC = () => {
     });
     
     return total;
+  };
+
+  const handleGenerarCambio = async (contrato: ContratoExtendido) => {
+    if (!contrato.numero_solicitud_equipo) {
+      setConfirmDialog({
+        isOpen: true,
+        title: 'Error',
+        message: 'No se pudo obtener la información de la solicitud de equipo',
+        type: 'danger',
+        onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false })
+      });
+      return;
+    }
+
+    // Mostrar modal de selección de equipo a cambiar
+    try {
+      setIsLoading(true);
+      // Obtener equipos del contrato desde detalle_solicitud_equipo
+      const detallesResponse = await fetch(`/api/detalle-solicitud-equipo?numero_solicitud_equipo=${contrato.numero_solicitud_equipo}`);
+      const detallesResult = await detallesResponse.json();
+      
+      if (!detallesResult.success || !detallesResult.data || detallesResult.data.length === 0) {
+        throw new Error('No se encontraron equipos en el contrato');
+      }
+
+      // Obtener equipos con información completa
+      const equiposDelContrato = detallesResult.data.filter((d: any) => d.id_equipo);
+      
+      if (equiposDelContrato.length === 0) {
+        throw new Error('No hay equipos en el contrato');
+      }
+
+      setContratoParaCambio(contrato);
+      // Si solo hay un equipo, seleccionarlo automáticamente
+      if (equiposDelContrato.length === 1) {
+        const equipo = equiposDelContrato[0];
+        await iniciarCambioEquipo(contrato, equipo.id_equipo, equipo.nombre_equipo || `Equipo #${equipo.id_equipo}`);
+      } else {
+        // Por ahora seleccionar el primero (podrías implementar un selector aquí)
+        const equipo = equiposDelContrato[0];
+        await iniciarCambioEquipo(contrato, equipo.id_equipo, equipo.nombre_equipo || `Equipo #${equipo.id_equipo}`);
+      }
+    } catch (error: any) {
+      setConfirmDialog({
+        isOpen: true,
+        title: 'Error',
+        message: error.message || 'Error al cargar los equipos del contrato',
+        type: 'danger',
+        onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false })
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const iniciarCambioEquipo = async (contrato: ContratoExtendido, idEquipoActual: number, nombreEquipoActual: string) => {
+    try {
+      setIsLoading(true);
+      // Obtener info del equipo para saber su categoría
+      const equipoResponse = await fetch(`/api/equipo/${idEquipoActual}`);
+      const equipoResult = await equipoResponse.json();
+      
+      if (!equipoResult.success || !equipoResult.data) {
+        throw new Error('No se pudo obtener información del equipo');
+      }
+
+      const categoriaId = equipoResult.data.id_equipo_categoria;
+      
+      // Obtener equipos disponibles de la misma categoría
+      const equiposResponse = await fetch('/api/equipo');
+      const equiposResult = await equiposResponse.json();
+      
+      if (!equiposResult.success || !equiposResult.data) {
+        throw new Error('No se pudieron cargar los equipos disponibles');
+      }
+
+      // Filtrar equipos de la misma categoría que tengan unidades disponibles
+      const equiposDisp = equiposResult.data.filter((eq: any) => 
+        eq.id_equipo_categoria === categoriaId && 
+        eq.id_equipo !== idEquipoActual &&
+        (eq.cantidad_disponible || 0) > 0
+      );
+
+      if (equiposDisp.length === 0) {
+        throw new Error('No hay equipos disponibles de la misma categoría para realizar el cambio');
+      }
+
+      setEquipoACambiar({ id_equipo: idEquipoActual, nombre_equipo: nombreEquipoActual });
+      setEquiposDisponibles(equiposDisp);
+      setEquipoNuevoSeleccionado(null);
+      setMotivoCambio('');
+      setShowCambioModal(true);
+    } catch (error: any) {
+      setConfirmDialog({
+        isOpen: true,
+        title: 'Error',
+        message: error.message || 'Error al iniciar el proceso de cambio',
+        type: 'danger',
+        onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false })
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const confirmarCambio = async () => {
+    console.log('=== INICIO confirmarCambio ===');
+    console.log('motivoCambio:', motivoCambio);
+    console.log('equipoNuevoSeleccionado:', equipoNuevoSeleccionado);
+    console.log('contratoParaCambio:', contratoParaCambio);
+    console.log('equipoACambiar:', equipoACambiar);
+    
+    if (!motivoCambio.trim()) {
+      console.log('ERROR: Motivo de cambio vacío');
+      alert('Debe ingresar el motivo del cambio');
+      return;
+    }
+
+    if (!equipoNuevoSeleccionado) {
+      console.log('ERROR: No hay equipo nuevo seleccionado');
+      alert('Debe seleccionar un equipo nuevo');
+      return;
+    }
+
+    if (!contratoParaCambio || !equipoACambiar) {
+      console.log('ERROR: Falta contratoParaCambio o equipoACambiar');
+      return;
+    }
+
+    console.log('Todas las validaciones pasaron, cerrando modal...');
+    setShowCambioModal(false);
+    console.log('Abriendo diálogo de confirmación...');
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Confirmar orden de cambio?',
+      message: `Se creará una orden de cambio para reemplazar ${equipoACambiar.nombre_equipo} por el equipo seleccionado. Esta acción actualizará el inventario.`,
+      type: 'warning',
+      onConfirm: async () => {
+        console.log('=== Usuario confirmó la orden de cambio ===');
+        setIsLoading(true);
+        try {
+          console.log('Buscando equipo nuevo en lista de disponibles...');
+          const equipoNuevo = equiposDisponibles.find(eq => eq.id_equipo === equipoNuevoSeleccionado);
+          console.log('Equipo nuevo encontrado:', equipoNuevo);
+          
+          // Obtener datos completos de la SE para dirección y teléfono
+          console.log('Obteniendo datos de la SE, id:', contratoParaCambio.id_solicitud_equipo);
+          
+          let seResult: { success: boolean; data: any } = { success: false, data: null };
+          try {
+            const seResponse = await fetch(`/api/solicitud-equipo/${contratoParaCambio.id_solicitud_equipo}`);
+            console.log('seResponse recibido, status:', seResponse.status);
+            
+            if (seResponse.ok) {
+              seResult = await seResponse.json();
+              console.log('Resultado SE completo:', seResult);
+            } else {
+              console.error('Error en fetch SE, status:', seResponse.status);
+            }
+          } catch (fetchError) {
+            console.error('Error al obtener datos de SE:', fetchError);
+          }
+          
+          console.log('Preparando datos de dirección...');
+          let direccionData = {
+            provincia: 'N/A',
+            canton: 'N/A',
+            distrito: 'N/A',
+            otras_senas: '',
+            telefono: ''
+          };
+          
+          if (seResult.success && seResult.data) {
+            const se: any = seResult.data;
+            console.log('Datos SE encontrados:', se);
+            direccionData = {
+              provincia: se.provincia_solicitud_equipo || 'N/A',
+              canton: se.canton_solicitud_equipo || 'N/A',
+              distrito: se.distrito_solicitud_equipo || 'N/A',
+              otras_senas: se.otras_senas_solicitud_equipo || '',
+              telefono: se.telefono_recibe || ''
+            };
+            console.log('Dirección preparada:', direccionData);
+          } else {
+            console.log('No se encontraron datos de SE, usando valores por defecto');
+          }
+          
+          console.log('Construyendo objeto ordenCambio...');
+          const ordenCambio = {
+            id_solicitud_equipo: contratoParaCambio.id_solicitud_equipo,
+            numero_solicitud_equipo: contratoParaCambio.numero_solicitud_equipo,
+            id_equipo_actual: equipoACambiar.id_equipo,
+            nombre_equipo_actual: equipoACambiar.nombre_equipo,
+            id_equipo_nuevo: equipoNuevoSeleccionado,
+            nombre_equipo_nuevo: equipoNuevo?.nombre_equipo || 'N/A',
+            motivo_cambio: motivoCambio,
+            provincia: direccionData.provincia,
+            canton: direccionData.canton,
+            distrito: direccionData.distrito,
+            otras_senas: direccionData.otras_senas,
+            nombre_cliente: contratoParaCambio.nombre_cliente,
+            telefono_cliente: direccionData.telefono
+          };
+
+          console.log('Creando orden de cambio con datos:', ordenCambio);
+
+          const response = await fetch('/api/orden-cambio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ordenCambio)
+          });
+
+          console.log('Response status:', response.status);
+          console.log('Response headers:', response.headers);
+
+          if (!response.ok) {
+            let errorMessage = 'Error al crear la orden de cambio';
+            const contentType = response.headers.get('content-type');
+            console.log('Content-Type:', contentType);
+            
+            try {
+              const text = await response.text();
+              console.log('Response text:', text);
+              
+              if (contentType && contentType.includes('application/json')) {
+                const errorData = JSON.parse(text);
+                errorMessage = errorData.error || errorMessage;
+              } else {
+                errorMessage = `Error ${response.status}: ${text || response.statusText}`;
+              }
+            } catch (e) {
+              console.error('Error al parsear respuesta:', e);
+              errorMessage = `Error ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
+          }
+
+          const result = await response.json();
+          console.log('Resultado recibido:', result);
+          console.log('Orden creada en servidor:', result.data);
+          
+          setConfirmDialog({
+            isOpen: true,
+            title: 'Éxito',
+            message: `Orden de cambio #${result.data.numero_orden_cambio} creada exitosamente. El inventario ha sido actualizado.`,
+            type: 'info',
+            onConfirm: () => {
+              setConfirmDialog({ ...confirmDialog, isOpen: false });
+              // Limpiar estados
+              setEquipoACambiar(null);
+              setEquiposDisponibles([]);
+              setEquipoNuevoSeleccionado(null);
+              setMotivoCambio('');
+            }
+          });
+        } catch (error: any) {
+          console.error('=== ERROR al crear orden de cambio ===');
+          console.error('Error:', error);
+          console.error('Message:', error.message);
+          console.error('Stack:', error.stack);
+          
+          setConfirmDialog({
+            isOpen: true,
+            title: 'Error',
+            message: error.message || 'No se pudo crear la orden de cambio',
+            type: 'danger',
+            onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false })
+          });
+        } finally {
+          console.log('=== Finalizando creación de orden de cambio ===');
+          setIsLoading(false);
+        }
+      }
+    });
   };
 
   const recalcularTotalExtension = (equipos: DetalleEquipo[]) => {
@@ -698,19 +980,27 @@ const Contratos: React.FC = () => {
 
   const actions: TableAction<ContratoExtendido>[] = [
     {
-      label: 'Vista Previa PDF',
+      label: '📄',
       onClick: handleVistaPreviaPDF,
-      className: styles.btnEdit
+      className: styles.btnEdit,
+      tooltip: 'Vista previa PDF'
     },
     {
-      label: 'Anular',
+      label: '🔄',
+      onClick: handleGenerarCambio,
+      className: styles.btnInfo,
+      condition: (c) => c.estado === EstadoContrato.GENERADO,
+      tooltip: 'Generar orden de cambio de equipo'
+    },
+    {
+      label: '🚫',
       onClick: handleAnular,
       className: styles.btnAnular,
-      condition: (c) => c.estado !== EstadoContrato.EXTENDIDO && c.estado !== EstadoContrato.FINALIZADO,
+      condition: (c) => c.estado !== EstadoContrato.EXTENDIDO && c.estado !== EstadoContrato.FINALIZADO && c.estado !== EstadoContrato.ANULADO,
       tooltip: 'Anular contrato'
     },
     {
-      label: 'Extender',
+      label: '📅',
       onClick: handleExtender,
       className: styles.btnContrato,
       condition: (c) => c.estado === EstadoContrato.GENERADO && (c.estadoVencimiento === 'vencido' || c.estadoVencimiento === 'porVencer'),
@@ -964,6 +1254,99 @@ const Contratos: React.FC = () => {
                 type="button"
               >
                 Crear Extensión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Orden de Cambio */}
+      {showCambioModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowCambioModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '650px' }}>
+            <div className={styles.modalHeader}>
+              <h2>🔄 Generar Orden de Cambio</h2>
+              <button 
+                className={styles.modalClose}
+                onClick={() => setShowCambioModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <p className={styles.modalDescription}>
+                Contrato: <strong>#{contratoParaCambio?.id_contrato}</strong><br />
+                Cliente: <strong>{contratoParaCambio?.nombre_cliente}</strong>
+              </p>
+
+              <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f8f9fa', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                <label style={{ display: 'block', fontWeight: '600', marginBottom: '0.5rem', color: '#495057' }}>
+                  Equipo Actual (a retirar)
+                </label>
+                <div style={{ padding: '0.75rem', background: '#fff3cd', borderRadius: '6px', border: '1px solid #ffc107', color: '#856404' }}>
+                  <strong style={{ fontSize: '1.05rem' }}>← {equipoACambiar?.nombre_equipo}</strong>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label className={styles.modalLabel}>
+                  Equipo Nuevo (a entregar) <span style={{ color: 'red' }}>*</span>
+                </label>
+                <select
+                  className={styles.searchInput}
+                  value={equipoNuevoSeleccionado || ''}
+                  onChange={(e) => setEquipoNuevoSeleccionado(Number(e.target.value))}
+                  style={{ width: '100%' }}
+                >
+                  <option value="">-- Seleccione el equipo de reemplazo --</option>
+                  {equiposDisponibles.map((equipo) => (
+                    <option key={equipo.id_equipo} value={equipo.id_equipo}>
+                      {equipo.nombre_equipo} (Disponibles: {equipo.cantidad_disponible})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className={styles.modalLabel}>
+                  Motivo del Cambio <span style={{ color: 'red' }}>*</span>
+                </label>
+                <textarea
+                  className={styles.modalTextarea}
+                  value={motivoCambio}
+                  onChange={(e) => setMotivoCambio(e.target.value)}
+                  placeholder="Ejemplo: Equipo presenta fallas mecánicas, cliente solicita cambio por X motivo, etc."
+                  rows={4}
+                  maxLength={500}
+                />
+                <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.25rem', textAlign: 'right' }}>
+                  {motivoCambio.length}/500 caracteres
+                </div>
+              </div>
+
+              <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#e7f3ff', borderRadius: '6px', border: '1px solid #0066cc' }}>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#004085' }}>
+                  <strong>Nota:</strong> Al crear la orden, el equipo actual pasará a estado "En Recolección" y el equipo nuevo a "Alquilado".
+                </p>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button
+                className={styles.btnCancel}
+                onClick={() => setShowCambioModal(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className={styles.btnContrato}
+                onClick={confirmarCambio}
+                disabled={!motivoCambio.trim() || !equipoNuevoSeleccionado}
+                style={{
+                  opacity: (!motivoCambio.trim() || !equipoNuevoSeleccionado) ? 0.5 : 1,
+                  cursor: (!motivoCambio.trim() || !equipoNuevoSeleccionado) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Crear Orden de Cambio
               </button>
             </div>
           </div>

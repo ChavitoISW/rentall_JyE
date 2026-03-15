@@ -231,6 +231,11 @@ const HojaRuta: React.FC = () => {
       } else if (parada.tipo_operacion === TipoOperacionRuta.CAMBIO) {
         // Para cambios, obtener info de la orden de cambio
         const response = await fetch(`/api/orden-cambio?id_orden_cambio=${parada.id_referencia}`);
+        
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+        
         const result = await response.json();
         
         if (result.success && Array.isArray(result.data) && result.data.length > 0) {
@@ -696,12 +701,21 @@ const HojaRuta: React.FC = () => {
             throw new Error(errorData.error || 'Error al eliminar la parada');
           }
           
-          // Mantener estado de orden de cambio como pendiente
-          await fetch(`/api/orden-cambio?id_orden_cambio=${paradaActual.id_referencia}`, {
+          // Revertir inventario y mantener estado de orden de cambio como pendiente
+          const revertResponse = await fetch(`/api/orden-cambio?id_orden_cambio=${paradaActual.id_referencia}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estado: 0 }) // PENDIENTE
+            body: JSON.stringify({ 
+              estado: 0, // PENDIENTE
+              revertir_inventario: true // Flag para revertir los cambios de inventario
+            })
           });
+          
+          if (!revertResponse.ok) {
+            const errorData = await revertResponse.json().catch(() => ({ error: 'Error desconocido' }));
+            console.error('Error al revertir inventario:', errorData);
+            throw new Error(errorData.error || 'Error al revertir cambios de inventario');
+          }
         } else if (estadoFinal === EstadoDetalleRuta.NO_EJECUTADA) {
           // Actualizar estado del detalle
           const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
@@ -720,12 +734,21 @@ const HojaRuta: React.FC = () => {
             throw new Error(errorData.error || 'Error al actualizar la parada');
           }
           
-          // Mantener estado de orden de cambio como pendiente
-          await fetch(`/api/orden-cambio?id_orden_cambio=${paradaActual.id_referencia}`, {
+          // Revertir inventario y mantener estado de orden de cambio como pendiente
+          const revertResponse = await fetch(`/api/orden-cambio?id_orden_cambio=${paradaActual.id_referencia}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estado: 0 }) // PENDIENTE
+            body: JSON.stringify({ 
+              estado: 0, // PENDIENTE
+              revertir_inventario: true // Flag para revertir los cambios de inventario
+            })
           });
+          
+          if (!revertResponse.ok) {
+            const errorData = await revertResponse.json().catch(() => ({ error: 'Error desconocido' }));
+            console.error('Error al revertir inventario:', errorData);
+            throw new Error(errorData.error || 'Error al revertir cambios de inventario');
+          }
         } else if (estadoFinal === EstadoDetalleRuta.COMPLETADO) {
           // Actualizar estado del detalle
           const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
@@ -744,12 +767,21 @@ const HojaRuta: React.FC = () => {
             throw new Error(errorData.error || 'Error al actualizar la parada');
           }
           
-          // Completada: actualizar estado a completado
-          await fetch(`/api/orden-cambio?id_orden_cambio=${paradaActual.id_referencia}`, {
+          // Completada: actualizar estado a completado y mover inventario
+          const updateOrdenResponse = await fetch(`/api/orden-cambio?id_orden_cambio=${paradaActual.id_referencia}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estado: 1 }) // COMPLETADO
+            body: JSON.stringify({ 
+              estado: 2, // COMPLETADA (no 1 que era el valor incorrecto)
+              actualizar_inventario: true // Flag para indicar que debe mover inventario
+            })
           });
+          
+          if (!updateOrdenResponse.ok) {
+            const errorData = await updateOrdenResponse.json().catch(() => ({ error: 'Error desconocido' }));
+            console.error('Error del servidor:', errorData);
+            throw new Error(errorData.error || 'Error al completar la orden de cambio');
+          }
         }
       }
       
@@ -757,9 +789,9 @@ const HojaRuta: React.FC = () => {
         isOpen: true,
         title: 'Éxito',
         message: estadoFinal === EstadoDetalleRuta.FALLIDO
-          ? 'Parada marcada como fallida y eliminada de la hoja de ruta. Los estados han sido revertidos y la orden puede ser reasignada.'
+          ? 'Parada marcada como fallida y eliminada de la hoja de ruta. El inventario ha sido revertido y la orden puede ser reasignada.'
           : estadoFinal === EstadoDetalleRuta.NO_EJECUTADA 
-          ? 'Parada marcada como no ejecutada. Los estados han sido revertidos.'
+          ? 'Parada marcada como no ejecutada. El inventario ha sido revertido y la orden queda pendiente.'
           : 'Parada actualizada correctamente',
         type: 'info',
         onConfirm: () => {

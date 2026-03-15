@@ -8,7 +8,7 @@
 .main {
   flex: 1;
   padding: 2rem;
-  max-width: 1600px;
+  max-width: 1900px;
   margin: 0 auto;
   width: 100%;
 }
@@ -65,7 +65,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.btnEdit, .btnDelete, .btnView, .btnAnular, .btnContrato, .btnVerPDF, .btnImprimir {
+.btnEdit, .btnDelete, .btnView, .btnAnular, .btnContrato, .btnVerPDF, .btnImprimir, .btnInfo {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
@@ -147,6 +147,17 @@
 
 .btnAnular:hover {
   background: #616161;
+  transform: translateY(-1px);
+}
+
+.btnInfo {
+  background: #FF9800;
+  color: white;
+  margin-right: 0.5rem;
+}
+
+.btnInfo:hover {
+  background: #F57C00;
   transform: translateY(-1px);
 }
 
