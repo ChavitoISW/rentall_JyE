@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   rentall:
-    container_name: rentall-J&B-container
+    container_name: rentall-jyb-container
     build:
       context: .
       dockerfile: Dockerfile
