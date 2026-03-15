@@ -168,11 +168,19 @@ jobs:
             git pull origin ${{ github.ref_name }}
           elif [ -d "$DEPLOY_DIR" ]; then
             echo "⚠️  Directorio existe pero no es un repositorio git"
-            echo "🗑️  Eliminando directorio y clonando desde cero..."
-            rm -rf "$DEPLOY_DIR"
-            mkdir -p "$DEPLOY_DIR"
             
-            echo "📥 Clonando repositorio..."
+            # Intentar renombrar (si falla, usar directorio alternativo)
+            BACKUP_DIR="${DEPLOY_DIR}.backup.$(date +%s)"
+            if mv "$DEPLOY_DIR" "$BACKUP_DIR" 2>/dev/null; then
+              echo "📦 Directorio anterior respaldado en: $BACKUP_DIR"
+              mkdir -p "$DEPLOY_DIR"
+            else
+              echo "⚠️  No se puede mover el directorio. Usando ruta alternativa..."
+              DEPLOY_DIR="$HOME/rentall-deploy"
+              mkdir -p "$DEPLOY_DIR"
+            fi
+            
+            echo "📥 Clonando repositorio en $DEPLOY_DIR..."
             git clone https://github.com/${{ github.repository }}.git "$DEPLOY_DIR"
             cd "$DEPLOY_DIR"
             git checkout ${{ github.ref_name }}
