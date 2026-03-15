@@ -272,6 +272,26 @@ db.exec(`
   )
 `);
 
+// Crear tabla de factura_contrato
+db.exec(`
+  CREATE TABLE IF NOT EXISTS factura_contrato (
+    id_factura_contrato INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_solicitud_equipo INTEGER NOT NULL,
+    id_contrato INTEGER NOT NULL,
+    numero_factura TEXT NOT NULL,
+    monto_subtotal REAL NOT NULL DEFAULT 0,
+    monto_iva REAL NOT NULL DEFAULT 0,
+    monto_total REAL NOT NULL DEFAULT 0,
+    fecha_emision DATE NOT NULL,
+    estado_factura INTEGER DEFAULT 0,
+    observaciones TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_solicitud_equipo) REFERENCES encabezado_solicitud_equipo(id_solicitud_equipo),
+    FOREIGN KEY (id_contrato) REFERENCES contrato(id_contrato)
+  )
+`);
+
 // Crear tabla de hoja_ruta
 db.exec(`
   CREATE TABLE IF NOT EXISTS hoja_ruta (
