@@ -36,7 +36,8 @@ jobs:
           echo "❌ SSH_PRIVATE_KEY no está configurado"
           exit 1
         else
-          echo "✅ SSH_PRIVATE_KEY está configurado (longitud: ${#{{ secrets.SSH_PRIVATE_KEY }}} caracteres)"
+          KEY_LENGTH=$(echo -n "${{ secrets.SSH_PRIVATE_KEY }}" | wc -c)
+          echo "✅ SSH_PRIVATE_KEY está configurado (longitud: ${KEY_LENGTH} caracteres)"
         fi
     
     - name: 🔐 Setup SSH Agent
