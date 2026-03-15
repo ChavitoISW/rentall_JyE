@@ -44,6 +44,7 @@ next-env.d.ts
 .tsbuildinfo
 
 # SQLite Database
+database/
 rentall.db
 rentall.db-journal
 rentall-old.db
@@ -110,3 +111,7 @@ RESUMEN_*.md
 # Backups
 *.backup
 *.bak
+
+# Docker (mantener .env.docker.example versionado)
+.env.docker
+docker-compose.override.yml

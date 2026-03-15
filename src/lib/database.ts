@@ -1,7 +1,10 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 
-const dbPath = path.join(process.cwd(), 'rentall.db');
+// Configurar ruta de la base de datos según el entorno
+const dbPath = process.env.DB_PATH || path.join(process.cwd(), 'rentall.db');
+console.log('📁 Ruta de base de datos:', dbPath);
+
 const db = new Database(dbPath);
 
 // Habilitar foreign keys

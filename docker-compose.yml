@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  rentall:
+    container_name: rentall-J&B-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: rentall:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./database:/app/database
+      - ./backups:/app/backups
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - PORT=3000
+      - TZ=America/Costa_Rica
+      - DB_PATH=/app/database/rentall.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000 && test -f /app/database/rentall.db || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 40s
