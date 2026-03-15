@@ -157,9 +157,17 @@ jobs:
         ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
           set -e
           
-          # Verificar si el directorio existe
-          if [ ! -d "${{ secrets.DEPLOY_PATH }}" ]; then
-            echo "📁 Creando directorio ${{ secrets.DEPLOY_PATH }}..."
+          # Verificar si es un repositorio git válido
+          if [ -d "${{ secrets.DEPLOY_PATH }}/.git" ]; then
+            echo "📂 Repositorio existe, actualizando código..."
+            cd "${{ secrets.DEPLOY_PATH }}"
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+          elif [ -d "${{ secrets.DEPLOY_PATH }}" ]; then
+            echo "⚠️  Directorio existe pero no es un repositorio git"
+            echo "🗑️  Eliminando directorio y clonando desde cero..."
+            sudo rm -rf "${{ secrets.DEPLOY_PATH }}"
             sudo mkdir -p "${{ secrets.DEPLOY_PATH }}"
             sudo chown $USER:$USER "${{ secrets.DEPLOY_PATH }}"
             
@@ -171,11 +179,17 @@ jobs:
             echo "📁 Creando directorios necesarios..."
             mkdir -p database backups
           else
-            echo "📂 Directorio existe, actualizando código..."
+            echo "📁 Creando directorio ${{ secrets.DEPLOY_PATH }}..."
+            sudo mkdir -p "${{ secrets.DEPLOY_PATH }}"
+            sudo chown $USER:$USER "${{ secrets.DEPLOY_PATH }}"
+            
+            echo "📥 Clonando repositorio..."
+            git clone https://github.com/${{ github.repository }}.git "${{ secrets.DEPLOY_PATH }}"
             cd "${{ secrets.DEPLOY_PATH }}"
-            git fetch origin
             git checkout ${{ github.ref_name }}
-            git pull origin ${{ github.ref_name }}
+            
+            echo "📁 Creando directorios necesarios..."
+            mkdir -p database backups
           fi
           
           # Detener contenedores si están corriendo
