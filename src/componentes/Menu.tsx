@@ -144,16 +144,24 @@ const Menu: React.FC = () => {
                   <li className={styles.dropdownItem}>
                     <Link href="/control-pagos">Control de Pagos</Link>
                   </li>
+                  <li className={styles.dropdownItem}>
+                    <Link href="/control-facturacion">Control de Facturación</Link>
+                  </li>
                 </ul>
               )}
             </li>
           )}
           
-          {/* Control de Pagos - visible para rol 4 (Contable) */}
+          {/* Control de Pagos y Facturación - visible para rol 4 (Contable) */}
           {usuario?.usuario_rol === 4 && (
-            <li className={styles.menuItem}>
-              <Link href="/control-pagos">Control de Pagos</Link>
-            </li>
+            <>
+              <li className={styles.menuItem}>
+                <Link href="/control-pagos">Control de Pagos</Link>
+              </li>
+              <li className={styles.menuItem}>
+                <Link href="/control-facturacion">Control de Facturación</Link>
+              </li>
+            </>
           )}
 
           {/* Hojas de Ruta - visible para rol 5 (Chofer) */}

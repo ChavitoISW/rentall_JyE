@@ -1885,8 +1885,18 @@ export const contratoModel = {
         VALUES (?, ?)
       `).run(id_solicitud_equipo, 1); // Estado 1 = Generado
 
+      const idContrato = resultContrato.lastInsertRowid;
+
+      // 7. Actualizar el numero_contrato con el id generado
+      db.prepare(`
+        UPDATE contrato 
+        SET numero_contrato = ?
+        WHERE id_contrato = ?
+      `).run(String(idContrato), idContrato);
+
       return {
-        id_contrato: resultContrato.lastInsertRowid,
+        id_contrato: idContrato,
+        numero_contrato: String(idContrato),
         id_solicitud_equipo,
         numero_solicitud_equipo: solicitud.numero_solicitud_equipo,
         equipos_procesados: detalles.length
