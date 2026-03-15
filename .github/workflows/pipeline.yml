@@ -157,6 +157,12 @@ jobs:
         ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'ENDSSH'
           set -e
           
+          # Asegurar que podman-compose esté en el PATH
+          export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
+          
+          # Cargar bashrc si existe (puede tener configuración de PATH)
+          [ -f ~/.bashrc ] && source ~/.bashrc
+          
           # Usar siempre el home del usuario logueado
           DEPLOY_DIR="$HOME/rentall"
           
