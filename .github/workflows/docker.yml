@@ -2,7 +2,7 @@ name: Podman Build and Push
 
 on:
   push:
-    branches: [ main, dockerfile, testqa ]
+    branches: [ main, dockerfile, testqa, gitactions ]
     tags:
       - 'v*.*.*'
   pull_request:

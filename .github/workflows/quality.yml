@@ -2,7 +2,7 @@ name: Code Quality
 
 on:
   push:
-    branches: [ main, develop, testqa ]
+    branches: [ main, develop, testqa, gitactions ]
   pull_request:
     branches: [ main, develop ]
 
