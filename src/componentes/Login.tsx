@@ -48,8 +48,8 @@ const Login: React.FC = () => {
             <img 
               src="/assets/logo.png" 
               alt="RentAll Logo" 
-              width={130} 
-              height={130}
+              width={280} 
+              height={160}
             />
           </div>
           <p>Ingrese sus credenciales para acceder al sistema</p>
