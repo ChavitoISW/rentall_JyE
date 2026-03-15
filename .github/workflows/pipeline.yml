@@ -155,22 +155,46 @@ jobs:
       run: |
         echo "🚀 Iniciando deployment a producción..."
         ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
-          cd ${{ secrets.DEPLOY_PATH }}
-          git pull origin ${{ github.ref_name }}
+          set -e
           
-          # Detener contenedores con podman-compose
-          podman-compose down || true
+          # Verificar si el directorio existe
+          if [ ! -d "${{ secrets.DEPLOY_PATH }}" ]; then
+            echo "📁 Creando directorio ${{ secrets.DEPLOY_PATH }}..."
+            sudo mkdir -p "${{ secrets.DEPLOY_PATH }}"
+            sudo chown $USER:$USER "${{ secrets.DEPLOY_PATH }}"
+            
+            echo "📥 Clonando repositorio..."
+            git clone https://github.com/${{ github.repository }}.git "${{ secrets.DEPLOY_PATH }}"
+            cd "${{ secrets.DEPLOY_PATH }}"
+            git checkout ${{ github.ref_name }}
+            
+            echo "📁 Creando directorios necesarios..."
+            mkdir -p database backups
+          else
+            echo "📂 Directorio existe, actualizando código..."
+            cd "${{ secrets.DEPLOY_PATH }}"
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+          fi
+          
+          # Detener contenedores si están corriendo
+          echo "🛑 Deteniendo contenedores..."
+          podman-compose down 2>/dev/null || true
           
           # Rebuild con Podman
+          echo "🏗️ Construyendo imagen..."
           podman build -t rentall:latest .
           
           # Iniciar con podman-compose
+          echo "🚀 Iniciando contenedores..."
           podman-compose up -d
           
           # Verificar estado
+          echo "✅ Verificando contenedores..."
           podman ps
           
-          echo "✅ Deployment completado"
+          echo "🎉 Deployment completado exitosamente"
         ENDSSH
     
     - name: ✅ Deployment exitoso
