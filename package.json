@@ -22,7 +22,6 @@
     "better-sqlite3": "^12.6.2",
     "dotenv": "^17.3.1",
     "next": "^16.1.6",
-    "node-cron": "^4.2.1",
     "nodemon": "^3.1.11",
     "pdfkit": "^0.17.2",
     "react": "^19.2.4",
