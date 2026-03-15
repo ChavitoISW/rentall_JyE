@@ -38,16 +38,7 @@ ENV NODE_ENV=production \
     TZ=America/Costa_Rica \
     DB_PATH=/app/database/rentall.db
 
-# Crear usuario no-root para seguridad
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 braulio && \
-    chown -R braulio:nodejs /app && \
-    chmod -R 755 /app
-
 VOLUME ["/app/database"]
-
-# Cambiar a usuario no-root
-USER braulio
 
 # Exponer puerto
 EXPOSE 3000
