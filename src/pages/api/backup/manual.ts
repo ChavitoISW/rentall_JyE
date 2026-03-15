@@ -1,16 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { backupManual } from '../../../lib/backup-scheduler';
 
 /**
  * API para ejecutar backup manual de la base de datos
  * GET /api/backup/manual
  */
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   try {
+    // Import dinámico para evitar problemas con Turbopack
+    const { backupManual } = await import('../../../lib/backup-scheduler');
     const resultado = backupManual();
     
     if (resultado) {
