@@ -1,0 +1,40 @@
+name: CI - Build and Test
+
+on:
+  push:
+    branches: [ main, develop, dockerfile, detalles, gitactions, testqa ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+    
+    - name: 🟢 Configurar Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: 📦 Instalar dependencias
+      run: npm ci
+    
+    - name: 🔍 Type checking
+      run: npm run type-check
+    
+    - name: 🏗️ Build Next.js
+      run: npm run build
+      env:
+        NODE_ENV: production
+        NEXT_TELEMETRY_DISABLED: 1
+    
+    - name: ✅ Build exitoso
+      run: echo "✅ Build completado correctamente"
