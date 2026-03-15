@@ -154,10 +154,11 @@ jobs:
     - name: 🚀 Deploy a servidor con Podman
       run: |
         echo "🚀 Iniciando deployment a producción..."
-        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'ENDSSH'
           set -e
           
-          DEPLOY_DIR="${{ secrets.DEPLOY_PATH }}"
+          # Usar siempre el home del usuario logueado
+          DEPLOY_DIR="$HOME/rentall"
           
           # Verificar si es un repositorio git válido
           if [ -d "$DEPLOY_DIR/.git" ]; then
@@ -166,28 +167,13 @@ jobs:
             git fetch origin
             git checkout ${{ github.ref_name }}
             git pull origin ${{ github.ref_name }}
-          elif [ -d "$DEPLOY_DIR" ]; then
-            echo "⚠️  Directorio existe pero no es un repositorio git"
-            
-            # Intentar renombrar (si falla, usar directorio alternativo)
-            BACKUP_DIR="${DEPLOY_DIR}.backup.$(date +%s)"
-            if mv "$DEPLOY_DIR" "$BACKUP_DIR" 2>/dev/null; then
-              echo "📦 Directorio anterior respaldado en: $BACKUP_DIR"
-              mkdir -p "$DEPLOY_DIR"
-            else
-              echo "⚠️  No se puede mover el directorio. Usando ruta alternativa..."
-              DEPLOY_DIR="$HOME/rentall-deploy"
-              mkdir -p "$DEPLOY_DIR"
+          else
+            # Si existe algo, eliminarlo
+            if [ -d "$DEPLOY_DIR" ]; then
+              echo "⚠️  Eliminando directorio anterior..."
+              rm -rf "$DEPLOY_DIR"
             fi
             
-            echo "📥 Clonando repositorio en $DEPLOY_DIR..."
-            git clone https://github.com/${{ github.repository }}.git "$DEPLOY_DIR"
-            cd "$DEPLOY_DIR"
-            git checkout ${{ github.ref_name }}
-            
-            echo "📁 Creando directorios necesarios..."
-            mkdir -p database backups
-          else
             echo "📁 Creando directorio $DEPLOY_DIR..."
             mkdir -p "$DEPLOY_DIR"
             
