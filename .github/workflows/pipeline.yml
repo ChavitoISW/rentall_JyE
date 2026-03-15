@@ -157,35 +157,35 @@ jobs:
         ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
           set -e
           
+          DEPLOY_DIR="${{ secrets.DEPLOY_PATH }}"
+          
           # Verificar si es un repositorio git válido
-          if [ -d "${{ secrets.DEPLOY_PATH }}/.git" ]; then
+          if [ -d "$DEPLOY_DIR/.git" ]; then
             echo "📂 Repositorio existe, actualizando código..."
-            cd "${{ secrets.DEPLOY_PATH }}"
+            cd "$DEPLOY_DIR"
             git fetch origin
             git checkout ${{ github.ref_name }}
             git pull origin ${{ github.ref_name }}
-          elif [ -d "${{ secrets.DEPLOY_PATH }}" ]; then
+          elif [ -d "$DEPLOY_DIR" ]; then
             echo "⚠️  Directorio existe pero no es un repositorio git"
             echo "🗑️  Eliminando directorio y clonando desde cero..."
-            sudo rm -rf "${{ secrets.DEPLOY_PATH }}"
-            sudo mkdir -p "${{ secrets.DEPLOY_PATH }}"
-            sudo chown $USER:$USER "${{ secrets.DEPLOY_PATH }}"
+            rm -rf "$DEPLOY_DIR"
+            mkdir -p "$DEPLOY_DIR"
             
             echo "📥 Clonando repositorio..."
-            git clone https://github.com/${{ github.repository }}.git "${{ secrets.DEPLOY_PATH }}"
-            cd "${{ secrets.DEPLOY_PATH }}"
+            git clone https://github.com/${{ github.repository }}.git "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
             git checkout ${{ github.ref_name }}
             
             echo "📁 Creando directorios necesarios..."
             mkdir -p database backups
           else
-            echo "📁 Creando directorio ${{ secrets.DEPLOY_PATH }}..."
-            sudo mkdir -p "${{ secrets.DEPLOY_PATH }}"
-            sudo chown $USER:$USER "${{ secrets.DEPLOY_PATH }}"
+            echo "📁 Creando directorio $DEPLOY_DIR..."
+            mkdir -p "$DEPLOY_DIR"
             
             echo "📥 Clonando repositorio..."
-            git clone https://github.com/${{ github.repository }}.git "${{ secrets.DEPLOY_PATH }}"
-            cd "${{ secrets.DEPLOY_PATH }}"
+            git clone https://github.com/${{ github.repository }}.git "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
             git checkout ${{ github.ref_name }}
             
             echo "📁 Creando directorios necesarios..."
