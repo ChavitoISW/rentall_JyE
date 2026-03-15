@@ -194,7 +194,22 @@ jobs:
           
           # Detener contenedores si están corriendo
           echo "🛑 Deteniendo contenedores..."
-          $HOME/.local/bin/podman-compose down 2>/dev/null || true
+          
+          # Buscar podman-compose (puede estar en varias ubicaciones)
+          COMPOSE_CMD=""
+          if command -v podman-compose &> /dev/null; then
+            COMPOSE_CMD="podman-compose"
+          elif command -v pipx &> /dev/null; then
+            COMPOSE_CMD="pipx run podman-compose"
+          elif [ -f "$HOME/.local/bin/podman-compose" ]; then
+            COMPOSE_CMD="$HOME/.local/bin/podman-compose"
+          else
+            echo "❌ podman-compose no encontrado"
+            exit 1
+          fi
+          
+          echo "🔧 Usando: $COMPOSE_CMD"
+          $COMPOSE_CMD down 2>/dev/null || true
           
           # Rebuild con Podman
           echo "🏗️ Construyendo imagen..."
@@ -202,7 +217,7 @@ jobs:
           
           # Iniciar con podman-compose
           echo "🚀 Iniciando contenedores..."
-          $HOME/.local/bin/podman-compose up -d
+          $COMPOSE_CMD up -d
           
           # Verificar estado
           echo "✅ Verificando contenedores..."
