@@ -464,4 +464,13 @@ db.exec(`
 
 // Base de datos inicializada correctamente
 
+// Inicializar sistema de backups automáticos
+if (process.env.NODE_ENV === 'production' || process.env.ENABLE_BACKUPS === 'true') {
+  import('./backup-scheduler').then(({ iniciarBackupsAutomaticos }) => {
+    iniciarBackupsAutomaticos();
+  }).catch(err => {
+    console.error('⚠️  No se pudo iniciar el sistema de backups:', err.message);
+  });
+}
+
 export default db;
