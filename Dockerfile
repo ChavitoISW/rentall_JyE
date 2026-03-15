@@ -19,7 +19,7 @@ COPY package*.json ./
 COPY next.config.js ./
 
 # Instala las dependencias. Esta capa solo se reconstruirá si cambian los archivos .json
-RUN npm ci && \
+RUN npm install && \
     npm cache clean --force
 
 # Copiar código fuente
