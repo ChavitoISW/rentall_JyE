@@ -194,7 +194,7 @@ jobs:
           
           # Detener contenedores si están corriendo
           echo "🛑 Deteniendo contenedores..."
-          podman-compose down 2>/dev/null || true
+          $HOME/.local/bin/podman-compose down 2>/dev/null || true
           
           # Rebuild con Podman
           echo "🏗️ Construyendo imagen..."
@@ -202,7 +202,7 @@ jobs:
           
           # Iniciar con podman-compose
           echo "🚀 Iniciando contenedores..."
-          podman-compose up -d
+          $HOME/.local/bin/podman-compose up -d
           
           # Verificar estado
           echo "✅ Verificando contenedores..."
