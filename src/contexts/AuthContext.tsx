@@ -35,8 +35,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
-  // Durante SSR, no hay localStorage, así que no estamos cargando
-  const [isLoading, setIsLoading] = useState(typeof window === 'undefined' ? false : true);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
