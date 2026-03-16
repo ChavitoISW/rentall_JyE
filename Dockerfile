@@ -45,5 +45,5 @@ VOLUME ["/app/database"]
 # Exponer puerto
 EXPOSE 3000
 
-# Comando para ejecutar la aplicación con standalone
-CMD ["node", ".next/standalone/server.js"]
+# Comando para ejecutar la aplicación
+CMD ["npm", "start"]
