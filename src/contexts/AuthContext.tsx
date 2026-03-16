@@ -39,10 +39,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Verificar si hay sesión guardada
-    const usuarioGuardado = localStorage.getItem('usuario');
-    if (usuarioGuardado) {
-      setUsuario(JSON.parse(usuarioGuardado));
+    // Verificar si hay sesión guardada (solo en el cliente)
+    if (typeof window !== 'undefined') {
+      const usuarioGuardado = localStorage.getItem('usuario');
+      if (usuarioGuardado) {
+        try {
+          setUsuario(JSON.parse(usuarioGuardado));
+        } catch (error) {
+          console.error('Error al parsear usuario:', error);
+          localStorage.removeItem('usuario');
+        }
+      }
     }
     setIsLoading(false);
   }, []);
@@ -61,7 +68,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (response.ok && result.success) {
         setUsuario(result.data);
-        localStorage.setItem('usuario', JSON.stringify(result.data));
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('usuario', JSON.stringify(result.data));
+        }
         return { success: true };
       } else {
         return { success: false, error: result.error || 'Error al iniciar sesión' };
@@ -74,7 +83,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     setUsuario(null);
-    localStorage.removeItem('usuario');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('usuario');
+    }
     router.push('/login');
   };
 
