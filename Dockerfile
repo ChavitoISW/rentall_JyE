@@ -43,5 +43,5 @@ VOLUME ["/app/database"]
 # Exponer puerto
 EXPOSE 3000
 
-# Comando para ejecutar la aplicación cuando el contenedor se inicie
-CMD npm run start
+# Comando para ejecutar la aplicación con standalone
+CMD ["node", ".next/standalone/server.js"]
