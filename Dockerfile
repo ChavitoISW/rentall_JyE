@@ -1,12 +1,13 @@
 # Etapa 1: Construcción
 FROM node:20-alpine 
 
-# Instalar dependencias del sistema necesarias para better-sqlite3
+# Instalar dependencias del sistema necesarias para better-sqlite3 y healthcheck
 RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    sqlite
+    sqlite \
+    wget
 
 # Crear directorio para la base de datos
 RUN mkdir -p /app/database    
@@ -35,6 +36,7 @@ RUN npm run build
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
+    HOSTNAME=0.0.0.0 \
     TZ=America/Costa_Rica \
     DB_PATH=/app/database/rentall.db
 
