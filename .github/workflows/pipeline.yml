@@ -223,9 +223,16 @@ jobs:
           echo "⏳ Esperando a que el contenedor esté listo..."
           sleep 10
           
-          # Ejecutar migraciones dentro del contenedor
-          echo "🔧 Ejecutando migraciones de base de datos..."
-          podman exec rentall-jyb-container node scripts/migrate-vibrador-columns.js || echo "⚠️ Migración ya ejecutada o no necesaria"
+          # Validar y sincronizar esquema de base de datos automáticamente
+          echo "🔍 Validando esquema de base de datos..."
+          podman exec rentall-jyb-container node scripts/validate-and-sync-db-schema.js
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Esquema de base de datos validado y sincronizado"
+          else
+            echo "❌ Error en la validación del esquema"
+            exit 1
+          fi
           
           # Verificar estado
           echo "✅ Verificando contenedores..."

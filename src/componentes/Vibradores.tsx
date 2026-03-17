@@ -215,12 +215,13 @@ const Vibradores: React.FC = () => {
       label: 'Editar',
       onClick: handleEdit,
       className: styles.btnEdit
-    },
-    {
-      label: 'Eliminar',
-      onClick: (vibrador) => handleDelete(vibrador.id_vibrador!),
-      className: styles.btnDelete
     }
+    // Botón de eliminar ocultado - usar estado inactivo en su lugar
+    // {
+    //   label: 'Eliminar',
+    //   onClick: (vibrador) => handleDelete(vibrador.id_vibrador!),
+    //   className: styles.btnDelete
+    // }
   ];
 
   return (

@@ -70,8 +70,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
-    // Verificar si el usuario está activo
-    if (!usuario.estado_usuario) {
+    // Verificar si el usuario está activo (estado_usuario debe ser 1)
+    if (usuario.estado_usuario !== 1) {
       return res.status(403).json({
         success: false,
         error: 'Usuario inactivo. Contacte al administrador',
