@@ -948,7 +948,63 @@ const SolicitudesEquipo: React.FC = () => {
   };
 
   const procesarSolicitudUnica = async (detallesAProcesar: DetalleSolicitudEquipo[]) => {
-    // Validar disponibilidad de inventario consolidado y asignar equipos individuales
+    // Si estamos editando, solo actualizar el encabezado sin tocar detalles ni inventario
+    if (isEditing) {
+      try {
+        const solicitudEquipoData = {
+          ...currentSolicitudEquipo,
+          provincia_solicitud_equipo: direccion.provincia,
+          canton_solicitud_equipo: direccion.canton,
+          distrito_solicitud_equipo: direccion.distrito,
+          otras_senas_solicitud_equipo: direccion.otrasSenas
+        };
+
+        const response = await fetch(`/api/solicitud-equipo/${currentSolicitudEquipo.id_solicitud_equipo}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(solicitudEquipoData),
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+          setIsLoading(false);
+          setConfirmDialog({
+            isOpen: true,
+            title: 'Éxito',
+            message: 'Solicitud actualizada exitosamente. Los equipos no fueron modificados.',
+            type: 'info',
+            onConfirm: () => {
+              setConfirmDialog({ ...confirmDialog, isOpen: false });
+              fetchSolicitudesEquipo();
+              closeModal();
+            }
+          });
+        } else {
+          setIsLoading(false);
+          setConfirmDialog({
+            isOpen: true,
+            title: 'Error',
+            message: 'Error al actualizar la solicitud: ' + (result.error || 'Error desconocido'),
+            type: 'danger',
+            onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false })
+          });
+        }
+      } catch (error) {
+        console.error('Error al actualizar solicitud:', error);
+        setIsLoading(false);
+        setConfirmDialog({
+          isOpen: true,
+          title: 'Error',
+          message: 'Error al actualizar la solicitud. Por favor, intenta de nuevo.',
+          type: 'danger',
+          onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false })
+        });
+      }
+      return;
+    }
+
+    // CREACIÓN DE NUEVA SOLICITUD: Validar disponibilidad de inventario consolidado y asignar equipos individuales
     const equiposInsuficientes: string[] = [];
     const detallesConEquiposAsignados: DetalleSolicitudEquipo[] = [];
     
@@ -1462,6 +1518,14 @@ const SolicitudesEquipo: React.FC = () => {
       return;
     }
 
+    // Si estamos editando, solo actualizar el encabezado
+    if (isEditing) {
+      setIsLoading(true);
+      procesarSolicitudUnica([]); // Pasar array vacío ya que no se procesarán detalles
+      return;
+    }
+
+    // Validaciones solo para creación de nueva solicitud
     if (detalles.length === 0) {
       setConfirmDialog({
         isOpen: true,
@@ -1930,6 +1994,8 @@ const SolicitudesEquipo: React.FC = () => {
           className = styles.statusActive; // Rojo/Naranja para recolección
         } else if (estado === EstadoSolicitudEquipo.SOLICITUD) {
           className = styles.statusSolicitud; // Naranja para solicitud
+        } else if (estado === EstadoSolicitudEquipo.EXTENDIDO) {
+          className = styles.statusExtendido; // Color especial para extendido
         }
         
         return <span className={className}>{label}</span>;
@@ -1956,7 +2022,8 @@ const SolicitudesEquipo: React.FC = () => {
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_ENTREGA &&
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_RECOLECCION &&
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.DONDE_CLIENTE &&
-        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO
+        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO &&
+        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EXTENDIDO
     },
     {
       label: '📄',
@@ -1988,7 +2055,8 @@ const SolicitudesEquipo: React.FC = () => {
          solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.CONTRATO_GENERADO &&
          solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_ENTREGA &&
          solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.ANULADO &&
-         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO)
+         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO &&
+         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EXTENDIDO)
     },
     {
       label: '🚫',
@@ -2000,7 +2068,8 @@ const SolicitudesEquipo: React.FC = () => {
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.FINALIZADO &&
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_ENTREGA &&
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EN_RUTA_RECOLECCION &&
-        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.DONDE_CLIENTE
+        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.DONDE_CLIENTE &&
+        solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EXTENDIDO
     }
   ];
 
@@ -2268,10 +2337,15 @@ const SolicitudesEquipo: React.FC = () => {
 
                 <div className={styles.section}>
                   <h3>Equipos</h3>
-                  {!isViewing && (
+                  {!isViewing && !isEditing && (
                     <button type="button" className={styles.btnAddDetalle} onClick={agregarDetalle}>
                       + Agregar Equipo
                     </button>
+                  )}
+                  {isEditing && (
+                    <p className={styles.infoMessage} style={{ fontSize: '0.9rem', color: '#666', marginTop: '0.5rem' }}>
+                      ℹ️ Los equipos no pueden ser modificados al editar una solicitud
+                    </p>
                   )}
                   
                   {detalles.length > 0 && (
@@ -2305,10 +2379,12 @@ const SolicitudesEquipo: React.FC = () => {
                       
                       // Determinar si es una línea existente (tiene id_detalle_solicitud_equipo)
                       const esLineaExistente = isEditing && !!detalleExtendido.id_detalle_solicitud_equipo;
+                      // En modo edición, TODOS los detalles son de solo lectura
+                      const camposDeshabilitados = isViewing || isEditing;
                       
                       return (
                       <div key={index} className={`${styles.detalleRow} ${claseEstado}`}>
-                        {isViewing || esLineaExistente ? (
+                        {camposDeshabilitados ? (
                           <div className={styles.selectEquipo}>
                             {detalleExtendido.nombre_equipo || 'Equipo no encontrado'}
                           </div>
@@ -2316,7 +2392,7 @@ const SolicitudesEquipo: React.FC = () => {
                           <select
                             value={detalleExtendido.nombre_equipo || ''}
                             onChange={(e) => actualizarDetalle(index, 'nombre_equipo', e.target.value)}
-                            disabled={isViewing || esLineaExistente}
+                            disabled={camposDeshabilitados}
                             className={styles.selectEquipo}
                           >
                             <option value="" disabled>Seleccione equipo</option>
@@ -2360,14 +2436,14 @@ const SolicitudesEquipo: React.FC = () => {
                               e.preventDefault();
                             }
                           }}
-                          disabled={isViewing || esLineaExistente}
+                          disabled={camposDeshabilitados}
                           className={styles.inputSmall}
                         />
                         
                         <select
                           value={detalle.periodicidad}
                           onChange={(e) => actualizarDetalle(index, 'periodicidad', Number(e.target.value))}
-                          disabled={isViewing || esLineaExistente}
+                          disabled={camposDeshabilitados}
                           className={styles.inputSmall}
                         >
                           <option value="-1" disabled>Seleccionar periodicidad</option>
@@ -2382,7 +2458,7 @@ const SolicitudesEquipo: React.FC = () => {
                           placeholder="Cant."
                           value={detalle.cantidad_periodicidad}
                           onChange={(e) => actualizarDetalle(index, 'cantidad_periodicidad', Number(e.target.value))}
-                          disabled={isViewing || esLineaExistente}
+                          disabled={camposDeshabilitados}
                           className={styles.inputSmall}
                         />
                         
@@ -2391,7 +2467,7 @@ const SolicitudesEquipo: React.FC = () => {
                           placeholder="F. Devolución"
                           value={detalle.fecha_devolucion}
                           onChange={(e) => actualizarDetalle(index, 'fecha_devolucion', e.target.value)}
-                          disabled={isViewing || esLineaExistente}
+                          disabled={camposDeshabilitados}
                           className={styles.inputMedium}
                         />
                         
@@ -2399,8 +2475,8 @@ const SolicitudesEquipo: React.FC = () => {
                           ₡{(detalle.monto_final || 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}
                         </span>
                         
-                        {/* Mostrar botón de eliminar cuando NO está en modo vista */}
-                        {!isViewing && 
+                        {/* Mostrar botón de eliminar cuando NO está en modo vista NI modo edición */}
+                        {!isViewing && !isEditing &&
                          !((estadoFecha === 'vencida' || estadoFecha === 'proxima') && 
                            (currentSolicitudEquipo.estado_solicitud_equipo ?? 0) >= EstadoSolicitudEquipo.CONTRATO_GENERADO) && (
                           <button 
@@ -2412,8 +2488,8 @@ const SolicitudesEquipo: React.FC = () => {
                           </button>
                         )}
                         
-                        {/* Espacio vacío en modo vista */}
-                        {isViewing && 
+                        {/* Espacio vacío en modo vista o edición */}
+                        {(isViewing || isEditing) && 
                          !((estadoFecha === 'vencida' || estadoFecha === 'proxima') && 
                            (currentSolicitudEquipo.estado_solicitud_equipo ?? 0) >= EstadoSolicitudEquipo.CONTRATO_GENERADO) && 
                          <span></span>}

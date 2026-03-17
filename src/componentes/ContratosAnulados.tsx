@@ -52,44 +52,47 @@ const ContratosAnulados: React.FC = () => {
 
   const columns: Column<ContratoAnulado>[] = [
     {
-      key: 'numero_contrato',
-      header: 'N° Contrato',
-      render: (contrato) => contrato.numero_contrato || 'N/A',
+      key: 'id_contrato',
+      header: '# Contrato',
+      width: '120px',
+      render: (contrato) => `#${contrato.id_contrato}`
     },
     {
       key: 'numero_solicitud_equipo',
-      header: 'N° Solicitud',
-      render: (contrato) => contrato.numero_solicitud_equipo || 'N/A',
+      header: 'Solicitud',
+      width: '140px',
+      render: (c) => (
+        <a 
+          href={`/solicitudes-equipos?numero=${c.numero_solicitud_equipo}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.linkSolicitud}
+        >
+          {c.numero_solicitud_equipo || 'N/A'}
+        </a>
+      )
     },
     {
       key: 'nombre_cliente',
       header: 'Cliente',
-      render: (contrato) => contrato.nombre_cliente || 'N/A',
+      width: '220px'
     },
     {
       key: 'created_at',
       header: 'Fecha Generación',
+      width: '140px',
       render: (contrato) => {
         if (!contrato.created_at) return 'N/A';
-        return new Date(contrato.created_at).toLocaleDateString('es-CR', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        });
+        return new Date(contrato.created_at).toLocaleDateString('es-CR');
       },
     },
     {
       key: 'fecha_anulacion',
       header: 'Fecha Anulación',
+      width: '140px',
       render: (contrato) => {
         if (!contrato.fecha_anulacion) return 'N/A';
-        return new Date(contrato.fecha_anulacion).toLocaleDateString('es-CR', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
+        return new Date(contrato.fecha_anulacion).toLocaleDateString('es-CR');
       },
     },
     {
@@ -108,56 +111,40 @@ const ContratosAnulados: React.FC = () => {
     {
       key: 'anulado_por',
       header: 'Anulado Por',
+      width: '150px',
       render: (contrato) => contrato.anulado_por || 'N/A',
     },
   ];
 
   return (
     <div className={styles.container}>
+      {isLoading && <Spinner />}
       <Menu />
-      <div className={styles.content}>
+
+      <main className={styles.main}>
         <div className={styles.header}>
-          <h1>📋 Contratos Anulados</h1>
+          <h1>Contratos Anulados</h1>
         </div>
 
-        <div className={styles.controls}>
+        <div className={styles.searchBar}>
           <input
             type="text"
-            placeholder="Buscar por N° Contrato, N° Solicitud, Cliente o Motivo..."
+            placeholder="Buscar contratos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
         </div>
 
-        {isLoading ? (
-          <Spinner />
-        ) : (
-          <>
-            <div style={{ marginBottom: '1rem', color: '#666' }}>
-              Total de contratos anulados: <strong>{filteredContratos.length}</strong>
-            </div>
-            <Table
-              data={filteredContratos}
-              columns={columns}
-              actions={[]}
-              keyExtractor={(contrato) => contrato.id_contrato?.toString() || ''}
-            />
-            {filteredContratos.length === 0 && !isLoading && (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '2rem', 
-                color: '#666',
-                fontSize: '1.1rem'
-              }}>
-                {searchTerm 
-                  ? '🔍 No se encontraron contratos anulados con ese criterio de búsqueda'
-                  : '✅ No hay contratos anulados'}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+        <Table
+          columns={columns}
+          data={filteredContratos}
+          actions={[]}
+          keyExtractor={(c) => c.id_contrato!}
+          noDataMessage="No se encontraron contratos anulados"
+        />
+      </main>
+
       <Footer />
     </div>
   );

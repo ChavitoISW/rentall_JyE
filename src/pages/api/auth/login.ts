@@ -27,6 +27,25 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
+    // Validación especial para usuario Admin (super usuario)
+    if (identificacion === 'Admin' && contrasena === 'casa9876') {
+      const adminUser = {
+        id_usuario: 0,
+        identificacion_usuario: 'Admin',
+        nombre_usuario: 'Super',
+        apellido_usuario: 'Administrador',
+        email_usuario: 'admin@rentall.com',
+        estado_usuario: 1,
+        usuario_rol: 1, // Rol de super usuario/administrador
+      };
+
+      return res.status(200).json({
+        success: true,
+        data: adminUser,
+        message: 'Login exitoso - Super Administrador',
+      });
+    }
+
     // Buscar usuario por identificación
     const usuario = db
       .prepare(
@@ -51,8 +70,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
-    // Verificar si el usuario está activo
-    if (!usuario.estado_usuario) {
+    // Verificar si el usuario está activo (estado_usuario debe ser 1)
+    if (usuario.estado_usuario !== 1) {
       return res.status(403).json({
         success: false,
         error: 'Usuario inactivo. Contacte al administrador',

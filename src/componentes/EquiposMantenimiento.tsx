@@ -273,7 +273,7 @@ const EquiposMantenimiento: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
-          <div style={{ marginLeft: 'auto', color: '#666' }}>
+          <div style={{ marginLeft: 'auto', color: 'white' }}>
             Total equipos en mantenimiento: {equipos.length}
           </div>
         </div>
@@ -447,7 +447,7 @@ const EquiposMantenimiento: React.FC = () => {
             </div>
           </>
         ) : (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#999', fontSize: '1.1rem' }}>
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'white', fontSize: '1.1rem' }}>
             {searchTerm ? '🔍 No se encontraron equipos' : '✓ No hay equipos en mantenimiento'}
           </div>
         )}

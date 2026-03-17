@@ -1,0 +1,282 @@
+name: 🚀 Pipeline CI/CD Completo
+
+on:
+  push:
+    branches: [ main, dev, testqa ]
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches: [ main, dev ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # FASE 1: Build y Test (ejecutan en paralelo)
+  build:
+    name: 🏗️ Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+    
+    - name: 🟢 Configurar Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: 📦 Instalar dependencias
+      run: npm install
+    
+    - name: 🔍 Type checking
+      run: npm run type-check
+    
+    - name: 🏗️ Build Next.js
+      run: npm run build
+      env:
+        NODE_ENV: production
+        NEXT_TELEMETRY_DISABLED: 1
+    
+    - name: ✅ Build exitoso
+      run: echo "✅ Build completado correctamente"
+
+  quality:
+    name: 📊 Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+    
+    - name: 🟢 Configurar Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: 📦 Instalar dependencias
+      run: npm install
+    
+    - name: 🔍 TypeScript Check
+      run: npm run type-check
+    
+    - name: 📊 Análisis de código
+      run: |
+        echo "📊 Análisis de código completado"
+        echo "Total de archivos TypeScript:"
+        find src -name "*.ts" -o -name "*.tsx" | wc -l
+    
+    - name: ✅ Quality checks pasados
+      run: echo "✅ Todos los checks de calidad pasaron correctamente"
+
+  # FASE 2: Build de imagen (requiere que pasen build y quality)
+  docker-build:
+    name: 🐳 Build & Push Imagen
+    runs-on: ubuntu-latest
+    needs: [build, quality]
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+    
+    - name: 🔤 Convertir nombre de repositorio a minúsculas
+      id: lowercase
+      run: |
+        echo "image_name=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+    
+    - name: 🐳 Instalar Podman
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install podman
+        podman --version
+    
+    - name: 🔐 Login a GitHub Container Registry
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | podman login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+    
+    - name: 📝 Generar tags
+      id: tags
+      run: |
+        IMAGE=${{ env.REGISTRY }}/${{ steps.lowercase.outputs.image_name }}
+        TAGS="${IMAGE}:${GITHUB_SHA::8}"
+        if [[ $GITHUB_REF == refs/heads/main ]]; then
+          TAGS="${TAGS},${IMAGE}:latest"
+        fi
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+          TAGS="${TAGS},${IMAGE}:${VERSION}"
+        fi
+        echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+        echo "Tags generados: ${TAGS}"
+    
+    - name: 🏗️ Build imagen con Podman
+      run: |
+        podman build \
+          -t ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.image_name }}:${GITHUB_SHA::8} \
+          -f ./Dockerfile \
+          .
+    
+    - name: 📤 Push imagen a Registry
+      run: |
+        IFS=',' read -ra TAGS <<< "${{ steps.tags.outputs.tags }}"
+        for tag in "${TAGS[@]}"; do
+          echo "Pushing ${tag}..."
+          podman tag ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.image_name }}:${GITHUB_SHA::8} ${tag}
+          podman push ${tag}
+        done
+    
+    - name: ✅ Imagen Podman lista
+      run: echo "✅ Imagen construida y publicada en ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.image_name }}"
+
+  # FASE 3: Deploy (requiere que pase docker-build, solo en main)
+  deploy:
+    name: 🚀 Deploy a Producción
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - name: 📥 Checkout código
+      uses: actions/checkout@v4
+    
+    - name: 🔐 Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+    - name: 🚀 Deploy a servidor con Podman
+      run: |
+        echo "🚀 Iniciando deployment a producción..."
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'ENDSSH'
+          set -e
+          
+          # Asegurar que podman-compose esté en el PATH
+          export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
+          
+          # Cargar bashrc si existe (puede tener configuración de PATH)
+          [ -f ~/.bashrc ] && source ~/.bashrc
+          
+          # Usar siempre el home del usuario logueado
+          DEPLOY_DIR="$HOME/rentall"
+          
+          # Verificar si es un repositorio git válido
+          if [ -d "$DEPLOY_DIR/.git" ]; then
+            echo "📂 Repositorio existe, actualizando código..."
+            cd "$DEPLOY_DIR"
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+          else
+            # Si existe algo, eliminarlo
+            if [ -d "$DEPLOY_DIR" ]; then
+              echo "⚠️  Eliminando directorio anterior..."
+              rm -rf "$DEPLOY_DIR"
+            fi
+            
+            echo "📁 Creando directorio $DEPLOY_DIR..."
+            mkdir -p "$DEPLOY_DIR"
+            
+            echo "📥 Clonando repositorio..."
+            git clone https://github.com/${{ github.repository }}.git "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
+            git checkout ${{ github.ref_name }}
+            
+            echo "📁 Creando directorios necesarios..."
+            mkdir -p database backups
+          fi
+          
+          # Detener contenedores si están corriendo
+          echo "🛑 Deteniendo contenedores..."
+          
+          # Buscar podman-compose (puede estar en varias ubicaciones)
+          COMPOSE_CMD=""
+          if command -v podman-compose &> /dev/null; then
+            COMPOSE_CMD="podman-compose"
+          elif command -v pipx &> /dev/null; then
+            COMPOSE_CMD="pipx run podman-compose"
+          elif [ -f "$HOME/.local/bin/podman-compose" ]; then
+            COMPOSE_CMD="$HOME/.local/bin/podman-compose"
+          else
+            echo "❌ podman-compose no encontrado"
+            exit 1
+          fi
+          
+          echo "🔧 Usando: $COMPOSE_CMD"
+          $COMPOSE_CMD down 2>/dev/null || true
+          
+          # Rebuild con Podman
+          echo "🏗️ Construyendo imagen..."
+          podman build -t rentall:latest .
+          
+          # Iniciar con podman-compose
+          echo "🚀 Iniciando contenedores..."
+          $COMPOSE_CMD up -d
+          
+          # Esperar a que el contenedor esté listo
+          echo "⏳ Esperando a que el contenedor esté listo..."
+          sleep 10
+          
+          # Validar y sincronizar esquema de base de datos automáticamente
+          echo "🔍 Validando y sincronizando esquema de base de datos..."
+          podman exec rentall-jyb-container node scripts/validate-and-sync-db-schema.js
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Esquema de base de datos validado y sincronizado"
+          else
+            echo "❌ Error en la validación del esquema"
+            exit 1
+          fi
+          
+          # Verificar estado
+          echo "✅ Verificando contenedores..."
+          podman ps
+          
+          echo "🎉 Deployment completado exitosamente"
+        ENDSSH
+    
+    - name: ✅ Deployment exitoso
+      run: echo "✅ Aplicación desplegada correctamente en producción"
+    
+    - name: 🔔 Notificación de éxito
+      if: success()
+      run: echo "🎉 Deployment exitoso en ${{ github.sha }}"
+    
+    - name: ❌ Notificación de error
+      if: failure()
+      run: echo "❌ Error en el deployment"
+
+  # RESUMEN: Solo para información
+  pipeline-summary:
+    name: 📋 Resumen del Pipeline
+    runs-on: ubuntu-latest
+    needs: [build, quality, docker-build, deploy]
+    if: always()
+    
+    steps:
+    - name: 📊 Estado del Pipeline
+      run: |
+        echo "📋 Resumen del Pipeline CI/CD"
+        echo "================================"
+        echo "Build: ${{ needs.build.result }}"
+        echo "Quality: ${{ needs.quality.result }}"
+        echo "Docker Build: ${{ needs.docker-build.result }}"
+        echo "Deploy: ${{ needs.deploy.result }}"
+        echo "================================"
+        
+        if [[ "${{ needs.build.result }}" == "success" ]] && \
+           [[ "${{ needs.quality.result }}" == "success" ]] && \
+           [[ "${{ needs.docker-build.result }}" == "success" ]] && \
+           [[ "${{ needs.deploy.result }}" == "success" || "${{ needs.deploy.result }}" == "skipped" ]]; then
+          echo "✅ Pipeline completado exitosamente"
+          exit 0
+        else
+          echo "❌ Hubo errores en el pipeline"
+          exit 1
+        fi

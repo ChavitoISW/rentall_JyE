@@ -39,6 +39,7 @@ function Table<T extends Record<string, any>>({
   const [currentPage, setCurrentPage] = useState(1);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [itemsPerPageState, setItemsPerPageState] = useState(itemsPerPage);
 
   // Filtrar y ordenar datos
   const filteredData = useMemo(() => {
@@ -85,9 +86,9 @@ function Table<T extends Record<string, any>>({
   }, [data, filters, columns, sortKey, sortDirection]);
 
   // Calcular paginación
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const totalPages = Math.ceil(filteredData.length / itemsPerPageState);
+  const startIndex = (currentPage - 1) * itemsPerPageState;
+  const endIndex = startIndex + itemsPerPageState;
   const paginatedData = filteredData.slice(startIndex, endIndex);
 
   // Cambiar página
@@ -109,6 +110,12 @@ function Table<T extends Record<string, any>>({
       setSortKey(key);
       setSortDirection('asc');
     }
+    setCurrentPage(1);
+  };
+
+  // Cambiar items por página
+  const handleItemsPerPageChange = (value: number) => {
+    setItemsPerPageState(value);
     setCurrentPage(1);
   };
 
@@ -234,7 +241,7 @@ function Table<T extends Record<string, any>>({
                 </th>
               ))}
               {actions && actions.length > 0 && (
-                <th>
+                <th style={{ width: '180px', maxWidth: '180px' }}>
                   <div className={styles.headerCell}>
                     <span>Acciones</span>
                   </div>
@@ -287,7 +294,23 @@ function Table<T extends Record<string, any>>({
       {filteredData.length > 0 && (
         <div className={styles.paginationContainer}>
           <div className={styles.paginationInfo}>
-            Mostrando {startIndex + 1} - {Math.min(endIndex, filteredData.length)} de {filteredData.length} registros
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>Mostrar</span>
+              <select 
+                value={itemsPerPageState} 
+                onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+                className={styles.itemsPerPageSelect}
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span>registros</span>
+            </div>
+            <div>
+              Mostrando {startIndex + 1} - {Math.min(endIndex, filteredData.length)} de {filteredData.length}
+            </div>
           </div>
           <div className={styles.pagination}>
             {renderPagination()}

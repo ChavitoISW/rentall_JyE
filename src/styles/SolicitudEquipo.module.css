@@ -8,7 +8,7 @@
 .main {
   flex: 1;
   padding: 2rem;
-  max-width: 1600px;
+  max-width: 1900px;
   margin: 0 auto;
   width: 100%;
 }
@@ -65,7 +65,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.btnEdit, .btnDelete, .btnView, .btnAnular, .btnContrato, .btnVerPDF, .btnImprimir {
+.btnEdit, .btnDelete, .btnView, .btnAnular, .btnContrato, .btnVerPDF, .btnImprimir, .btnInfo {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 6px;
@@ -150,6 +150,17 @@
   transform: translateY(-1px);
 }
 
+.btnInfo {
+  background: #FF9800;
+  color: white;
+  margin-right: 0.5rem;
+}
+
+.btnInfo:hover {
+  background: #F57C00;
+  transform: translateY(-1px);
+}
+
 .statusActive {
   color: #FF5722;
   font-weight: 600;
@@ -178,6 +189,14 @@
 .statusFinalizado {
   color: #1B5E20;
   font-weight: 600;
+}
+
+.statusExtendido {
+  color: #9C27B0;
+  font-weight: 600;
+  background-color: rgba(156, 39, 176, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
 }
 
 .fechaVencida {
@@ -1155,4 +1174,208 @@
   :global(.parada-item) > div {
     display: block !important;
   }
+}
+
+/* Estilos para Reporte de Pagos */
+.filterSection {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filterForm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filterGroup label {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.dateInput,
+.selectInput {
+  padding: 0.8rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.dateInput:focus,
+.selectInput:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.filterActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.statCardTotal {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.statCardTotal .statInfo h3,
+.statCardTotal .statValue,
+.statCardTotal .statLabel {
+  color: white;
+}
+
+.statIcon {
+  font-size: 3rem;
+  opacity: 0.9;
+}
+
+.statInfo {
+  flex: 1;
+}
+
+.statInfo h3 {
+  color: #666;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statValue {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0.3rem 0;
+}
+
+.statLabel {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.tableSection {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+  color: #333;
+  margin: 0 0 1.5rem 0;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.countBadge {
+  background: #e3f2fd;
+  color: #1976d2;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.tableWrapper table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableWrapper thead {
+  background: #f8f9fa;
+}
+
+.tableWrapper th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #dee2e6;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tableWrapper td {
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+  color: #495057;
+}
+
+.tableWrapper tbody tr {
+  transition: all 0.2s ease;
+}
+
+.tableWrapper tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.emptyState {
+  background: white;
+  border-radius: 8px;
+  padding: 3rem;
+  text-align: center;
+  color: #999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.emptyState p {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.error {
+  background: #ffebee;
+  border: 1px solid #ef5350;
+  color: #c62828;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-weight: 500;
 }

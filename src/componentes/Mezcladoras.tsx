@@ -228,12 +228,13 @@ const Mezcladoras: React.FC = () => {
       label: 'Editar',
       onClick: handleEdit,
       className: styles.btnEdit
-    },
-    {
-      label: 'Eliminar',
-      onClick: (mezcladora) => handleDelete(mezcladora.id_mezcladora!),
-      className: styles.btnDelete
     }
+    // Botón de eliminar ocultado - usar estado inactivo en su lugar
+    // {
+    //   label: 'Eliminar',
+    //   onClick: (mezcladora) => handleDelete(mezcladora.id_mezcladora!),
+    //   className: styles.btnDelete
+    // }
   ];
 
   return (

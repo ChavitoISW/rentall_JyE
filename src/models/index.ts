@@ -9,7 +9,8 @@ export enum EstadoSolicitudEquipo {
   EN_RUTA_RECOLECCION = 5,
   FINALIZADO = 6,
   CANCELADO = 7,
-  ANULADO = 8
+  ANULADO = 8,
+  EXTENDIDO = 9
 }
 
 export const EstadoSolicitudEquipoLabels: Record<EstadoSolicitudEquipo, string> = {
@@ -20,7 +21,8 @@ export const EstadoSolicitudEquipoLabels: Record<EstadoSolicitudEquipo, string> 
   [EstadoSolicitudEquipo.EN_RUTA_RECOLECCION]: 'En Ruta Recolección',
   [EstadoSolicitudEquipo.FINALIZADO]: 'Finalizado',
   [EstadoSolicitudEquipo.CANCELADO]: 'Cancelado',
-  [EstadoSolicitudEquipo.ANULADO]: 'Anulado'
+  [EstadoSolicitudEquipo.ANULADO]: 'Anulado',
+  [EstadoSolicitudEquipo.EXTENDIDO]: 'Extendido'
 };
 
 export interface CategoriaEquipo {
@@ -608,14 +610,8 @@ export const equipoModel = {
             const equipo = db.prepare('SELECT nombre_equipo FROM rompedor WHERE id_rompedor = ?').get(row.id_equipo_especifico) as any;
             nombre_equipo_especifico = equipo?.nombre_equipo;
           } else if (cat.includes('vibrador')) {
-            // Intentar primero con nombre_equipo, si falla usar nombre_vibrador
-            try {
-              const equipo = db.prepare('SELECT nombre_equipo FROM vibrador WHERE id_vibrador = ?').get(row.id_equipo_especifico) as any;
-              nombre_equipo_especifico = equipo?.nombre_equipo;
-            } catch {
-              const equipo = db.prepare('SELECT nombre_vibrador as nombre_equipo FROM vibrador WHERE id_vibrador = ?').get(row.id_equipo_especifico) as any;
-              nombre_equipo_especifico = equipo?.nombre_equipo;
-            }
+            const equipo = db.prepare('SELECT nombre_equipo FROM vibrador WHERE id_vibrador = ?').get(row.id_equipo_especifico) as any;
+            nombre_equipo_especifico = equipo?.nombre_equipo;
           } else if (cat.includes('puntal')) {
             // Intentar primero con nombre_equipo, si falla usar nombre_puntal
             try {
@@ -1267,7 +1263,7 @@ export const rompedorModel = {
 
 export interface Vibrador {
   id_vibrador?: number;
-  nombre_vibrador: string;
+  nombre_equipo: string;
   descripcion_vibrador?: string;
   voltaje_vibrador?: string;
   estado_vibrador?: boolean;
@@ -1305,11 +1301,11 @@ export const vibradorModel = {
 
   create: (vibrador: Vibrador) => {
     const stmt = db.prepare(`
-      INSERT INTO vibrador (nombre_vibrador, descripcion_vibrador, voltaje_vibrador, estado_vibrador, precio_equipo, precio_mes, precio_quincena, precio_semana, precio_dia)
+      INSERT INTO vibrador (nombre_equipo, descripcion_vibrador, voltaje_vibrador, estado_vibrador, precio_equipo, precio_mes, precio_quincena, precio_semana, precio_dia)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     return stmt.run(
-      vibrador.nombre_vibrador,
+      vibrador.nombre_equipo,
       vibrador.descripcion_vibrador || null,
       vibrador.voltaje_vibrador || null,
       vibrador.estado_vibrador ? 1 : 0,
@@ -1325,9 +1321,9 @@ export const vibradorModel = {
     const fields = [];
     const values = [];
 
-    if (vibrador.nombre_vibrador) {
-      fields.push('nombre_vibrador = ?');
-      values.push(vibrador.nombre_vibrador);
+    if (vibrador.nombre_equipo) {
+      fields.push('nombre_equipo = ?');
+      values.push(vibrador.nombre_equipo);
     }
     if (vibrador.descripcion_vibrador !== undefined) {
       fields.push('descripcion_vibrador = ?');
@@ -1864,7 +1860,7 @@ export const contratoModel = {
           id_solicitud_equipo,
           solicitud.numero_solicitud_equipo,
           detalle.cantidad_equipo,
-          solicitud.fecha_vencimiento,
+          solicitud.fecha_inicio,
           1, // Estado activo
           'Equipo asignado al generar contrato'
         );
@@ -1883,8 +1879,18 @@ export const contratoModel = {
         VALUES (?, ?)
       `).run(id_solicitud_equipo, 1); // Estado 1 = Generado
 
+      const idContrato = resultContrato.lastInsertRowid;
+
+      // 7. Actualizar el numero_contrato con el id generado
+      db.prepare(`
+        UPDATE contrato 
+        SET numero_contrato = ?
+        WHERE id_contrato = ?
+      `).run(String(idContrato), idContrato);
+
       return {
-        id_contrato: resultContrato.lastInsertRowid,
+        id_contrato: idContrato,
+        numero_contrato: String(idContrato),
         id_solicitud_equipo,
         numero_solicitud_equipo: solicitud.numero_solicitud_equipo,
         equipos_procesados: detalles.length
@@ -1925,5 +1931,161 @@ export const contratoModel = {
     return db.prepare(`
       SELECT * FROM contrato WHERE id_solicitud_equipo = ?
     `).get(id_solicitud_equipo);
+  }
+};
+
+// ==================== PAGO CONTRATO ====================
+export interface PagoContrato {
+  id_pago_contrato?: number;
+  id_contrato: number;
+  tipo_pago: 'efectivo' | 'simpe' | 'transferencia';
+  monto: number;
+  fecha_pago: string;
+  numero_comprobante?: string;
+  banco?: string;
+  numero_transferencia?: string;
+  observaciones?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export const pagoContratoModel = {
+  getAll: () => {
+    return db.prepare(`
+      SELECT 
+        pc.*,
+        c.numero_contrato,
+        s.numero_solicitud_equipo,
+        cl.nombre_cliente || ' ' || cl.apellidos_cliente as nombre_cliente
+      FROM pago_contrato pc
+      LEFT JOIN contrato c ON pc.id_contrato = c.id_contrato
+      LEFT JOIN encabezado_solicitud_equipo s ON c.id_solicitud_equipo = s.id_solicitud_equipo
+      LEFT JOIN cliente cl ON s.id_cliente = cl.id_cliente
+      ORDER BY pc.fecha_pago DESC, pc.created_at DESC
+    `).all();
+  },
+
+  getByDateRange: (fechaInicio: string, fechaFin: string) => {
+    return db.prepare(`
+      SELECT 
+        pc.*,
+        c.numero_contrato,
+        s.numero_solicitud_equipo,
+        cl.nombre_cliente || ' ' || cl.apellidos_cliente as nombre_cliente
+      FROM pago_contrato pc
+      LEFT JOIN contrato c ON pc.id_contrato = c.id_contrato
+      LEFT JOIN encabezado_solicitud_equipo s ON c.id_solicitud_equipo = s.id_solicitud_equipo
+      LEFT JOIN cliente cl ON s.id_cliente = cl.id_cliente
+      WHERE pc.fecha_pago >= ? AND pc.fecha_pago <= date(?, '+1 day')
+      ORDER BY pc.fecha_pago DESC, pc.created_at DESC
+    `).all(fechaInicio, fechaFin);
+  },
+
+  getByContrato: (id_contrato: number) => {
+    return db.prepare(`
+      SELECT * FROM pago_contrato 
+      WHERE id_contrato = ?
+      ORDER BY fecha_pago DESC
+    `).all(id_contrato);
+  },
+
+  getById: (id: number) => {
+    return db.prepare(`
+      SELECT 
+        pc.*,
+        c.numero_contrato,
+        s.numero_solicitud_equipo,
+        cl.nombre_cliente || ' ' || cl.apellidos_cliente as nombre_cliente
+      FROM pago_contrato pc
+      LEFT JOIN contrato c ON pc.id_contrato = c.id_contrato
+      LEFT JOIN encabezado_solicitud_equipo s ON c.id_solicitud_equipo = s.id_solicitud_equipo
+      LEFT JOIN cliente cl ON s.id_cliente = cl.id_cliente
+      WHERE pc.id_pago_contrato = ?
+    `).get(id);
+  },
+
+  create: (pago: PagoContrato) => {
+    const stmt = db.prepare(`
+      INSERT INTO pago_contrato (
+        id_contrato,
+        tipo_pago,
+        monto,
+        fecha_pago,
+        numero_comprobante,
+        banco,
+        numero_transferencia,
+        observaciones
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    const result = stmt.run(
+      pago.id_contrato,
+      pago.tipo_pago,
+      pago.monto,
+      pago.fecha_pago,
+      pago.numero_comprobante || null,
+      pago.banco || null,
+      pago.numero_transferencia || null,
+      pago.observaciones || null
+    );
+    return result.lastInsertRowid;
+  },
+
+  update: (id: number, pago: Partial<PagoContrato>) => {
+    const fields = [];
+    const values = [];
+
+    if (pago.id_contrato !== undefined) {
+      fields.push('id_contrato = ?');
+      values.push(pago.id_contrato);
+    }
+    if (pago.tipo_pago !== undefined) {
+      fields.push('tipo_pago = ?');
+      values.push(pago.tipo_pago);
+    }
+    if (pago.monto !== undefined) {
+      fields.push('monto = ?');
+      values.push(pago.monto);
+    }
+    if (pago.fecha_pago !== undefined) {
+      fields.push('fecha_pago = ?');
+      values.push(pago.fecha_pago);
+    }
+    if (pago.numero_comprobante !== undefined) {
+      fields.push('numero_comprobante = ?');
+      values.push(pago.numero_comprobante);
+    }
+    if (pago.banco !== undefined) {
+      fields.push('banco = ?');
+      values.push(pago.banco);
+    }
+    if (pago.numero_transferencia !== undefined) {
+      fields.push('numero_transferencia = ?');
+      values.push(pago.numero_transferencia);
+    }
+    if (pago.observaciones !== undefined) {
+      fields.push('observaciones = ?');
+      values.push(pago.observaciones);
+    }
+
+    fields.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+
+    const stmt = db.prepare(`
+      UPDATE pago_contrato SET ${fields.join(', ')} WHERE id_pago_contrato = ?
+    `);
+    return stmt.run(...values);
+  },
+
+  delete: (id: number) => {
+    return db.prepare('DELETE FROM pago_contrato WHERE id_pago_contrato = ?').run(id);
+  },
+
+  getTotalByContrato: (id_contrato: number) => {
+    const result = db.prepare(`
+      SELECT COALESCE(SUM(monto), 0) as total
+      FROM pago_contrato
+      WHERE id_contrato = ?
+    `).get(id_contrato) as { total: number };
+    return result.total;
   }
 };

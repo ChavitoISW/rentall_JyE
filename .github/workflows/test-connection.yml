@@ -1,0 +1,107 @@
+name: 🧪 Test SSH Connection
+
+on:
+  push:
+    branches: [ testqa ]
+  workflow_dispatch:
+
+jobs:
+  test-ssh:
+    name: 🔌 Test Server Connection
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📋 Verificar Secrets configurados
+      run: |
+        echo "🔍 Verificando configuración de Secrets..."
+        if [ -z "${{ secrets.SSH_USER }}" ]; then
+          echo "❌ SSH_USER no está configurado"
+        else
+          echo "✅ SSH_USER: ${{ secrets.SSH_USER }}"
+        fi
+        
+        if [ -z "${{ secrets.SSH_HOST }}" ]; then
+          echo "❌ SSH_HOST no está configurado"
+        else
+          echo "✅ SSH_HOST: ${{ secrets.SSH_HOST }}"
+        fi
+        
+        if [ -z "${{ secrets.DEPLOY_PATH }}" ]; then
+          echo "❌ DEPLOY_PATH no está configurado"
+        else
+          echo "✅ DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}"
+        fi
+        
+        if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+          echo "❌ SSH_PRIVATE_KEY no está configurado"
+          exit 1
+        else
+          KEY_LENGTH=$(echo -n "${{ secrets.SSH_PRIVATE_KEY }}" | wc -c)
+          echo "✅ SSH_PRIVATE_KEY está configurado (longitud: ${KEY_LENGTH} caracteres)"
+        fi
+    
+    - name: 🔐 Setup SSH Agent
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+    - name: 🔌 Test SSH Connection
+      run: |
+        echo "🔌 Intentando conectar a ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
+          echo "✅ Conexión SSH exitosa!"
+          echo ""
+          echo "📊 Información del servidor:"
+          echo "----------------------------"
+          echo "Hostname: $(hostname)"
+          echo "OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)"
+          echo "Kernel: $(uname -r)"
+          echo "Uptime: $(uptime -p)"
+          echo ""
+          echo "💾 Espacio en disco:"
+          df -h / | tail -n 1
+          echo ""
+          echo "🧠 Memoria:"
+          free -h | grep Mem
+          echo ""
+          echo "🐳 Verificando Podman..."
+          if command -v podman &> /dev/null; then
+            echo "✅ Podman instalado: $(podman --version)"
+          else
+            echo "❌ Podman NO está instalado"
+          fi
+          echo ""
+          echo "🐙 Verificando podman-compose..."
+          if command -v podman-compose &> /dev/null; then
+            echo "✅ podman-compose instalado: $(podman-compose --version)"
+          else
+            echo "❌ podman-compose NO está instalado"
+          fi
+          echo ""
+          echo "📁 Verificando ruta de deploy..."
+          if [ -d "${{ secrets.DEPLOY_PATH }}" ]; then
+            echo "✅ Directorio existe: ${{ secrets.DEPLOY_PATH }}"
+            ls -la "${{ secrets.DEPLOY_PATH }}" | head -10
+          else
+            echo "❌ Directorio NO existe: ${{ secrets.DEPLOY_PATH }}"
+          fi
+          echo ""
+          echo "🐳 Contenedores corriendo:"
+          podman ps 2>/dev/null || echo "No se pudieron listar contenedores"
+        ENDSSH
+    
+    - name: ✅ Test completado
+      if: success()
+      run: |
+        echo "🎉 ¡Conexión exitosa!"
+        echo "El servidor está accesible y correctamente configurado."
+    
+    - name: ❌ Test falló
+      if: failure()
+      run: |
+        echo "❌ La conexión falló."
+        echo "Verifica:"
+        echo "1. Los Secrets están configurados correctamente"
+        echo "2. La IP/Host del servidor es accesible"
+        echo "3. La llave SSH tiene permisos correctos"
+        echo "4. El usuario tiene acceso SSH al servidor"

@@ -2,14 +2,14 @@ export enum EstadoContrato {
   ANULADO = 0,
   GENERADO = 1,
   FINALIZADO = 2,
-  PENDIENTE_PAGO = 3
+  EXTENDIDO = 3
 }
 
 export const EstadoContratoLabels: Record<EstadoContrato, string> = {
   [EstadoContrato.ANULADO]: 'Anulado',
   [EstadoContrato.GENERADO]: 'Generado',
   [EstadoContrato.FINALIZADO]: 'Finalizado',
-  [EstadoContrato.PENDIENTE_PAGO]: 'Pendiente de Pago'
+  [EstadoContrato.EXTENDIDO]: 'Extendido'
 };
 
 export interface Contrato {

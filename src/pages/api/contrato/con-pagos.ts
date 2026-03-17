@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       INNER JOIN encabezado_solicitud_equipo se ON co.id_solicitud_equipo = se.id_solicitud_equipo
       LEFT JOIN cliente cli ON se.id_cliente = cli.id_cliente
       LEFT JOIN pago_contrato p ON co.id_contrato = p.id_contrato
-      WHERE co.estado = 1
+      WHERE co.estado != 0
       GROUP BY co.id_contrato, se.total_solicitud_equipo, se.usa_factura, se.iva_solicitud_equipo,
                se.numero_solicitud_equipo, nombre_cliente, se.fecha_inicio, se.fecha_vencimiento
       ORDER BY co.id_contrato DESC

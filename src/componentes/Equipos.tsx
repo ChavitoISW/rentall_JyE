@@ -364,12 +364,13 @@ const Equipos: React.FC = () => {
       label: 'Editar',
       onClick: handleEdit,
       className: styles.btnEdit
-    },
-    {
-      label: 'Eliminar',
-      onClick: (equipo) => handleDelete(equipo.id_equipo!),
-      className: styles.btnDelete
     }
+    // Botón de eliminar ocultado - usar estado inactivo en su lugar
+    // {
+    //   label: 'Eliminar',
+    //   onClick: (equipo) => handleDelete(equipo.id_equipo!),
+    //   className: styles.btnDelete
+    // }
   ];
 
   return (

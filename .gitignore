@@ -44,6 +44,7 @@ next-env.d.ts
 .tsbuildinfo
 
 # SQLite Database
+database/
 rentall.db
 rentall.db-journal
 rentall-old.db
@@ -97,6 +98,7 @@ Desktop.ini
 scripts/*.js
 scripts/*.ts
 !scripts/README.md
+!scripts/validate-and-sync-db-schema.js
 
 # Archivos de documentación de migración
 MIGRATION_*.md
@@ -110,3 +112,7 @@ RESUMEN_*.md
 # Backups
 *.backup
 *.bak
+
+# Docker (mantener .env.docker.example versionado)
+.env.docker
+docker-compose.override.yml
