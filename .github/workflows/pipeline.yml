@@ -219,6 +219,14 @@ jobs:
           echo "🚀 Iniciando contenedores..."
           $COMPOSE_CMD up -d
           
+          # Esperar a que el contenedor esté listo
+          echo "⏳ Esperando a que el contenedor esté listo..."
+          sleep 10
+          
+          # Ejecutar migraciones dentro del contenedor
+          echo "🔧 Ejecutando migraciones de base de datos..."
+          podman exec rentall-jyb-container node scripts/migrate-vibrador-columns.js || echo "⚠️ Migración ya ejecutada o no necesaria"
+          
           # Verificar estado
           echo "✅ Verificando contenedores..."
           podman ps

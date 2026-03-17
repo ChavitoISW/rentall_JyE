@@ -28,6 +28,8 @@ COPY src/ ./src/
 COPY tsconfig.json ./
 # Copiar carpeta public con todo su contenido
 COPY public/ ./public
+# Copiar scripts de migración
+COPY scripts/ ./scripts/
 
 # Construir la aplicación Next.js
 RUN npm run build
