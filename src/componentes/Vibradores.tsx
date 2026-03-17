@@ -10,7 +10,7 @@ import styles from '../styles/Vibrador.module.css';
 
 interface Vibrador {
   id_vibrador?: number;
-  nombre_vibrador: string;
+  nombre_equipo: string;
   descripcion_vibrador?: string;
   voltaje_vibrador?: string;
   estado_vibrador?: boolean;
@@ -29,7 +29,7 @@ const Vibradores: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentVibrador, setCurrentVibrador] = useState<Vibrador>({
-    nombre_vibrador: '',
+    nombre_equipo: '',
     descripcion_vibrador: '',
     voltaje_vibrador: '',
     estado_vibrador: true,
@@ -149,7 +149,7 @@ const Vibradores: React.FC = () => {
 
   const openModal = () => {
     setCurrentVibrador({
-      nombre_vibrador: '',
+      nombre_equipo: '',
       descripcion_vibrador: '',
       voltaje_vibrador: '',
       estado_vibrador: true,
@@ -166,7 +166,7 @@ const Vibradores: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentVibrador({
-      nombre_vibrador: '',
+      nombre_equipo: '',
       descripcion_vibrador: '',
       voltaje_vibrador: '',
       estado_vibrador: true,
@@ -180,13 +180,13 @@ const Vibradores: React.FC = () => {
   };
 
   const filteredVibradores = vibradores.filter(vibrador =>
-    vibrador.nombre_vibrador.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vibrador.nombre_equipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
     vibrador.descripcion_vibrador?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     vibrador.voltaje_vibrador?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const columns: Column<Vibrador>[] = [
-    { key: 'nombre_vibrador', header: 'Nombre', width: '120px' },
+    { key: 'nombre_equipo', header: 'Nombre', width: '120px' },
     { 
       key: 'descripcion_vibrador', 
       header: 'Descripción',
@@ -271,9 +271,9 @@ const Vibradores: React.FC = () => {
                     <label>Nombre *</label>
                     <input
                       type="text"
-                      value={currentVibrador.nombre_vibrador}
+                      value={currentVibrador.nombre_equipo}
                       onChange={(e) =>
-                        setCurrentVibrador({ ...currentVibrador, nombre_vibrador: e.target.value })
+                        setCurrentVibrador({ ...currentVibrador, nombre_equipo: e.target.value })
                       }
                       required
                       placeholder="Ej: VIB-001"

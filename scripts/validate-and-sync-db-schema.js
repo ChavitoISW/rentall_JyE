@@ -31,7 +31,7 @@ const EXPECTED_SCHEMA = {
   vibrador: {
     columns: {
       id_vibrador: { type: 'INTEGER', pk: true, autoincrement: true },
-      nombre_vibrador: { type: 'TEXT', notnull: true },
+      nombre_equipo: { type: 'TEXT', notnull: false },
       descripcion_vibrador: { type: 'TEXT', notnull: false },
       voltaje_vibrador: { type: 'TEXT', notnull: false },
       estado_vibrador: { type: 'INTEGER', default: 1 },

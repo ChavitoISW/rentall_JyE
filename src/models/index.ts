@@ -610,14 +610,8 @@ export const equipoModel = {
             const equipo = db.prepare('SELECT nombre_equipo FROM rompedor WHERE id_rompedor = ?').get(row.id_equipo_especifico) as any;
             nombre_equipo_especifico = equipo?.nombre_equipo;
           } else if (cat.includes('vibrador')) {
-            // Intentar primero con nombre_equipo, si falla usar nombre_vibrador
-            try {
-              const equipo = db.prepare('SELECT nombre_equipo FROM vibrador WHERE id_vibrador = ?').get(row.id_equipo_especifico) as any;
-              nombre_equipo_especifico = equipo?.nombre_equipo;
-            } catch {
-              const equipo = db.prepare('SELECT nombre_vibrador as nombre_equipo FROM vibrador WHERE id_vibrador = ?').get(row.id_equipo_especifico) as any;
-              nombre_equipo_especifico = equipo?.nombre_equipo;
-            }
+            const equipo = db.prepare('SELECT nombre_equipo FROM vibrador WHERE id_vibrador = ?').get(row.id_equipo_especifico) as any;
+            nombre_equipo_especifico = equipo?.nombre_equipo;
           } else if (cat.includes('puntal')) {
             // Intentar primero con nombre_equipo, si falla usar nombre_puntal
             try {
@@ -1269,7 +1263,7 @@ export const rompedorModel = {
 
 export interface Vibrador {
   id_vibrador?: number;
-  nombre_vibrador: string;
+  nombre_equipo: string;
   descripcion_vibrador?: string;
   voltaje_vibrador?: string;
   estado_vibrador?: boolean;
@@ -1307,11 +1301,11 @@ export const vibradorModel = {
 
   create: (vibrador: Vibrador) => {
     const stmt = db.prepare(`
-      INSERT INTO vibrador (nombre_vibrador, descripcion_vibrador, voltaje_vibrador, estado_vibrador, precio_equipo, precio_mes, precio_quincena, precio_semana, precio_dia)
+      INSERT INTO vibrador (nombre_equipo, descripcion_vibrador, voltaje_vibrador, estado_vibrador, precio_equipo, precio_mes, precio_quincena, precio_semana, precio_dia)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     return stmt.run(
-      vibrador.nombre_vibrador,
+      vibrador.nombre_equipo,
       vibrador.descripcion_vibrador || null,
       vibrador.voltaje_vibrador || null,
       vibrador.estado_vibrador ? 1 : 0,
@@ -1327,9 +1321,9 @@ export const vibradorModel = {
     const fields = [];
     const values = [];
 
-    if (vibrador.nombre_vibrador) {
-      fields.push('nombre_vibrador = ?');
-      values.push(vibrador.nombre_vibrador);
+    if (vibrador.nombre_equipo) {
+      fields.push('nombre_equipo = ?');
+      values.push(vibrador.nombre_equipo);
     }
     if (vibrador.descripcion_vibrador !== undefined) {
       fields.push('descripcion_vibrador = ?');
