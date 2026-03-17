@@ -224,7 +224,7 @@ jobs:
           sleep 10
           
           # Validar y sincronizar esquema de base de datos automáticamente
-          echo "🔍 Validando esquema de base de datos..."
+          echo "🔍 Validando y sincronizando esquema de base de datos..."
           podman exec rentall-jyb-container node scripts/validate-and-sync-db-schema.js
           
           if [ $? -eq 0 ]; then
