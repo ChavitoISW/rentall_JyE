@@ -332,6 +332,7 @@ const Mezcladoras: React.FC = () => {
                     <label>Precio Equipo</label>
                     <input
                       type="number"
+                      min="0"
                       value={currentMezcladora.precio_equipo ?? ''}
                       onChange={(e) =>
                         setCurrentMezcladora({ ...currentMezcladora, precio_equipo: e.target.value ? parseInt(e.target.value) : undefined })
@@ -362,6 +363,7 @@ const Mezcladoras: React.FC = () => {
                         <label>Precio Día</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentMezcladora.precio_dia ?? ''}
                           onChange={(e) =>
                             setCurrentMezcladora({ ...currentMezcladora, precio_dia: e.target.value ? parseInt(e.target.value) : undefined })
@@ -374,6 +376,7 @@ const Mezcladoras: React.FC = () => {
                         <label>Precio Semana</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentMezcladora.precio_semana ?? ''}
                           onChange={(e) =>
                             setCurrentMezcladora({ ...currentMezcladora, precio_semana: e.target.value ? parseInt(e.target.value) : undefined })
@@ -386,6 +389,7 @@ const Mezcladoras: React.FC = () => {
                         <label>Precio Quincena</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentMezcladora.precio_quincena ?? ''}
                           onChange={(e) =>
                             setCurrentMezcladora({ ...currentMezcladora, precio_quincena: e.target.value ? parseInt(e.target.value) : undefined })
@@ -398,6 +402,7 @@ const Mezcladoras: React.FC = () => {
                         <label>Precio Mes</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentMezcladora.precio_mes ?? ''}
                           onChange={(e) =>
                             setCurrentMezcladora({ ...currentMezcladora, precio_mes: e.target.value ? parseInt(e.target.value) : undefined })

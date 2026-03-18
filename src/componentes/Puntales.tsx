@@ -289,6 +289,7 @@ const Puntales: React.FC = () => {
                     <label>Precio Equipo</label>
                     <input
                       type="number"
+                      min="0"
                       value={currentPuntal.precio_equipo ?? ''}
                       onChange={(e) =>
                         setCurrentPuntal({ ...currentPuntal, precio_equipo: e.target.value ? parseInt(e.target.value) : undefined })
@@ -319,6 +320,7 @@ const Puntales: React.FC = () => {
                         <label>Precio Día</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentPuntal.precio_dia ?? ''}
                           onChange={(e) =>
                             setCurrentPuntal({ ...currentPuntal, precio_dia: e.target.value ? parseInt(e.target.value) : undefined })
@@ -331,6 +333,7 @@ const Puntales: React.FC = () => {
                         <label>Precio Semana</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentPuntal.precio_semana ?? ''}
                           onChange={(e) =>
                             setCurrentPuntal({ ...currentPuntal, precio_semana: e.target.value ? parseInt(e.target.value) : undefined })
@@ -343,6 +346,7 @@ const Puntales: React.FC = () => {
                         <label>Precio Quincena</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentPuntal.precio_quincena ?? ''}
                           onChange={(e) =>
                             setCurrentPuntal({ ...currentPuntal, precio_quincena: e.target.value ? parseInt(e.target.value) : undefined })
@@ -355,6 +359,7 @@ const Puntales: React.FC = () => {
                         <label>Precio Mes</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentPuntal.precio_mes ?? ''}
                           onChange={(e) =>
                             setCurrentPuntal({ ...currentPuntal, precio_mes: e.target.value ? parseInt(e.target.value) : undefined })

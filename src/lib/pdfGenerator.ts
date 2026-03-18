@@ -239,16 +239,17 @@ export function generarPDFContrato(contratoData: ContratoData): Promise<Buffer> 
       .text(telefonoRecibe);
 
       currentY += 15;
-    const direccionEntrega = contratoData.direccion_entrega || '_______________________________________________________________________________________';
+    const direccionEntrega = contratoData.direccion_entrega || 
+      '_______________________________________________________________________________________\n_______________________________________________________________________________________';
     doc
       .font('Helvetica-Bold')
       .fillColor('#081233')
       .text('Dirección de entrega: ', margin + 20, currentY, { continued: true })
       .font('Helvetica')
       .fillColor('black')
-      .text(direccionEntrega, { width: usableWidth - 40 });
+      .text(direccionEntrega, { width: usableWidth - 40, lineGap: 2 });
 
-    currentY += 15;
+    currentY += 28;
     const observaciones = contratoData.observaciones || '';
     doc
       .font('Helvetica-Bold')

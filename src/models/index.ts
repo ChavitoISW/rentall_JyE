@@ -978,8 +978,8 @@ export const mezcladoraModel = {
 
 export interface Andamio {
   id_andamio?: number;
-  ancho_andamio: string;
-  largo_andamio: string;
+  ancho_andamio?: string;
+  largo_andamio?: string;
   nombre_equipo?: string;
   estado_andamio?: boolean;
   precio_equipo?: number;
@@ -1006,8 +1006,8 @@ export const andamioModel = {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     return stmt.run(
-      andamio.ancho_andamio,
-      andamio.largo_andamio,
+      andamio.ancho_andamio || null,
+      andamio.largo_andamio || null,
       andamio.nombre_equipo || null,
       andamio.estado_andamio ? 1 : 0,
       andamio.precio_equipo || null,
@@ -1022,11 +1022,11 @@ export const andamioModel = {
     const fields = [];
     const values = [];
 
-    if (andamio.ancho_andamio) {
+    if (andamio.ancho_andamio !== undefined) {
       fields.push('ancho_andamio = ?');
       values.push(andamio.ancho_andamio);
     }
-    if (andamio.largo_andamio) {
+    if (andamio.largo_andamio !== undefined) {
       fields.push('largo_andamio = ?');
       values.push(andamio.largo_andamio);
     }

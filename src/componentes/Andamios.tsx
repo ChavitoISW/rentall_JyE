@@ -10,8 +10,8 @@ import styles from '../styles/Andamio.module.css';
 
 interface Andamio {
   id_andamio?: number;
-  ancho_andamio: string;
-  largo_andamio: string;
+  ancho_andamio?: string;
+  largo_andamio?: string;
   nombre_equipo?: string;
   estado_andamio?: boolean;
   precio_equipo?: number;
@@ -180,8 +180,9 @@ const Andamios: React.FC = () => {
   };
 
   const filteredAndamios = andamios.filter(andamio =>
-    andamio.ancho_andamio.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    andamio.largo_andamio.toLowerCase().includes(searchTerm.toLowerCase())
+    andamio.ancho_andamio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    andamio.largo_andamio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    andamio.nombre_equipo?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const columns: Column<Andamio>[] = [
@@ -278,6 +279,7 @@ const Andamios: React.FC = () => {
                     <label>Precio Equipo</label>
                     <input
                       type="number"
+                      min="0"
                       value={currentAndamio.precio_equipo ?? ''}
                       onChange={(e) =>
                         setCurrentAndamio({ ...currentAndamio, precio_equipo: e.target.value ? parseInt(e.target.value) : undefined })
@@ -289,27 +291,25 @@ const Andamios: React.FC = () => {
 
 
                   <div className={styles.formGroup}>
-                    <label>Ancho *</label>
+                    <label>Ancho</label>
                     <input
                       type="text"
                       value={currentAndamio.ancho_andamio}
                       onChange={(e) =>
                         setCurrentAndamio({ ...currentAndamio, ancho_andamio: e.target.value })
                       }
-                      required
                       placeholder="Ej: 1.5m"
                     />
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label>Largo *</label>
+                    <label>Largo</label>
                     <input
                       type="text"
                       value={currentAndamio.largo_andamio}
                       onChange={(e) =>
                         setCurrentAndamio({ ...currentAndamio, largo_andamio: e.target.value })
                       }
-                      required
                       placeholder="Ej: 3m"
                     />
                   </div>
@@ -338,6 +338,7 @@ const Andamios: React.FC = () => {
                         <label>Precio Día</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentAndamio.precio_dia ?? ''}
                           onChange={(e) =>
                             setCurrentAndamio({ ...currentAndamio, precio_dia: e.target.value ? parseInt(e.target.value) : undefined })
@@ -350,6 +351,7 @@ const Andamios: React.FC = () => {
                         <label>Precio Semana</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentAndamio.precio_semana ?? ''}
                           onChange={(e) =>
                             setCurrentAndamio({ ...currentAndamio, precio_semana: e.target.value ? parseInt(e.target.value) : undefined })
@@ -362,6 +364,7 @@ const Andamios: React.FC = () => {
                         <label>Precio Quincena</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentAndamio.precio_quincena ?? ''}
                           onChange={(e) =>
                             setCurrentAndamio({ ...currentAndamio, precio_quincena: e.target.value ? parseInt(e.target.value) : undefined })
@@ -374,6 +377,7 @@ const Andamios: React.FC = () => {
                         <label>Precio Mes</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentAndamio.precio_mes ?? ''}
                           onChange={(e) =>
                             setCurrentAndamio({ ...currentAndamio, precio_mes: e.target.value ? parseInt(e.target.value) : undefined })

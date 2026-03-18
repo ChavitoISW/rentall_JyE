@@ -2455,6 +2455,7 @@ const SolicitudesEquipo: React.FC = () => {
                         
                         <input
                           type="number"
+                          min="1"
                           placeholder="Cant."
                           value={detalle.cantidad_periodicidad}
                           onChange={(e) => actualizarDetalle(index, 'cantidad_periodicidad', Number(e.target.value))}
@@ -2518,6 +2519,7 @@ const SolicitudesEquipo: React.FC = () => {
                           <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#333' }}>₡</span>
                           <input
                             type="number"
+                            min="0"
                             value={currentSolicitudEquipo.monto_envio || ''}
                             onChange={(e) => {
                               const envio = Number(e.target.value) || 0;
@@ -2542,6 +2544,7 @@ const SolicitudesEquipo: React.FC = () => {
                         <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#333' }}>₡</span>
                         <input
                           type="number"
+                          min="0"
                           value={currentSolicitudEquipo.descuento_solicitud_equipo || ''}
                           onChange={(e) => {
                             const descuento = Number(e.target.value) || 0;
