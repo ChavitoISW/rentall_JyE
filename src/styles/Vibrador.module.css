@@ -350,6 +350,95 @@
   border-color: #4a90e2;
 }
 
+/* Estilos mejorados para datepickers */
+.dateInputGroup {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.dateLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.dateLabel::before {
+  content: '📅';
+  font-size: 1.1rem;
+}
+
+.formGroup input[type="date"] {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.3s ease;
+  background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+  color: #333;
+  cursor: pointer;
+  position: relative;
+  font-weight: 500;
+}
+
+.formGroup input[type="date"]:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: white;
+  transform: translateY(-1px);
+}
+
+.formGroup input[type="date"]:hover {
+  border-color: #4a90e2;
+  background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Ícono del calendario */
+.formGroup input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 6px;
+  margin-right: 2px;
+  width: 20px;
+  height: 20px;
+  filter: invert(45%) sepia(20%) saturate(300%) hue-rotate(180deg) brightness(90%);
+  transition: all 0.3s ease;
+  opacity: 0.7;
+}
+
+.formGroup input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  filter: invert(45%) sepia(80%) saturate(1200%) hue-rotate(190deg) brightness(100%);
+  background: rgba(74, 144, 226, 0.15);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.formGroup input[type="date"]:focus::-webkit-calendar-picker-indicator {
+  filter: invert(45%) sepia(80%) saturate(1200%) hue-rotate(190deg) brightness(100%);
+  opacity: 1;
+}
+
+/* Para navegadores que no son webkit */
+.formGroup input[type="date"]::-moz-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+/* Placeholder cuando está vacío - estilo más sutil */
+.formGroup input[type="date"]:invalid {
+  color: #999;
+}
+
+.formGroup input[type="date"]:not(:focus):invalid {
+  border-color: #e0e0e0;
+}
+
 .formGroup textarea {
   resize: vertical;
   min-height: 80px;

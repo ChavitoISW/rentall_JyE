@@ -978,8 +978,8 @@ export const mezcladoraModel = {
 
 export interface Andamio {
   id_andamio?: number;
-  ancho_andamio: string;
-  largo_andamio: string;
+  ancho_andamio?: string;
+  largo_andamio?: string;
   nombre_equipo?: string;
   estado_andamio?: boolean;
   precio_equipo?: number;
@@ -1006,8 +1006,8 @@ export const andamioModel = {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     return stmt.run(
-      andamio.ancho_andamio,
-      andamio.largo_andamio,
+      andamio.ancho_andamio || null,
+      andamio.largo_andamio || null,
       andamio.nombre_equipo || null,
       andamio.estado_andamio ? 1 : 0,
       andamio.precio_equipo || null,
@@ -1022,11 +1022,11 @@ export const andamioModel = {
     const fields = [];
     const values = [];
 
-    if (andamio.ancho_andamio) {
+    if (andamio.ancho_andamio !== undefined) {
       fields.push('ancho_andamio = ?');
       values.push(andamio.ancho_andamio);
     }
-    if (andamio.largo_andamio) {
+    if (andamio.largo_andamio !== undefined) {
       fields.push('largo_andamio = ?');
       values.push(andamio.largo_andamio);
     }
@@ -2087,5 +2087,192 @@ export const pagoContratoModel = {
       WHERE id_contrato = ?
     `).get(id_contrato) as { total: number };
     return result.total;
+  }
+};
+
+export interface Empleado {
+  id_empleado?: number;
+  nombre: string;
+  apellidos: string;
+  telefono?: string;
+  fecha_ingreso: string;
+  fecha_salida?: string;
+  estado?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export const empleadoModel = {
+  getAll: () => {
+    return db.prepare('SELECT * FROM empleado').all();
+  },
+
+  getById: (id: number) => {
+    return db.prepare('SELECT * FROM empleado WHERE id_empleado = ?').get(id);
+  },
+
+  create: (empleado: Empleado) => {
+    const stmt = db.prepare(`
+      INSERT INTO empleado (nombre, apellidos, telefono, fecha_ingreso, fecha_salida, estado)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    return stmt.run(
+      empleado.nombre,
+      empleado.apellidos,
+      empleado.telefono || null,
+      empleado.fecha_ingreso,
+      empleado.fecha_salida || null,
+      empleado.estado !== undefined ? empleado.estado : 1
+    );
+  },
+
+  update: (id: number, empleado: Partial<Empleado>) => {
+    const fields = [];
+    const values = [];
+
+    if (empleado.nombre !== undefined) {
+      fields.push('nombre = ?');
+      values.push(empleado.nombre);
+    }
+    if (empleado.apellidos !== undefined) {
+      fields.push('apellidos = ?');
+      values.push(empleado.apellidos);
+    }
+    if (empleado.telefono !== undefined) {
+      fields.push('telefono = ?');
+      values.push(empleado.telefono);
+    }
+    if (empleado.fecha_ingreso !== undefined) {
+      fields.push('fecha_ingreso = ?');
+      values.push(empleado.fecha_ingreso);
+    }
+    if (empleado.fecha_salida !== undefined) {
+      fields.push('fecha_salida = ?');
+      values.push(empleado.fecha_salida);
+    }
+    if (empleado.estado !== undefined) {
+      fields.push('estado = ?');
+      values.push(empleado.estado);
+    }
+
+    fields.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+
+    const stmt = db.prepare(`
+      UPDATE empleado SET ${fields.join(', ')} WHERE id_empleado = ?
+    `);
+    return stmt.run(...values);
+  }
+};
+
+export interface SolicitudVacaciones {
+  id_solicitud_vacaciones?: number;
+  id_empleado: number;
+  fecha_solicitud: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  cantidad_dias: number;
+  dias_disponibles: number;
+  estado?: string;
+  observaciones?: string;
+  created_at?: string;
+  updated_at?: string;
+  // Campos relacionados (joins)
+  nombre_empleado?: string;
+  apellidos_empleado?: string;
+}
+
+export const solicitudVacacionesModel = {
+  getAll: () => {
+    return db.prepare(`
+      SELECT sv.*, e.nombre as nombre_empleado, e.apellidos as apellidos_empleado
+      FROM solicitud_vacaciones sv
+      INNER JOIN empleado e ON sv.id_empleado = e.id_empleado
+      ORDER BY sv.fecha_solicitud DESC
+    `).all();
+  },
+
+  getById: (id: number) => {
+    return db.prepare(`
+      SELECT sv.*, e.nombre as nombre_empleado, e.apellidos as apellidos_empleado
+      FROM solicitud_vacaciones sv
+      INNER JOIN empleado e ON sv.id_empleado = e.id_empleado
+      WHERE sv.id_solicitud_vacaciones = ?
+    `).get(id);
+  },
+
+  getByEmpleado: (id_empleado: number) => {
+    return db.prepare(`
+      SELECT * FROM solicitud_vacaciones 
+      WHERE id_empleado = ?
+      ORDER BY fecha_solicitud DESC
+    `).all(id_empleado);
+  },
+
+  getDiasUsados: (id_empleado: number) => {
+    const result = db.prepare(`
+      SELECT COALESCE(SUM(cantidad_dias), 0) as total
+      FROM solicitud_vacaciones
+      WHERE id_empleado = ? AND estado = 'aprobada'
+    `).get(id_empleado) as { total: number };
+    return result.total;
+  },
+
+  create: (solicitud: SolicitudVacaciones) => {
+    const stmt = db.prepare(`
+      INSERT INTO solicitud_vacaciones (
+        id_empleado, fecha_solicitud, fecha_inicio, fecha_fin, 
+        cantidad_dias, dias_disponibles, estado, observaciones
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    return stmt.run(
+      solicitud.id_empleado,
+      solicitud.fecha_solicitud,
+      solicitud.fecha_inicio,
+      solicitud.fecha_fin,
+      solicitud.cantidad_dias,
+      solicitud.dias_disponibles,
+      solicitud.estado || 'pendiente',
+      solicitud.observaciones || null
+    );
+  },
+
+  update: (id: number, solicitud: Partial<SolicitudVacaciones>) => {
+    const fields = [];
+    const values = [];
+
+    if (solicitud.fecha_inicio !== undefined) {
+      fields.push('fecha_inicio = ?');
+      values.push(solicitud.fecha_inicio);
+    }
+    if (solicitud.fecha_fin !== undefined) {
+      fields.push('fecha_fin = ?');
+      values.push(solicitud.fecha_fin);
+    }
+    if (solicitud.cantidad_dias !== undefined) {
+      fields.push('cantidad_dias = ?');
+      values.push(solicitud.cantidad_dias);
+    }
+    if (solicitud.estado !== undefined) {
+      fields.push('estado = ?');
+      values.push(solicitud.estado);
+    }
+    if (solicitud.observaciones !== undefined) {
+      fields.push('observaciones = ?');
+      values.push(solicitud.observaciones);
+    }
+
+    fields.push('updated_at = CURRENT_TIMESTAMP');
+    values.push(id);
+
+    const stmt = db.prepare(`
+      UPDATE solicitud_vacaciones SET ${fields.join(', ')} WHERE id_solicitud_vacaciones = ?
+    `);
+    return stmt.run(...values);
+  },
+
+  delete: (id: number) => {
+    return db.prepare('DELETE FROM solicitud_vacaciones WHERE id_solicitud_vacaciones = ?').run(id);
   }
 };

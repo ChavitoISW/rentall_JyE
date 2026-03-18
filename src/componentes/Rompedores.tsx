@@ -306,6 +306,7 @@ const Rompedores: React.FC = () => {
                     <label>Precio Equipo</label>
                     <input
                       type="number"
+                      min="0"
                       value={currentRompedor.precio_equipo ?? ''}
                       onChange={(e) =>
                         setCurrentRompedor({ ...currentRompedor, precio_equipo: e.target.value ? parseInt(e.target.value) : undefined })
@@ -336,6 +337,7 @@ const Rompedores: React.FC = () => {
                         <label>Precio por Día</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentRompedor.precio_dia ?? ''}
                           onChange={(e) =>
                             setCurrentRompedor({ ...currentRompedor, precio_dia: e.target.value ? parseInt(e.target.value) : undefined })
@@ -348,6 +350,7 @@ const Rompedores: React.FC = () => {
                         <label>Precio por Semana</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentRompedor.precio_semana ?? ''}
                           onChange={(e) =>
                             setCurrentRompedor({ ...currentRompedor, precio_semana: e.target.value ? parseInt(e.target.value) : undefined })
@@ -360,6 +363,7 @@ const Rompedores: React.FC = () => {
                         <label>Precio por Quincena</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentRompedor.precio_quincena ?? ''}
                           onChange={(e) =>
                             setCurrentRompedor({ ...currentRompedor, precio_quincena: e.target.value ? parseInt(e.target.value) : undefined })
@@ -372,6 +376,7 @@ const Rompedores: React.FC = () => {
                         <label>Precio por Mes</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentRompedor.precio_mes ?? ''}
                           onChange={(e) =>
                             setCurrentRompedor({ ...currentRompedor, precio_mes: e.target.value ? parseInt(e.target.value) : undefined })

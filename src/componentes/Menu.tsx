@@ -14,6 +14,7 @@ const Menu: React.FC = () => {
   const [isContratosDropdownOpen, setIsContratosDropdownOpen] = useState(false);
   const [isPagosDropdownOpen, setIsPagosDropdownOpen] = useState(false);
   const [isReportesDropdownOpen, setIsReportesDropdownOpen] = useState(false);
+  const [isRHDropdownOpen, setIsRHDropdownOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 
@@ -24,6 +25,7 @@ const Menu: React.FC = () => {
   const contratosDropdownRef = useRef<HTMLLIElement>(null);
   const pagosDropdownRef = useRef<HTMLLIElement>(null);
   const reportesDropdownRef = useRef<HTMLLIElement>(null);
+  const rhDropdownRef = useRef<HTMLLIElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleMenu = () => {
@@ -56,6 +58,10 @@ const Menu: React.FC = () => {
 
   const toggleReportesDropdown = () => {
     setIsReportesDropdownOpen(!isReportesDropdownOpen);
+  };
+
+  const toggleRHDropdown = () => {
+    setIsRHDropdownOpen(!isRHDropdownOpen);
   };
 
   const toggleUserDropdown = () => {
@@ -105,6 +111,12 @@ const Menu: React.FC = () => {
         !reportesDropdownRef.current.contains(event.target as Node)
       ) {
         setIsReportesDropdownOpen(false);
+      }
+      if (
+        rhDropdownRef.current &&
+        !rhDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsRHDropdownOpen(false);
       }
       if (
         userDropdownRef.current &&
@@ -333,6 +345,30 @@ const Menu: React.FC = () => {
                     <Link href="/ajuste-inventario">Ajuste Manual de Inventario</Link>
                   </li>
                   
+                </ul>
+              )}
+            </li>
+          )}
+          {usuario?.usuario_rol === 1 && (
+            <li className={`${styles.menuItem} ${styles.dropdown}`} ref={rhDropdownRef}>
+              <button 
+                className={styles.dropdownToggle} 
+                onClick={toggleRHDropdown}
+              >
+                RH
+                <span className={styles.dropdownArrow}>▼</span>
+              </button>
+              {isRHDropdownOpen && (
+                <ul className={styles.dropdownMenu}>
+                  <li className={styles.dropdownItem}>
+                    <Link href="/empleados">Empleados</Link>
+                  </li>
+                  <li className={styles.dropdownItem}>
+                    <Link href="/solicitudes-vacaciones">Solicitudes de Vacaciones</Link>
+                  </li>
+                  <li className={styles.dropdownItem}>
+                    <Link href="/reporte-vacaciones">Reporte de Vacaciones</Link>
+                  </li>
                 </ul>
               )}
             </li>
