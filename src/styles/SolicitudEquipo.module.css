@@ -253,28 +253,58 @@
   animation: slideUp 0.3s ease-out;
 }
 
+.modalLarge {
+  background: linear-gradient(to bottom, #ffffff 0%, #f9fafb 100%);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 950px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modalLarge::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modalLarge::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.modalLarge::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  border-radius: 10px;
+}
+
+.modalLarge::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #357abd 0%, #2874d9 100%);
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .modalHeader {
   background: linear-gradient(135deg, #4a90e2 0%, #2874d9 100%);
-  padding: 1.5rem 2rem;
+  padding: 1.8rem 2.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: white;
-  border-radius: 12px 12px 0 0;
+  border-radius: 16px 16px 0 0;
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .modalHeader h2 {
@@ -305,6 +335,21 @@
 
 .form {
   padding: 2rem;
+}
+
+.formContainer {
+  padding: 2rem 2.5rem;
+}
+
+/* Grid de 2 columnas para el formulario */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
 }
 
 .section {
@@ -360,6 +405,95 @@
 .formGroup select:focus,
 .formGroup textarea:focus {
   border-color: #4a90e2;
+}
+
+/* Estilos mejorados para datepickers */
+.dateInputGroup {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.dateLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.dateLabel::before {
+  content: '📅';
+  font-size: 1.1rem;
+}
+
+.formGroup input[type="date"] {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.3s ease;
+  background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+  color: #333;
+  cursor: pointer;
+  position: relative;
+  font-weight: 500;
+}
+
+.formGroup input[type="date"]:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: white;
+  transform: translateY(-1px);
+}
+
+.formGroup input[type="date"]:hover {
+  border-color: #4a90e2;
+  background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Ícono del calendario */
+.formGroup input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 6px;
+  margin-right: 2px;
+  width: 20px;
+  height: 20px;
+  filter: invert(45%) sepia(20%) saturate(300%) hue-rotate(180deg) brightness(90%);
+  transition: all 0.3s ease;
+  opacity: 0.7;
+}
+
+.formGroup input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  filter: invert(45%) sepia(80%) saturate(1200%) hue-rotate(190deg) brightness(100%);
+  background: rgba(74, 144, 226, 0.15);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.formGroup input[type="date"]:focus::-webkit-calendar-picker-indicator {
+  filter: invert(45%) sepia(80%) saturate(1200%) hue-rotate(190deg) brightness(100%);
+  opacity: 1;
+}
+
+/* Para navegadores que no son webkit */
+.formGroup input[type="date"]::-moz-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+/* Placeholder cuando está vacío - estilo más sutil */
+.formGroup input[type="date"]:invalid {
+  color: #999;
+}
+
+.formGroup input[type="date"]:not(:focus):invalid {
+  border-color: #e0e0e0;
 }
 
 .formGroup textarea {

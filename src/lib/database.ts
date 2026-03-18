@@ -462,6 +462,39 @@ db.exec(`
   )
 `);
 
+// Tabla de empleados para control de vacaciones
+db.exec(`
+  CREATE TABLE IF NOT EXISTS empleado (
+    id_empleado INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    apellidos TEXT NOT NULL,
+    telefono TEXT,
+    fecha_ingreso DATE NOT NULL,
+    fecha_salida DATE,
+    estado INTEGER DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Tabla de solicitudes de vacaciones
+db.exec(`
+  CREATE TABLE IF NOT EXISTS solicitud_vacaciones (
+    id_solicitud_vacaciones INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_empleado INTEGER NOT NULL,
+    fecha_solicitud DATE NOT NULL,
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE NOT NULL,
+    cantidad_dias INTEGER NOT NULL,
+    dias_disponibles INTEGER NOT NULL,
+    estado TEXT DEFAULT 'pendiente' CHECK(estado IN ('pendiente', 'aprobada', 'rechazada')),
+    observaciones TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_empleado) REFERENCES empleado(id_empleado)
+  )
+`);
+
 // Base de datos inicializada correctamente
 
 export default db;

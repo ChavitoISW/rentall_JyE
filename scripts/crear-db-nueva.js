@@ -459,6 +459,35 @@ try {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (id_contrato) REFERENCES contrato (id_contrato) ON DELETE CASCADE
     );
+
+    -- Tabla empleado
+    CREATE TABLE empleado (
+      id_empleado INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL,
+      apellidos TEXT NOT NULL,
+      telefono TEXT,
+      fecha_ingreso DATE NOT NULL,
+      fecha_salida DATE,
+      estado INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Tabla solicitud_vacaciones
+    CREATE TABLE solicitud_vacaciones (
+      id_solicitud_vacaciones INTEGER PRIMARY KEY AUTOINCREMENT,
+      id_empleado INTEGER NOT NULL,
+      fecha_solicitud DATE NOT NULL,
+      fecha_inicio DATE NOT NULL,
+      fecha_fin DATE NOT NULL,
+      cantidad_dias INTEGER NOT NULL,
+      dias_disponibles INTEGER NOT NULL,
+      estado TEXT DEFAULT 'pendiente' CHECK(estado IN ('pendiente', 'aprobada', 'rechazada')),
+      observaciones TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (id_empleado) REFERENCES empleado (id_empleado)
+    );
   `;
   
   dbNueva.exec(createTables);
