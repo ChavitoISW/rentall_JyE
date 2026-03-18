@@ -209,12 +209,13 @@ const Andamios: React.FC = () => {
       label: 'Editar',
       onClick: handleEdit,
       className: styles.btnEdit
-    },
-    {
-      label: 'Eliminar',
-      onClick: (andamio) => handleDelete(andamio.id_andamio!),
-      className: styles.btnDelete
     }
+    // Botón de eliminar ocultado - usar estado inactivo en su lugar
+    // {
+    //   label: 'Eliminar',
+    //   onClick: (andamio) => handleDelete(andamio.id_andamio!),
+    //   className: styles.btnDelete
+    // }
   ];
 
   return (

@@ -1258,7 +1258,7 @@ const HojaRuta: React.FC = () => {
                   <h2 style={{ margin: 0 }}>{isViewing ? `Hoja de Ruta N° ${currentHoja.numero_hoja_ruta || ''}` : 'Nueva Hoja de Ruta'}</h2>
                   {isViewing && currentHoja.fecha_creacion && (
                     <span style={{ fontSize: '1rem', fontWeight: 'normal' }}>
-                      {new Date(currentHoja.fecha_creacion).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {new Date(currentHoja.fecha_creacion + 'T00:00:00').toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </span>
                   )}
                 </div>

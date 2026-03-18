@@ -2,11 +2,11 @@ name: 🚀 Pipeline CI/CD Completo
 
 on:
   push:
-    branches: [ main, develop, testqa ]
+    branches: [ main, dev, testqa ]
     tags:
       - 'v*.*.*'
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
   workflow_dispatch:
 
 env:
@@ -134,12 +134,12 @@ jobs:
     - name: ✅ Imagen Podman lista
       run: echo "✅ Imagen construida y publicada en ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.image_name }}"
 
-  # FASE 3: Deploy (requiere que pase docker-build, solo en main y testqa)
+  # FASE 3: Deploy (requiere que pase docker-build, solo en main)
   deploy:
     name: 🚀 Deploy a Producción
     runs-on: ubuntu-latest
     needs: [docker-build]
-    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/testqa')
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     environment: production
     
     steps:
@@ -154,23 +154,91 @@ jobs:
     - name: 🚀 Deploy a servidor con Podman
       run: |
         echo "🚀 Iniciando deployment a producción..."
-        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
-          cd ${{ secrets.DEPLOY_PATH }}
-          git pull origin ${{ github.ref_name }}
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'ENDSSH'
+          set -e
           
-          # Detener contenedores con podman-compose
-          podman-compose down || true
+          # Asegurar que podman-compose esté en el PATH
+          export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
+          
+          # Cargar bashrc si existe (puede tener configuración de PATH)
+          [ -f ~/.bashrc ] && source ~/.bashrc
+          
+          # Usar siempre el home del usuario logueado
+          DEPLOY_DIR="$HOME/rentall"
+          
+          # Verificar si es un repositorio git válido
+          if [ -d "$DEPLOY_DIR/.git" ]; then
+            echo "📂 Repositorio existe, actualizando código..."
+            cd "$DEPLOY_DIR"
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+          else
+            # Si existe algo, eliminarlo
+            if [ -d "$DEPLOY_DIR" ]; then
+              echo "⚠️  Eliminando directorio anterior..."
+              rm -rf "$DEPLOY_DIR"
+            fi
+            
+            echo "📁 Creando directorio $DEPLOY_DIR..."
+            mkdir -p "$DEPLOY_DIR"
+            
+            echo "📥 Clonando repositorio..."
+            git clone https://github.com/${{ github.repository }}.git "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
+            git checkout ${{ github.ref_name }}
+            
+            echo "📁 Creando directorios necesarios..."
+            mkdir -p database backups
+          fi
+          
+          # Detener contenedores si están corriendo
+          echo "🛑 Deteniendo contenedores..."
+          
+          # Buscar podman-compose (puede estar en varias ubicaciones)
+          COMPOSE_CMD=""
+          if command -v podman-compose &> /dev/null; then
+            COMPOSE_CMD="podman-compose"
+          elif command -v pipx &> /dev/null; then
+            COMPOSE_CMD="pipx run podman-compose"
+          elif [ -f "$HOME/.local/bin/podman-compose" ]; then
+            COMPOSE_CMD="$HOME/.local/bin/podman-compose"
+          else
+            echo "❌ podman-compose no encontrado"
+            exit 1
+          fi
+          
+          echo "🔧 Usando: $COMPOSE_CMD"
+          $COMPOSE_CMD down 2>/dev/null || true
           
           # Rebuild con Podman
+          echo "🏗️ Construyendo imagen..."
           podman build -t rentall:latest .
           
           # Iniciar con podman-compose
-          podman-compose up -d
+          echo "🚀 Iniciando contenedores..."
+          $COMPOSE_CMD up -d
+          
+          # Esperar a que el contenedor esté listo
+          echo "⏳ Esperando a que el contenedor esté listo..."
+          sleep 10
+          
+          # Validar y sincronizar esquema de base de datos automáticamente
+          echo "🔍 Validando y sincronizando esquema de base de datos..."
+          podman exec rentall-jyb-container node scripts/validate-and-sync-db-schema.js
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Esquema de base de datos validado y sincronizado"
+          else
+            echo "❌ Error en la validación del esquema"
+            exit 1
+          fi
           
           # Verificar estado
+          echo "✅ Verificando contenedores..."
           podman ps
           
-          echo "✅ Deployment completado"
+          echo "🎉 Deployment completado exitosamente"
         ENDSSH
     
     - name: ✅ Deployment exitoso

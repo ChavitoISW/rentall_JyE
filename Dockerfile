@@ -1,12 +1,13 @@
 # Etapa 1: Construcción
 FROM node:20-alpine 
 
-# Instalar dependencias del sistema necesarias para better-sqlite3
+# Instalar dependencias del sistema necesarias para better-sqlite3 y healthcheck
 RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    sqlite
+    sqlite \
+    wget
 
 # Crear directorio para la base de datos
 RUN mkdir -p /app/database    
@@ -27,6 +28,8 @@ COPY src/ ./src/
 COPY tsconfig.json ./
 # Copiar carpeta public con todo su contenido
 COPY public/ ./public
+# Copiar scripts de migración
+COPY scripts/ ./scripts/
 
 # Construir la aplicación Next.js
 RUN npm run build
@@ -35,22 +38,14 @@ RUN npm run build
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
+    HOSTNAME=0.0.0.0 \
     TZ=America/Costa_Rica \
     DB_PATH=/app/database/rentall.db
 
-# Crear usuario no-root para seguridad
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 braulio && \
-    chown -R braulio:nodejs /app && \
-    chmod -R 755 /app
-
 VOLUME ["/app/database"]
-
-# Cambiar a usuario no-root
-USER braulio
 
 # Exponer puerto
 EXPOSE 3000
 
-# Comando para ejecutar la aplicación cuando el contenedor se inicie
-CMD npm run start
+# Comando para ejecutar la aplicación
+CMD ["npm", "start"]

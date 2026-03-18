@@ -12,6 +12,8 @@ const Menu: React.FC = () => {
   const [isInventarioDropdownOpen, setIsInventarioDropdownOpen] = useState(false);
   const [isRutasDropdownOpen, setIsRutasDropdownOpen] = useState(false);
   const [isContratosDropdownOpen, setIsContratosDropdownOpen] = useState(false);
+  const [isPagosDropdownOpen, setIsPagosDropdownOpen] = useState(false);
+  const [isReportesDropdownOpen, setIsReportesDropdownOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
 
@@ -20,6 +22,8 @@ const Menu: React.FC = () => {
   const inventarioDropdownRef = useRef<HTMLLIElement>(null);
   const rutasDropdownRef = useRef<HTMLLIElement>(null);
   const contratosDropdownRef = useRef<HTMLLIElement>(null);
+  const pagosDropdownRef = useRef<HTMLLIElement>(null);
+  const reportesDropdownRef = useRef<HTMLLIElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
 
   const toggleMenu = () => {
@@ -44,6 +48,14 @@ const Menu: React.FC = () => {
 
   const toggleContratosDropdown = () => {
     setIsContratosDropdownOpen(!isContratosDropdownOpen);
+  };
+
+  const togglePagosDropdown = () => {
+    setIsPagosDropdownOpen(!isPagosDropdownOpen);
+  };
+
+  const toggleReportesDropdown = () => {
+    setIsReportesDropdownOpen(!isReportesDropdownOpen);
   };
 
   const toggleUserDropdown = () => {
@@ -81,6 +93,18 @@ const Menu: React.FC = () => {
         !contratosDropdownRef.current.contains(event.target as Node)
       ) {
         setIsContratosDropdownOpen(false);
+      }
+      if (
+        pagosDropdownRef.current &&
+        !pagosDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsPagosDropdownOpen(false);
+      }
+      if (
+        reportesDropdownRef.current &&
+        !reportesDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsReportesDropdownOpen(false);
       }
       if (
         userDropdownRef.current &&
@@ -141,6 +165,23 @@ const Menu: React.FC = () => {
                   <li className={styles.dropdownItem}>
                     <Link href="/contratos-anulados">Contratos Anulados</Link>
                   </li>
+                </ul>
+              )}
+            </li>
+          )}
+          
+          {/* Dropdown Pagos - visible para roles no 5 (Chofer) */}
+          {usuario?.usuario_rol !== 5 && (
+            <li className={`${styles.menuItem} ${styles.dropdown}`} ref={pagosDropdownRef}>
+              <button 
+                className={styles.dropdownToggle} 
+                onClick={togglePagosDropdown}
+              >
+                Pagos
+                <span className={styles.dropdownArrow}>▼</span>
+              </button>
+              {isPagosDropdownOpen && (
+                <ul className={styles.dropdownMenu}>
                   <li className={styles.dropdownItem}>
                     <Link href="/control-pagos">Control de Pagos</Link>
                   </li>
@@ -150,18 +191,6 @@ const Menu: React.FC = () => {
                 </ul>
               )}
             </li>
-          )}
-          
-          {/* Control de Pagos y Facturación - visible para rol 4 (Contable) */}
-          {usuario?.usuario_rol === 4 && (
-            <>
-              <li className={styles.menuItem}>
-                <Link href="/control-pagos">Control de Pagos</Link>
-              </li>
-              <li className={styles.menuItem}>
-                <Link href="/control-facturacion">Control de Facturación</Link>
-              </li>
-            </>
           )}
 
           {/* Hojas de Ruta - visible para rol 5 (Chofer) */}
@@ -222,8 +251,24 @@ const Menu: React.FC = () => {
           )}
 
           {usuario?.usuario_rol !== 5 && (
-            <li className={styles.menuItem}>
-              <Link href="/reportes">Reportes</Link>
+            <li className={`${styles.menuItem} ${styles.dropdown}`} ref={reportesDropdownRef}>
+              <button 
+                className={styles.dropdownToggle} 
+                onClick={toggleReportesDropdown}
+              >
+                Reportes
+                <span className={styles.dropdownArrow}>▼</span>
+              </button>
+              {isReportesDropdownOpen && (
+                <ul className={styles.dropdownMenu}>
+                  <li className={styles.dropdownItem}>
+                    <Link href="/reportes">Ingresos por equipos</Link>
+                  </li>
+                  <li className={styles.dropdownItem}>
+                    <Link href="/pagos">Reporte de Pagos</Link>
+                  </li>
+                </ul>
+              )}
             </li>
           )}
           

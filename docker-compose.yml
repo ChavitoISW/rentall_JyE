@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   rentall:
-    container_name: rentall-J&B-container
+    container_name: rentall-jyb-container
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,6 +16,7 @@ services:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
       - PORT=3000
+      - HOSTNAME=0.0.0.0
       - TZ=America/Costa_Rica
       - DB_PATH=/app/database/rentall.db
     restart: unless-stopped

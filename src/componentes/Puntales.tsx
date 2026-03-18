@@ -208,12 +208,13 @@ const Puntales: React.FC = () => {
       label: 'Editar',
       onClick: handleEdit,
       className: styles.btnEdit
-    },
-    {
-      label: 'Eliminar',
-      onClick: (puntal) => handleDelete(puntal.id_puntal!),
-      className: styles.btnDelete
     }
+    // Botón de eliminar ocultado - usar estado inactivo en su lugar
+    // {
+    //   label: 'Eliminar',
+    //   onClick: (puntal) => handleDelete(puntal.id_puntal!),
+    //   className: styles.btnDelete
+    // }
   ];
 
   return (

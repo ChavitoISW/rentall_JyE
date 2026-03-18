@@ -214,12 +214,13 @@ const Rompedores: React.FC = () => {
       label: 'Editar',
       onClick: handleEdit,
       className: styles.btnEdit
-    },
-    {
-      label: 'Eliminar',
-      onClick: (rompedor) => handleDelete(rompedor.id_rompedor!),
-      className: styles.btnDelete
     }
+    // Botón de eliminar ocultado - usar estado inactivo en su lugar
+    // {
+    //   label: 'Eliminar',
+    //   onClick: (rompedor) => handleDelete(rompedor.id_rompedor!),
+    //   className: styles.btnDelete
+    // }
   ];
 
   return (
