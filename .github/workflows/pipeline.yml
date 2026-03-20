@@ -134,13 +134,13 @@ jobs:
     - name: ✅ Imagen Podman lista
       run: echo "✅ Imagen construida y publicada en ${{ env.REGISTRY }}/${{ steps.lowercase.outputs.image_name }}"
 
-  # FASE 3: Deploy (requiere que pase docker-build, solo en main)
+  # FASE 3: Deploy (requiere que pase docker-build, solo en main y testqa)
   deploy:
-    name: 🚀 Deploy a Producción
+    name: 🚀 Deploy a ${{ github.ref == 'refs/heads/main' && 'Producción' || 'Pruebas' }}
     runs-on: ubuntu-latest
     needs: [docker-build]
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    environment: production
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/testqa')
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'test' }}
     
     steps:
     - name: 📥 Checkout código
@@ -153,14 +153,43 @@ jobs:
     
     - name: 🚀 Deploy a servidor con Podman
       run: |
-        echo "🚀 Iniciando deployment a producción..."
+        echo "🚀 Iniciando deployment a ${{ github.ref == 'refs/heads/main' && 'PRODUCCIÓN' || 'PRUEBAS' }}..."
         ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<'ENDSSH'
           set -e
+          
+          # Detectar rama para configurar ambiente
+          BRANCH="${{ github.ref_name }}"
+          
+          if [ "$BRANCH" = "main" ]; then
+            ENV_FILE=".env.production"
+            CONTAINER_NAME="rentall-prod-container"
+            ENV_NAME="PRODUCCIÓN"
+            DB_DIR="database"
+            BACKUP_DIR="backups"
+            HOST_PORT="3000"
+          elif [ "$BRANCH" = "testqa" ]; then
+            ENV_FILE=".env.testqa"
+            CONTAINER_NAME="rentall-test-container"
+            ENV_NAME="PRUEBAS"
+            DB_DIR="database/test"
+            BACKUP_DIR="backups/test"
+            HOST_PORT="3002"
+          else
+            echo "❌ Rama no configurada para deployment: $BRANCH"
+            exit 1
+          fi
+          
+          echo "📋 Configuración:"
+          echo "  - Ambiente: $ENV_NAME"
+          echo "  - Rama: $BRANCH"
+          echo "  - Contenedor: $CONTAINER_NAME"
+          echo "  - Base de datos: $DB_DIR"
+          echo "  - Puerto: $HOST_PORT"
           
           # Asegurar que podman-compose esté en el PATH
           export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
           
-          # Cargar bashrc si existe (puede tener configuración de PATH)
+          # Cargar bashrc si existe
           [ -f ~/.bashrc ] && source ~/.bashrc
           
           # Usar siempre el home del usuario logueado
@@ -171,8 +200,8 @@ jobs:
             echo "📂 Repositorio existe, actualizando código..."
             cd "$DEPLOY_DIR"
             git fetch origin
-            git checkout ${{ github.ref_name }}
-            git pull origin ${{ github.ref_name }}
+            git checkout "$BRANCH"
+            git pull origin "$BRANCH"
           else
             # Si existe algo, eliminarlo
             if [ -d "$DEPLOY_DIR" ]; then
@@ -186,10 +215,25 @@ jobs:
             echo "📥 Clonando repositorio..."
             git clone https://github.com/${{ github.repository }}.git "$DEPLOY_DIR"
             cd "$DEPLOY_DIR"
-            git checkout ${{ github.ref_name }}
-            
-            echo "📁 Creando directorios necesarios..."
+            git checkout "$BRANCH"
+          fi
+          
+          # Crear directorios necesarios para este ambiente
+          if [ "$BRANCH" = "main" ]; then
+            echo "📁 Verificando directorios de producción (mantiene estructura actual)..."
+            # Solo verificar que existan, no crear subdirectorios
             mkdir -p database backups
+          else
+            echo "📁 Creando directorios para $ENV_NAME..."
+            mkdir -p "$DB_DIR" "$BACKUP_DIR"
+          fi
+          
+          # Copiar archivo .env según ambiente
+          if [ -f "$ENV_FILE" ]; then
+            echo "📋 Cargando configuración de $ENV_FILE..."
+            cp "$ENV_FILE" .env
+          else
+            echo "⚠️  Archivo $ENV_FILE no encontrado, usando valores por defecto"
           fi
           
           # Detener contenedores si están corriendo
@@ -209,40 +253,79 @@ jobs:
           fi
           
           echo "🔧 Usando: $COMPOSE_CMD"
-          $COMPOSE_CMD down 2>/dev/null || true
           
-          # Rebuild con Podman
-          echo "🏗️ Construyendo imagen..."
-          podman build -t rentall:latest .
+          # Detener solo el contenedor de este ambiente (sin afectar otros contenedores)
+          echo "🛑 Deteniendo ÚNICAMENTE el contenedor: $CONTAINER_NAME"
+          echo "⚠️  Otros contenedores en el servidor NO serán afectados"
           
-          # Iniciar con podman-compose
-          echo "🚀 Iniciando contenedores..."
-          $COMPOSE_CMD up -d
+          # Verificar si existe antes de detener
+          if podman ps -a --format "{{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
+            echo "📦 Contenedor $CONTAINER_NAME encontrado, procediendo a detener..."
+            podman stop "$CONTAINER_NAME" 2>/dev/null || true
+            podman rm "$CONTAINER_NAME" 2>/dev/null || true
+            echo "✅ Contenedor $CONTAINER_NAME detenido y eliminado"
+          else
+            echo "ℹ️  Contenedor $CONTAINER_NAME no existe (primera vez)"
+          fi
+          
+          # Verificar que el otro ambiente NO fue tocado
+          if [ "$BRANCH" = "main" ]; then
+            OTHER_CONTAINER="rentall-test-container"
+          else
+            OTHER_CONTAINER="rentall-prod-container"
+          fi
+          
+          if podman ps -a --format "{{.Names}}" | grep -q "^${OTHER_CONTAINER}$"; then
+            echo "✅ Verificado: Contenedor $OTHER_CONTAINER sigue intacto"
+          fi
+          
+          # Rebuild con Podman usando tag específico del ambiente
+          echo "🏗️ Construyendo imagen para $ENV_NAME..."
+          if [ "$BRANCH" = "main" ]; then
+            podman build -t rentall:prod .
+          else
+            podman build -t rentall:test .
+          fi
+          
+          # Iniciar solo el servicio rentall con la configuración del ambiente
+          echo "🚀 Iniciando ÚNICAMENTE el contenedor $CONTAINER_NAME..."
+          $COMPOSE_CMD up -d rentall
+          
+          # Verificar que solo se levantó el contenedor correcto
+          echo "🔍 Verificando que se levantó el contenedor correcto..."
+          if podman ps --format "{{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
+            echo "✅ Contenedor $CONTAINER_NAME está corriendo"
+          else
+            echo "❌ Error: Contenedor $CONTAINER_NAME no está corriendo"
+            exit 1
+          fi
           
           # Esperar a que el contenedor esté listo
           echo "⏳ Esperando a que el contenedor esté listo..."
           sleep 10
           
-          # Validar y sincronizar esquema de base de datos automáticamente
-          echo "🔍 Validando y sincronizando esquema de base de datos..."
-          podman exec rentall-jyb-container node scripts/validate-and-sync-db-schema.js
+          # Validar y sincronizar esquema de base de datos
+          echo "🔍 Validando esquema de base de datos de $ENV_NAME..."
+          podman exec "$CONTAINER_NAME" node scripts/validate-and-sync-db-schema.js
           
           if [ $? -eq 0 ]; then
-            echo "✅ Esquema de base de datos validado y sincronizado"
+            echo "✅ Esquema de base de datos validado para $ENV_NAME"
           else
-            echo "❌ Error en la validación del esquema"
+            echo "❌ Error en la validación del esquema de $ENV_NAME"
             exit 1
           fi
           
           # Verificar estado
-          echo "✅ Verificando contenedores..."
-          podman ps
+          echo "✅ Verificando contenedor $CONTAINER_NAME..."
+          podman ps | grep "$CONTAINER_NAME"
           
-          echo "🎉 Deployment completado exitosamente"
+          echo "🎉 Deployment de $ENV_NAME completado exitosamente"
+          echo "📍 Puerto: $HOST_PORT"
+          echo "📁 Base de datos: $DB_DIR"
         ENDSSH
     
     - name: ✅ Deployment exitoso
-      run: echo "✅ Aplicación desplegada correctamente en producción"
+      run: echo "✅ Aplicación desplegada correctamente en ${{ github.ref == 'refs/heads/main' && 'PRODUCCIÓN' || 'PRUEBAS' }}"
     
     - name: 🔔 Notificación de éxito
       if: success()

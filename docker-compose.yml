@@ -2,18 +2,18 @@ version: '3.8'
 
 services:
   rentall:
-    container_name: rentall-jyb-container
+    container_name: ${CONTAINER_NAME:-rentall-jyb-container}
     build:
       context: .
       dockerfile: Dockerfile
-    image: rentall:latest
+    image: rentall:${IMAGE_TAG:-latest}
     ports:
-      - "3000:3000"
+      - "${HOST_PORT:-3000}:3000"
     volumes:
-      - ./database:/app/database
-      - ./backups:/app/backups
+      - ${DB_PATH:-./database}:/app/database
+      - ${BACKUP_PATH:-./backups}:/app/backups
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV:-production}
       - NEXT_TELEMETRY_DISABLED=1
       - PORT=3000
       - HOSTNAME=0.0.0.0

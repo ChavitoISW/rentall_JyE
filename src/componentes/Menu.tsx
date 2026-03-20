@@ -279,6 +279,9 @@ const Menu: React.FC = () => {
                   <li className={styles.dropdownItem}>
                     <Link href="/pagos">Reporte de Pagos</Link>
                   </li>
+                  <li className={styles.dropdownItem}>
+                    <Link href="/reporte-equipos-cliente">Equipos por Cliente</Link>
+                  </li>
                 </ul>
               )}
             </li>
