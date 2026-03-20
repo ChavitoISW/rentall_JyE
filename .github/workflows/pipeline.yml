@@ -286,11 +286,13 @@ jobs:
           echo "🏗️ Construyendo imagen para $ENV_NAME..."
           if [ "$BRANCH" = "main" ]; then
             IMAGE_TAG="rentall:prod"
+            BUILD_ENV="production"
           else
             IMAGE_TAG="rentall:test"
+            BUILD_ENV="test"
           fi
           
-          podman build -t "$IMAGE_TAG" .
+          podman build --build-arg NEXT_PUBLIC_ENV="$BUILD_ENV" -t "$IMAGE_TAG" .
           echo "✅ Imagen $IMAGE_TAG construida"
           
           # Iniciar contenedor directamente con podman (sin compose)
@@ -303,6 +305,7 @@ jobs:
             -v "$(pwd)/${DB_DIR}:/app/database" \
             -v "$(pwd)/${BACKUP_DIR}:/app/backups" \
             -e NODE_ENV="${NODE_ENV:-production}" \
+            -e NEXT_PUBLIC_ENV="$BUILD_ENV" \
             -e NEXT_TELEMETRY_DISABLED=1 \
             -e PORT=3000 \
             -e HOSTNAME=0.0.0.0 \

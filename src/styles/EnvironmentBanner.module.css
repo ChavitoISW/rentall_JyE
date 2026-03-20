@@ -1,0 +1,99 @@
+.environmentBanner {
+  background: linear-gradient(135deg, #ff9800 0%, #ff6b00 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  animation: pulse 2s ease-in-out infinite;
+  border-bottom: 3px solid #ff5722;
+}
+
+.bannerContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.warningIcon {
+  font-size: 1.5rem;
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+.bannerText {
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+}
+
+.bannerText strong {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.testBadge {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  letter-spacing: 1px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  75% {
+    transform: rotate(10deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .environmentBanner {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .bannerText {
+    font-size: 0.85rem;
+  }
+
+  .bannerText strong {
+    font-size: 0.9rem;
+  }
+
+  .warningIcon {
+    font-size: 1.25rem;
+  }
+
+  .testBadge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+  }
+}
+
+/* Para impresión, ocultar el banner */
+@media print {
+  .environmentBanner {
+    display: none;
+  }
+}
