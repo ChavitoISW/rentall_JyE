@@ -157,6 +157,34 @@ const EXPECTED_SCHEMA = {
       created_at: { type: 'DATETIME', default: 'CURRENT_TIMESTAMP' },
       updated_at: { type: 'DATETIME', default: 'CURRENT_TIMESTAMP' }
     }
+  },
+  empleado: {
+    columns: {
+      id_empleado: { type: 'INTEGER', pk: true, autoincrement: true },
+      nombre: { type: 'TEXT', notnull: true },
+      apellidos: { type: 'TEXT', notnull: true },
+      telefono: { type: 'TEXT', notnull: false },
+      fecha_ingreso: { type: 'DATE', notnull: true },
+      fecha_salida: { type: 'DATE', notnull: false },
+      estado: { type: 'INTEGER', default: 1 },
+      created_at: { type: 'DATETIME', default: 'CURRENT_TIMESTAMP' },
+      updated_at: { type: 'DATETIME', default: 'CURRENT_TIMESTAMP' }
+    }
+  },
+  solicitud_vacaciones: {
+    columns: {
+      id_solicitud_vacaciones: { type: 'INTEGER', pk: true, autoincrement: true },
+      id_empleado: { type: 'INTEGER', notnull: true },
+      fecha_solicitud: { type: 'DATE', notnull: true },
+      fecha_inicio: { type: 'DATE', notnull: true },
+      fecha_fin: { type: 'DATE', notnull: true },
+      cantidad_dias: { type: 'INTEGER', notnull: true },
+      dias_disponibles: { type: 'INTEGER', notnull: true },
+      estado: { type: 'TEXT', default: 'pendiente' },
+      observaciones: { type: 'TEXT', notnull: false },
+      created_at: { type: 'DATETIME', default: 'CURRENT_TIMESTAMP' },
+      updated_at: { type: 'DATETIME', default: 'CURRENT_TIMESTAMP' }
+    }
   }
 };
 

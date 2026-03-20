@@ -29,6 +29,10 @@ out
 .env.test.local
 .env.production.local
 
+# Permitir archivos de configuración de ambientes
+!.env.production
+!.env.testqa
+
 # Logs
 logs/
 *.log

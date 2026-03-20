@@ -253,28 +253,58 @@
   animation: slideUp 0.3s ease-out;
 }
 
+.modalLarge {
+  background: linear-gradient(to bottom, #ffffff 0%, #f9fafb 100%);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 950px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modalLarge::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modalLarge::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.modalLarge::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  border-radius: 10px;
+}
+
+.modalLarge::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #357abd 0%, #2874d9 100%);
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .modalHeader {
   background: linear-gradient(135deg, #4a90e2 0%, #2874d9 100%);
-  padding: 1.5rem 2rem;
+  padding: 1.8rem 2.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: white;
-  border-radius: 12px 12px 0 0;
+  border-radius: 16px 16px 0 0;
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .modalHeader h2 {
@@ -305,6 +335,21 @@
 
 .form {
   padding: 2rem;
+}
+
+.formContainer {
+  padding: 2rem 2.5rem;
+}
+
+/* Grid de 2 columnas para el formulario */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
 }
 
 .section {
@@ -360,6 +405,95 @@
 .formGroup select:focus,
 .formGroup textarea:focus {
   border-color: #4a90e2;
+}
+
+/* Estilos mejorados para datepickers */
+.dateInputGroup {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.dateLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.dateLabel::before {
+  content: '📅';
+  font-size: 1.1rem;
+}
+
+.formGroup input[type="date"] {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.3s ease;
+  background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+  color: #333;
+  cursor: pointer;
+  position: relative;
+  font-weight: 500;
+}
+
+.formGroup input[type="date"]:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: white;
+  transform: translateY(-1px);
+}
+
+.formGroup input[type="date"]:hover {
+  border-color: #4a90e2;
+  background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Ícono del calendario */
+.formGroup input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 6px;
+  margin-right: 2px;
+  width: 20px;
+  height: 20px;
+  filter: invert(45%) sepia(20%) saturate(300%) hue-rotate(180deg) brightness(90%);
+  transition: all 0.3s ease;
+  opacity: 0.7;
+}
+
+.formGroup input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  filter: invert(45%) sepia(80%) saturate(1200%) hue-rotate(190deg) brightness(100%);
+  background: rgba(74, 144, 226, 0.15);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.formGroup input[type="date"]:focus::-webkit-calendar-picker-indicator {
+  filter: invert(45%) sepia(80%) saturate(1200%) hue-rotate(190deg) brightness(100%);
+  opacity: 1;
+}
+
+/* Para navegadores que no son webkit */
+.formGroup input[type="date"]::-moz-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+/* Placeholder cuando está vacío - estilo más sutil */
+.formGroup input[type="date"]:invalid {
+  color: #999;
+}
+
+.formGroup input[type="date"]:not(:focus):invalid {
+  border-color: #e0e0e0;
 }
 
 .formGroup textarea {
@@ -1364,18 +1498,683 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.emptyState p {
-  font-size: 1.2rem;
-  margin: 0;
+/* Estilos para Reporte de Equipos por Cliente */
+
+/* Header del Reporte */
+.reportHeader {
+  background: linear-gradient(135deg, #4a90e2 0%, #2874d9 100%);
+  border-radius: 16px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+  color: white;
 }
 
-.error {
-  background: #ffebee;
-  border: 1px solid #ef5350;
-  color: #c62828;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  text-align: center;
+.reportHeaderContent {
+  max-width: 100%;
+}
+
+.reportHeader .title {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  color: white;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 1.1rem;
+  opacity: 0.95;
+  font-weight: 400;
+}
+
+/* Tarjetas de Estadísticas Mejoradas */
+.statsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.statCard {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #4a90e2 0%, #357abd 100%);
+  transition: width 0.3s;
+}
+
+.statCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.statCard:hover::before {
+  width: 100%;
+  opacity: 0.1;
+}
+
+.statIcon {
+  font-size: 3rem;
+  flex-shrink: 0;
+  opacity: 0.9;
+  transition: all 0.3s;
+}
+
+.statCard:hover .statIcon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.statContent {
+  flex: 1;
+  text-align: left;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.5rem;
+}
+
+.statValue {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #2c3e50;
+  line-height: 1;
+}
+
+/* Colores específicos para cada tarjeta */
+.statCardBlue::before { background: linear-gradient(180deg, #4a90e2 0%, #357abd 100%); }
+.statCardBlue .statIcon { color: #4a90e2; }
+.statCardBlue:hover { border-left: 4px solid #4a90e2; }
+
+.statCardPurple::before { background: linear-gradient(180deg, #2196F3 0%, #1976D2 100%); }
+.statCardPurple .statIcon { color: #2196F3; }
+.statCardPurple:hover { border-left: 4px solid #2196F3; }
+
+.statCardOrange::before { background: linear-gradient(180deg, #FF9800 0%, #F57C00 100%); }
+.statCardOrange .statIcon { color: #FF9800; }
+.statCardOrange:hover { border-left: 4px solid #FF9800; }
+
+.statCardGreen::before { background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%); }
+.statCardGreen .statIcon { color: #4CAF50; }
+.statCardGreen:hover { border-left: 4px solid #4CAF50; }
+
+.statCardYellow::before { background: linear-gradient(180deg, #FFC107 0%, #FFA000 100%); }
+.statCardYellow .statIcon { color: #FFA000; }
+.statCardYellow:hover { border-left: 4px solid #FFA000; }
+
+.statCardRed::before { background: linear-gradient(180deg, #f44336 0%, #d32f2f 100%); }
+.statCardRed .statIcon { color: #f44336; }
+.statCardRed:hover { border-left: 4px solid #f44336; }
+
+/* Contenedor del Reporte */
+.reporteContainer {
+  margin-top: 2rem;
+}
+
+/* Tarjetas de Cliente Mejoradas */
+.clienteCard {
+  background: white;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+}
+
+.clienteCard:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-color: #4a90e2;
+  transform: translateY(-2px);
+}
+
+.clienteHeader {
+  background: linear-gradient(135deg, #4a90e2 0%, #2874d9 100%);
+  color: white;
+  padding: 1.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s;
+}
+
+.clienteHeader:hover {
+  background: linear-gradient(135deg, #357abd 0%, #1d5fa8 100%);
+  padding-left: 2rem;
+}
+
+.clienteHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.clienteAvatar {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.toggleIcon {
+  font-size: 1rem;
+  transition: transform 0.3s;
+  width: 20px;
+  display: inline-block;
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+.clienteInfo {
+  flex: 1;
+}
+
+.clienteInfo h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.clienteDoc {
+  margin: 0;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+.docBadge {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 0.35rem 0.9rem;
+  border-radius: 20px;
   font-weight: 500;
+  backdrop-filter: blur(5px);
+}
+
+.clienteBadge {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.contractCount {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+
+.contractLabel {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+/* Contenedor de Contratos */
+.contratosContainer {
+  padding: 1.5rem;
+  background: #f8f9fa;
+}
+
+/* Tarjetas de Contrato Mejoradas */
+.contratoCard {
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.contratoCard:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-color: #4a90e2;
+}
+
+.contratoCard:last-child {
+  margin-bottom: 0;
+}
+
+.contratoHeader {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  transition: all 0.2s;
+}
+
+.contratoHeader:hover {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  padding-left: 1.8rem;
+}
+
+.contratoInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.contratoTitulo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.contratoNumero {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #2c3e50;
+}
+
+.seNumero {
+  font-weight: 600;
+  color: #7f8c8d;
+  font-size: 0.95rem;
+}
+
+.estadoBadge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.hojaRutaInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.hrBadge,
+.conductorBadge,
+.vehiculoBadge {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.4rem 0.9rem;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.conductorBadge {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.vehiculoBadge {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.fechasContrato {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.fechaBadge {
+  background: #fff3e0;
+  color: #FF6F00;
+  padding: 0.35rem 0.8rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.fechaSeparator {
+  color: #95a5a6;
+  font-weight: bold;
+}
+
+/* Tabla de Equipos Mejorada */
+.equiposTable {
+  padding: 1.5rem;
+  background: white;
+}
+
+.equiposTable table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.equiposTable th {
+  background: linear-gradient(135deg, #4a90e2 0%, #2874d9 100%);
+  color: white;
+  padding: 1rem 1.2rem;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border: none;
+}
+
+.equiposTable th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.equiposTable th:last-child {
+  border-top-right-radius: 8px;
+}
+
+.equiposTable td {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid #e9ecef;
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.equiposTable tbody tr {
+  transition: all 0.2s ease;
+}
+
+.equiposTable tbody tr:hover {
+  background: #f8f9fa;
+  transform: scale(1.01);
+}
+
+.equiposTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.equipoNombre {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.cantidadBadge {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 0.35rem 0.8rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.periodicidadBadge {
+  background: #fff3e0;
+  color: #e65100;
+  padding: 0.35rem 0.8rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.fechaCell {
+  font-weight: 600;
+  color: #FF9800;
+}
+
+.montoCell {
+  font-weight: 700;
+  color: #4CAF50;
+  font-size: 1rem;
+}
+
+/* Filtros Mejorados */
+.filters {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.filterGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filterGroup label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+  padding-top: 0.8rem;
+}
+
+.filterGroup select {
+  flex: 1;
+  max-width: 500px;
+  padding: 0.8rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s;
+  background: white;
+  cursor: pointer;
+}
+
+.filterGroup select:hover {
+  border-color: #bbb;
+}
+
+.filterGroup select:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  outline: none;
+}
+
+.filterGroup select:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.filterGroup .searchInput {
+  transition: all 0.3s;
+}
+
+.filterGroup .searchInput:focus {
+  border-color: #4a90e2 !important;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  outline: none;
+}
+
+.filterInfo {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  color: #1565c0;
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #1976d2;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filterInfo strong {
+  color: #0d47a1;
+  font-weight: 700;
+}
+
+.filterActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filterActions button {
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+}
+
+/* Mensajes Mejorados */
+.noData {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  padding: 4rem;
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 2px dashed #bdc3c7;
+}
+
+.errorMessage {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  color: #c62828;
+  padding: 1.2rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  border-left: 5px solid #f44336;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
+}
+
+/* Estados con colores mejorados */
+.statusPending {
+  background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+  color: #FF6F00;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 2px solid #FFB300;
+}
+
+.statusWarning {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  color: #d32f2f;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 2px solid #f44336;
+}
+
+/* Animaciones */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.clienteCard {
+  animation: slideIn 0.4s ease-out;
+}
+
+.contratoCard {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Estilos para impresión */
+@media print {
+  .reportHeader {
+    background: linear-gradient(135deg, #4a90e2 0%, #2874d9 100%);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .filters,
+  .filterActions,
+  .toggleIcon {
+    display: none !important;
+  }
+  
+  .clienteHeader,
+  .contratoHeader {
+    cursor: default !important;
+    page-break-inside: avoid;
+  }
+  
+  .clienteCard,
+  .contratoCard {
+    page-break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .contratosContainer,
+  .equiposTable {
+    display: block !important;
+  }
+  
+  .statCard {
+    page-break-inside: avoid;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .reportHeader {
+    padding: 1.5rem;
+  }
+  
+  .reportHeader .title {
+    font-size: 1.8rem;
+  }
+  
+  .statsContainer {
+    grid-template-columns: 1fr;
+  }
+  
+  .clienteHeaderLeft {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .contratoTitulo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .equiposTable {
+    overflow-x: auto;
+  }
 }

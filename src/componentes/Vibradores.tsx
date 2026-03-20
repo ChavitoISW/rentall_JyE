@@ -180,7 +180,7 @@ const Vibradores: React.FC = () => {
   };
 
   const filteredVibradores = vibradores.filter(vibrador =>
-    vibrador.nombre_equipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vibrador.nombre_equipo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     vibrador.descripcion_vibrador?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     vibrador.voltaje_vibrador?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -308,6 +308,7 @@ const Vibradores: React.FC = () => {
                     <label>Precio Equipo</label>
                     <input
                       type="number"
+                      min="0"
                       value={currentVibrador.precio_equipo ?? ''}
                       onChange={(e) =>
                         setCurrentVibrador({ ...currentVibrador, precio_equipo: e.target.value ? parseInt(e.target.value) : undefined })
@@ -338,6 +339,7 @@ const Vibradores: React.FC = () => {
                         <label>Precio por Día</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentVibrador.precio_dia ?? ''}
                           onChange={(e) =>
                             setCurrentVibrador({ ...currentVibrador, precio_dia: e.target.value ? parseInt(e.target.value) : undefined })
@@ -350,6 +352,7 @@ const Vibradores: React.FC = () => {
                         <label>Precio por Semana</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentVibrador.precio_semana ?? ''}
                           onChange={(e) =>
                             setCurrentVibrador({ ...currentVibrador, precio_semana: e.target.value ? parseInt(e.target.value) : undefined })
@@ -362,6 +365,7 @@ const Vibradores: React.FC = () => {
                         <label>Precio por Quincena</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentVibrador.precio_quincena ?? ''}
                           onChange={(e) =>
                             setCurrentVibrador({ ...currentVibrador, precio_quincena: e.target.value ? parseInt(e.target.value) : undefined })
@@ -374,6 +378,7 @@ const Vibradores: React.FC = () => {
                         <label>Precio por Mes</label>
                         <input
                           type="number"
+                          min="0"
                           value={currentVibrador.precio_mes ?? ''}
                           onChange={(e) =>
                             setCurrentVibrador({ ...currentVibrador, precio_mes: e.target.value ? parseInt(e.target.value) : undefined })
