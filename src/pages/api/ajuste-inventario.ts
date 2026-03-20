@@ -2,7 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import Database from 'better-sqlite3';
 import path from 'path';
 
-const dbPath = path.join(process.cwd(), 'rentall.db');
+// Usar la misma configuración que el resto del sistema
+const dbPath = process.env.DB_PATH || path.join(process.cwd(), 'database', 'rentall.db');
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'PUT') {
