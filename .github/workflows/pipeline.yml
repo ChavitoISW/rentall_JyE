@@ -162,11 +162,12 @@ jobs:
           
           if [ "$BRANCH" = "main" ]; then
             ENV_FILE=".env.production"
-            CONTAINER_NAME="rentall-prod-container"
+            CONTAINER_NAME="rentall-jyb-container"
             ENV_NAME="PRODUCCIÓN"
             DB_DIR="database"
             BACKUP_DIR="backups"
             HOST_PORT="3000"
+            NODE_ENV="production"
           elif [ "$BRANCH" = "testqa" ]; then
             ENV_FILE=".env.testqa"
             CONTAINER_NAME="rentall-test-container"
@@ -174,6 +175,7 @@ jobs:
             DB_DIR="database/test"
             BACKUP_DIR="backups/test"
             HOST_PORT="3002"
+            NODE_ENV="test"
           else
             echo "❌ Rama no configurada para deployment: $BRANCH"
             exit 1
@@ -226,33 +228,34 @@ jobs:
           else
             echo "📁 Creando directorios para $ENV_NAME..."
             mkdir -p "$DB_DIR" "$BACKUP_DIR"
+            
+            # Copiar base de datos de producción a pruebas
+            if [ -f "database/rentall.db" ]; then
+              echo "📋 Copiando base de datos de PRODUCCIÓN a PRUEBAS..."
+              echo "⚠️  Creando respaldo de DB actual de pruebas (si existe)..."
+              if [ -f "$DB_DIR/rentall.db" ]; then
+                TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+                cp "$DB_DIR/rentall.db" "$BACKUP_DIR/rentall-backup-before-copy-${TIMESTAMP}.db"
+                echo "✅ Backup guardado: $BACKUP_DIR/rentall-backup-before-copy-${TIMESTAMP}.db"
+              fi
+              
+              echo "📦 Copiando database/rentall.db → $DB_DIR/rentall.db"
+              cp database/rentall.db "$DB_DIR/rentall.db"
+              echo "✅ Base de datos copiada exitosamente"
+              echo "ℹ️  El ambiente de pruebas ahora tiene los datos actuales de producción"
+            else
+              echo "⚠️  Base de datos de producción no encontrada, usando DB de pruebas existente"
+            fi
           fi
           
           # Copiar archivo .env según ambiente
           if [ -f "$ENV_FILE" ]; then
             echo "📋 Cargando configuración de $ENV_FILE..."
             cp "$ENV_FILE" .env
+            source .env 2>/dev/null || true
           else
             echo "⚠️  Archivo $ENV_FILE no encontrado, usando valores por defecto"
           fi
-          
-          # Detener contenedores si están corriendo
-          echo "🛑 Deteniendo contenedores..."
-          
-          # Buscar podman-compose (puede estar en varias ubicaciones)
-          COMPOSE_CMD=""
-          if command -v podman-compose &> /dev/null; then
-            COMPOSE_CMD="podman-compose"
-          elif command -v pipx &> /dev/null; then
-            COMPOSE_CMD="pipx run podman-compose"
-          elif [ -f "$HOME/.local/bin/podman-compose" ]; then
-            COMPOSE_CMD="$HOME/.local/bin/podman-compose"
-          else
-            echo "❌ podman-compose no encontrado"
-            exit 1
-          fi
-          
-          echo "🔧 Usando: $COMPOSE_CMD"
           
           # Detener solo el contenedor de este ambiente (sin afectar otros contenedores)
           echo "🛑 Deteniendo ÚNICAMENTE el contenedor: $CONTAINER_NAME"
@@ -282,14 +285,33 @@ jobs:
           # Rebuild con Podman usando tag específico del ambiente
           echo "🏗️ Construyendo imagen para $ENV_NAME..."
           if [ "$BRANCH" = "main" ]; then
-            podman build -t rentall:prod .
+            IMAGE_TAG="rentall:prod"
           else
-            podman build -t rentall:test .
+            IMAGE_TAG="rentall:test"
           fi
           
-          # Iniciar solo el servicio rentall con la configuración del ambiente
+          podman build -t "$IMAGE_TAG" .
+          echo "✅ Imagen $IMAGE_TAG construida"
+          
+          # Iniciar contenedor directamente con podman (sin compose)
           echo "🚀 Iniciando ÚNICAMENTE el contenedor $CONTAINER_NAME..."
-          $COMPOSE_CMD up -d rentall
+          
+          # Construir comando podman run con todas las opciones
+          podman run -d \
+            --name "$CONTAINER_NAME" \
+            -p "${HOST_PORT}:3000" \
+            -v "$(pwd)/${DB_DIR}:/app/database" \
+            -v "$(pwd)/${BACKUP_DIR}:/app/backups" \
+            -e NODE_ENV="${NODE_ENV:-production}" \
+            -e NEXT_TELEMETRY_DISABLED=1 \
+            -e PORT=3000 \
+            -e HOSTNAME=0.0.0.0 \
+            -e TZ=America/Costa_Rica \
+            -e DB_PATH=/app/database/rentall.db \
+            --restart unless-stopped \
+            "$IMAGE_TAG"
+          
+          echo "✅ Contenedor $CONTAINER_NAME iniciado"
           
           # Verificar que solo se levantó el contenedor correcto
           echo "🔍 Verificando que se levantó el contenedor correcto..."
