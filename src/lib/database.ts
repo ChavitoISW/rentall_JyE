@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 
 // Configurar ruta de la base de datos según el entorno
-const dbPath = process.env.DB_PATH || path.join(process.cwd(), 'rentall.db');
+const dbPath = process.env.DB_PATH || path.join(process.cwd(), 'database', 'rentall.db');
 console.log('📁 Ruta de base de datos:', dbPath);
 
 const db = new Database(dbPath);

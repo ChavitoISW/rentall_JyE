@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import CambiarContrasenaModal from './CambiarContrasenaModal';
+import EnvironmentBanner from './EnvironmentBanner';
 import styles from '../styles/Menu.module.css';
 
 const Menu: React.FC = () => {
@@ -412,6 +413,8 @@ const Menu: React.FC = () => {
         </div>
       </div>
     </nav>
+
+    <EnvironmentBanner />
 
     <CambiarContrasenaModal 
       isOpen={isChangePasswordModalOpen}

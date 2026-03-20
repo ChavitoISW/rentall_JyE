@@ -1,6 +1,9 @@
 # Etapa 1: Construcción
 FROM node:20-alpine 
 
+# Argumentos de build
+ARG NEXT_PUBLIC_ENV=production
+
 # Instalar dependencias del sistema necesarias para better-sqlite3 y healthcheck
 RUN apk add --no-cache \
     python3 \
@@ -30,6 +33,9 @@ COPY tsconfig.json ./
 COPY public/ ./public
 # Copiar scripts de migración
 COPY scripts/ ./scripts/
+
+# Establecer variable de entorno para el build
+ENV NEXT_PUBLIC_ENV=${NEXT_PUBLIC_ENV}
 
 # Construir la aplicación Next.js
 RUN npm run build
