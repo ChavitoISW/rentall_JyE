@@ -22,7 +22,7 @@ case $AMBIENTE in
         cp .env.production .env
         echo "✅ Ambiente configurado:"
         echo "   - Puerto: 3000"
-        echo "   - Contenedor: rentall-prod-container"
+        echo "   - Contenedor: rentall-jyb-container"
         echo "   - Base de datos: ./database/rentall.db (ACTUAL - NO SE MODIFICA)"
         ;;
     test|testqa|pruebas)
@@ -45,4 +45,7 @@ esac
 
 echo ""
 echo "📦 Ahora puedes ejecutar:"
-echo "   docker-compose up -d    # o podman-compose up -d"
+echo "   podman stop rentall-prod-container || true"
+echo "   podman rm rentall-prod-container || true"
+echo "   podman build -t rentall:prod ."
+echo "   # Luego ejecutar el comando 'podman run' del DEPLOYMENT.md"
