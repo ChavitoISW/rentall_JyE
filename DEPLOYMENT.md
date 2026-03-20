@@ -20,6 +20,7 @@ Este proyecto soporta múltiples ambientes de despliegue independientes.
 - **Backups:** `./backups/test/`
 - **URL:** `http://tu-servidor:3002`
 - **⚡ IMPORTANTE:** Cada deployment copia automáticamente la DB de producción actual
+- **🎨 Banner:** Muestra un banner naranja en la parte superior indicando "AMBIENTE DE PRUEBAS"
 
 ## 🚀 Deployment Automático
 
