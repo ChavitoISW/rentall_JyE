@@ -496,8 +496,11 @@ db.exec(`
 `);
 
 // Crear vista para bitácora de equipos con información completa
+// Eliminar vista anterior si existe para asegurar que se actualice
+db.exec(`DROP VIEW IF EXISTS vista_bitacora_equipo`);
+
 db.exec(`
-  CREATE VIEW IF NOT EXISTS vista_bitacora_equipo AS
+  CREATE VIEW vista_bitacora_equipo AS
   SELECT 
     be.id_bitacora,
     be.id_equipo,
@@ -507,7 +510,12 @@ db.exec(`
     be.cantidad_equipo,
     be.fecha_inicio,
     be.fecha_devolucion,
-    e.estado_uso,
+    CASE 
+      WHEN be.fecha_devolucion IS NOT NULL THEN 'Devuelto'
+      WHEN be.fecha_inicio <= DATE('now') AND be.fecha_devolucion IS NULL THEN 'En uso'
+      WHEN be.fecha_inicio > DATE('now') THEN 'Programado'
+      ELSE 'Desconocido'
+    END as estado_uso,
     be.estado_bitacora,
     be.observaciones,
     (cl.nombre_cliente || ' ' || COALESCE(cl.apellidos_cliente, '')) as nombre_cliente,
