@@ -495,6 +495,31 @@ db.exec(`
   )
 `);
 
+// Crear vista para bitácora de equipos con información completa
+db.exec(`
+  CREATE VIEW IF NOT EXISTS vista_bitacora_equipo AS
+  SELECT 
+    be.id_bitacora,
+    be.id_equipo,
+    e.nombre_equipo,
+    be.id_solicitud_equipo,
+    be.numero_solicitud_equipo,
+    be.cantidad_equipo,
+    be.fecha_inicio,
+    be.fecha_devolucion,
+    e.estado_uso,
+    be.estado_bitacora,
+    be.observaciones,
+    (cl.nombre_cliente || ' ' || COALESCE(cl.apellidos_cliente, '')) as nombre_cliente,
+    c.id_contrato,
+    be.created_at
+  FROM bitacora_equipo be
+  INNER JOIN equipo e ON be.id_equipo = e.id_equipo
+  INNER JOIN encabezado_solicitud_equipo ese ON be.id_solicitud_equipo = ese.id_solicitud_equipo
+  INNER JOIN cliente cl ON ese.id_cliente = cl.id_cliente
+  LEFT JOIN contrato c ON ese.id_solicitud_equipo = c.id_solicitud_equipo
+`);
+
 // Base de datos inicializada correctamente
 
 export default db;
