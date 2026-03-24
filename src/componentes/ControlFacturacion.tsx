@@ -328,7 +328,8 @@ const ControlFacturacion: React.FC = () => {
     }
   ];
 
-  const actionsFacturas: TableAction<FacturaExtendida>[] = [
+  // Rol 4 = Contador - Solo visualización (no puede editar ni eliminar)
+  const actionsFacturas: TableAction<FacturaExtendida>[] = usuario?.usuario_rol === 4 ? [] : [
     {
       label: '✏️',
       onClick: handleEditarFactura,
@@ -351,10 +352,28 @@ const ControlFacturacion: React.FC = () => {
       <main className={styles.main}>
         <div className={styles.header}>
           <h1>Control de Facturación</h1>
-          <button className={styles.btnAdd} onClick={handleAgregarFactura}>
-            + Agregar Factura
-          </button>
+          {/* Rol 4 = Contador - Solo visualización, no puede agregar facturas */}
+          {usuario?.usuario_rol !== 4 && (
+            <button className={styles.btnAdd} onClick={handleAgregarFactura}>
+              + Agregar Factura
+            </button>
+          )}
         </div>
+
+        {/* Mensaje informativo para rol contador */}
+        {usuario?.usuario_rol === 4 && (
+          <div style={{
+            padding: '1rem',
+            backgroundColor: '#e3f2fd',
+            border: '1px solid #4a90e2',
+            borderRadius: '8px',
+            marginBottom: '1rem',
+            color: '#1565c0',
+            fontSize: '0.95rem'
+          }}>
+            <strong>ℹ️ Modo de Visualización:</strong> Tiene permisos de solo lectura en este módulo. No puede agregar, editar o eliminar facturas.
+          </div>
+        )}
 
         <div className={styles.searchBar}>
           <input

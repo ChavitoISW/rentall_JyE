@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual de Usuario - RentAll</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 2.5cm;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 21cm;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            color: #333;
+        }
+        
+        h1 {
+            color: #0070f3;
+            text-align: center;
+            font-size: 2.5em;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            page-break-before: always;
+        }
+        
+        h1:first-of-type {
+            page-break-before: auto;
+        }
+        
+        h2 {
+            color: #0070f3;
+            font-size: 1.8em;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #0070f3;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #333;
+            font-size: 1.3em;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        
+        .cover {
+            text-align: center;
+            padding: 100px 20px;
+            page-break-after: always;
+        }
+        
+        .cover h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #0070f3;
+            page-break-before: auto;
+        }
+        
+        .cover .subtitle {
+            font-size: 1.5em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .cover .version {
+            font-size: 1.2em;
+            color: #999;
+            font-style: italic;
+        }
+        
+        ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        .important {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .note {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .faq-q {
+            color: #0070f3;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        
+        .faq-r {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .case-title {
+            background: #e7f3ff;
+            padding: 10px 15px;
+            margin: 25px 0 15px 0;
+            border-left: 4px solid #0070f3;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .separator {
+            border-top: 2px solid #ddd;
+            margin: 30px 0;
+        }
+        
+        @media print {
+            body {
+                max-width: 100%;
+            }
+            
+            h1 {
+                page-break-before: always;
+            }
+            
+            h1:first-of-type {
+                page-break-before: auto;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="cover">
+    <h1>MANUAL DE USUARIO</h1>
+    <div class="subtitle">SISTEMA RENTALL</div>
+    <div class="subtitle">Sistema de Gestión de Alquiler de Equipos de Construcción</div>
+    <div class="version">Versión 1.0 - Marzo 2026</div>
+</div>
+
+<h1>1. INTRODUCCIÓN</h1>
+<div class="section">
+    <p>RentAll es un sistema integral diseñado para gestionar de manera eficiente el alquiler de equipos de construcción. El sistema permite controlar todo el ciclo de vida del alquiler, desde la solicitud inicial hasta la devolución del equipo y la facturación.</p>
+    
+    <h3>Características principales:</h3>
+    <ul>
+        <li>Gestión completa de clientes y contratos</li>
+        <li>Control de inventario en tiempo real</li>
+        <li>Seguimiento de equipos con bitácora detallada</li>
+        <li>Programación de rutas de entrega y recolección</li>
+        <li>Facturación y control de pagos</li>
+        <li>Reportes y análisis de rentabilidad</li>
+        <li>Sistema de roles y permisos</li>
+        <li>Base de datos SQLite integrada</li>
+    </ul>
+</div>
+
+<h1>2. MÓDULO DE CLIENTES</h1>
+<div class="section">
+    <p>El módulo de clientes permite gestionar toda la información de los clientes que alquilan equipos.</p>
+    
+    <h3>Funcionalidades:</h3>
+    <ul>
+        <li>Registro de nuevos clientes con información completa (nombre, cédula, teléfono, email, dirección)</li>
+        <li>Búsqueda y filtrado de clientes</li>
+        <li>Edición de información del cliente</li>
+        <li>Visualización del historial de contratos por cliente</li>
+        <li>Control de estado del cliente (activo/inactivo)</li>
+    </ul>
+    
+    <h3>Campos obligatorios:</h3>
+    <ul>
+        <li>Nombre completo</li>
+        <li>Cédula o identificación</li>
+        <li>Teléfono de contacto</li>
+    </ul>
+    
+    <h3>Campos opcionales:</h3>
+    <ul>
+        <li>Correo electrónico</li>
+        <li>Dirección física</li>
+        <li>Observaciones adicionales</li>
+    </ul>
+</div>
+
+<h1>3. MÓDULO DE SOLICITUDES DE EQUIPO</h1>
+<div class="section">
+    <p>Las solicitudes de equipo son el punto de partida del proceso de alquiler. Aquí se registran las peticiones de los clientes.</p>
+    
+    <h3>Proceso de creación de solicitud:</h3>
+    <ol>
+        <li>Seleccionar el cliente</li>
+        <li>Elegir el tipo de equipo requerido</li>
+        <li>Especificar cantidad y fechas (inicio y fin estimados)</li>
+        <li>Aplicar tarifa del equipo</li>
+        <li>Calcular precio total con o sin IVA (13%)</li>
+        <li>Agregar observaciones si es necesario</li>
+    </ol>
+    
+    <h3>Estados de una solicitud:</h3>
+    <ul>
+        <li><strong>Pendiente:</strong> Solicitud recién creada, esperando aprobación</li>
+        <li><strong>Aprobada:</strong> Solicitud revisada y lista para generar contrato</li>
+        <li><strong>Rechazada:</strong> Solicitud no procedente</li>
+        <li><strong>En Proceso:</strong> Convertida en contrato activo</li>
+        <li><strong>Finalizada:</strong> Proceso completado</li>
+    </ul>
+    
+    <h3>Acciones disponibles:</h3>
+    <ul>
+        <li>Aprobar solicitud: Cambia estado a 'Aprobada'</li>
+        <li>Rechazar solicitud: Cambia estado a 'Rechazada'</li>
+        <li>Generar contrato: Crea un contrato a partir de la solicitud aprobada</li>
+        <li>Editar solicitud (solo si está en estado Pendiente)</li>
+        <li>Eliminar solicitud (solo si está en estado Pendiente)</li>
+    </ul>
+</div>
+
+<h1>4. MÓDULO DE CONTRATOS</h1>
+<div class="section">
+    <p>El módulo de contratos gestiona los acuerdos formales de alquiler con los clientes.</p>
+    
+    <h3>Características del contrato:</h3>
+    <ul>
+        <li>Número de contrato único (generado automáticamente)</li>
+        <li>Vinculado a un cliente específico</li>
+        <li>Puede incluir múltiples equipos</li>
+        <li>Fechas de inicio y fin del alquiler</li>
+        <li>Precio total calculado automáticamente</li>
+        <li>Estado del contrato (Activo, Finalizado, Anulado)</li>
+    </ul>
+    
+    <h3>Estados del contrato:</h3>
+    <ul>
+        <li><strong>Activo:</strong> Contrato en curso, equipos en alquiler</li>
+        <li><strong>Finalizado:</strong> Todos los equipos devueltos, contrato cerrado</li>
+        <li><strong>Anulado:</strong> Contrato cancelado (requiere motivo)</li>
+    </ul>
+    
+    <h3>Gestión de equipos en el contrato:</h3>
+    <ul>
+        <li>Agregar equipos: Se puede añadir más equipos durante el contrato</li>
+        <li>Devolver equipos: Registrar la devolución de cada equipo</li>
+        <li>Extensión de plazo: Ampliar fecha de fin del alquiler</li>
+        <li>Calendarización: Visualizar fechas programadas</li>
+    </ul>
+    
+    <h3>Control financiero:</h3>
+    <ul>
+        <li>Cálculo automático del total del contrato</li>
+        <li>Seguimiento de pagos realizados</li>
+        <li>Saldo pendiente por cobrar</li>
+        <li>Generación de facturas</li>
+    </ul>
+    
+    <div class="important">
+        IMPORTANTE: Un contrato no se puede eliminar directamente. Si es necesario cancelarlo, debe anularse especificando el motivo.
+    </div>
+</div>
+
+<h1>5. MÓDULO DE HOJAS DE RUTA</h1>
+<div class="section">
+    <p>Las hojas de ruta organizan las entregas y recolecciones de equipos de manera eficiente.</p>
+    
+    <h3>Componentes de una hoja de ruta:</h3>
+    <ul>
+        <li>Fecha programada</li>
+        <li>Chofer asignado</li>
+        <li>Lista de equipos a entregar/recolectar</li>
+        <li>Estado general de la ruta (Pendiente, En Proceso, Completada)</li>
+    </ul>
+    
+    <h3>Proceso de gestión:</h3>
+    <ol>
+        <li>Crear hoja de ruta para una fecha específica</li>
+        <li>Asignar chofer responsable</li>
+        <li>Agregar detalles: equipos, contratos, tipo de operación (entrega/recolección)</li>
+        <li>Chofer ejecuta la ruta marcando cada detalle como completado</li>
+        <li>Al completar todos los detalles, la hoja cambia a 'Completada'</li>
+    </ol>
+    
+    <h3>Tipos de operación:</h3>
+    <ul>
+        <li><strong>Entrega:</strong> Llevar equipos al cliente (al iniciar el alquiler)</li>
+        <li><strong>Recolección:</strong> Recoger equipos del cliente (al finalizar el alquiler)</li>
+    </ul>
+    
+    <h3>Funcionalidades especiales:</h3>
+    <ul>
+        <li>Visualización en calendario</li>
+        <li>Filtrado por fecha, chofer o estado</li>
+        <li>Impresión de hoja de ruta para el chofer</li>
+        <li>Registro de observaciones en cada entrega/recolección</li>
+    </ul>
+</div>
+
+<h1>6. MÓDULO DE INVENTARIO</h1>
+<div class="section">
+    <p>El inventario controla todos los equipos disponibles y su estado actual.</p>
+    
+    <h3>Información de cada equipo:</h3>
+    <ul>
+        <li>Código único de equipo</li>
+        <li>Nombre y descripción</li>
+        <li>Categoría (andamio, compactador, mezcladora, etc.)</li>
+        <li>Estado actual (disponible, en uso, en mantenimiento, fuera de servicio)</li>
+        <li>Precio de alquiler (tarifa estándar)</li>
+        <li>Observaciones</li>
+    </ul>
+    
+    <h3>Estados del equipo:</h3>
+    <ul>
+        <li><strong>Disponible:</strong> Listo para ser alquilado</li>
+        <li><strong>En Uso:</strong> Actualmente alquilado a un cliente</li>
+        <li><strong>Mantenimiento:</strong> En reparación o revisión</li>
+        <li><strong>Fuera de Servicio:</strong> No disponible temporalmente</li>
+    </ul>
+    
+    <h3>Bitácora de equipo:</h3>
+    <p>El sistema mantiene un registro automático de todos los movimientos de cada equipo:</p>
+    <ul>
+        <li>Fecha de salida (entrega al cliente)</li>
+        <li>Fecha de devolución</li>
+        <li>Contrato asociado</li>
+        <li>Cliente que lo tuvo</li>
+        <li>Duración del alquiler</li>
+        <li>Estado de cada período de uso</li>
+    </ul>
+    
+    <h3>Ajustes de inventario:</h3>
+    <ul>
+        <li>Agregar nuevos equipos al catálogo</li>
+        <li>Editar información de equipos existentes</li>
+        <li>Cambiar estado manualmente (ej. pasar a mantenimiento)</li>
+        <li>Actualizar precios de alquiler</li>
+        <li>Dar de baja equipos (marcar como fuera de servicio)</li>
+    </ul>
+</div>
+
+<h1>7. MÓDULO DE FACTURACIÓN</h1>
+<div class="section">
+    <p>El módulo de facturación gestiona la emisión de facturas ligadas a los contratos.</p>
+    
+    <h3>Características de las facturas:</h3>
+    <ul>
+        <li>Número de factura único y consecutivo</li>
+        <li>Vinculada a un contrato específico</li>
+        <li>Fecha de emisión</li>
+        <li>Monto total</li>
+        <li>Estado (Pendiente, Pagada, Anulada)</li>
+        <li>Detalles de impuestos (IVA 13%)</li>
+    </ul>
+    
+    <h3>Proceso de facturación:</h3>
+    <ol>
+        <li>Desde el módulo de contratos, seleccionar 'Agregar factura'</li>
+        <li>El sistema prellenará datos del contrato</li>
+        <li>Especificar monto de la factura</li>
+        <li>Aplicar IVA si corresponde</li>
+        <li>Guardar factura</li>
+        <li>La factura queda registrada en estado 'Pendiente'</li>
+    </ol>
+    
+    <div class="important">
+        IMPORTANTE PARA ROL CONTADOR:<br>
+        Los usuarios con rol Contador (rol 4) pueden visualizar facturas y pagos, pero NO pueden:
+        <ul>
+            <li>Crear nuevas facturas</li>
+            <li>Editar facturas existentes</li>
+            <li>Eliminar facturas</li>
+            <li>Registrar pagos</li>
+            <li>Eliminar pagos registrados</li>
+        </ul>
+        Este rol es de SOLO LECTURA para auditoría y consulta.
+    </div>
+</div>
+
+<h1>8. MÓDULO DE CONTROL DE PAGOS</h1>
+<div class="section">
+    <p>El control de pagos permite registrar y hacer seguimiento de todos los pagos recibidos de los clientes.</p>
+    
+    <h3>Registro de un pago:</h3>
+    <ol>
+        <li>Seleccionar el contrato</li>
+        <li>Click en 'Registrar pago'</li>
+        <li>Elegir tipo de pago (efectivo, SIMPE, transferencia)</li>
+        <li>Ingresar monto</li>
+        <li>Especificar fecha del pago</li>
+        <li>Agregar información adicional según el tipo</li>
+        <li>Agregar observaciones si es necesario</li>
+        <li>Guardar pago</li>
+    </ol>
+    
+    <h3>Tipos de pago soportados:</h3>
+    <ul>
+        <li><strong>Efectivo:</strong> Pago en dinero físico</li>
+        <li><strong>SIMPE Móvil:</strong> Transferencia electrónica (requiere número de comprobante)</li>
+        <li><strong>Transferencia Bancaria:</strong> Requiere banco y número de transferencia</li>
+    </ul>
+    
+    <div class="important">
+        IMPORTANTE PARA ROL CONTADOR:<br>
+        Los usuarios con rol Contador (rol 4) pueden visualizar todos los contratos y su estado de pago, pero NO pueden registrar ni eliminar pagos.
+    </div>
+</div>
+
+<h1>9. MÓDULO DE REPORTES</h1>
+<div class="section">
+    <p>El módulo de reportes ofrece análisis y estadísticas del negocio.</p>
+    
+    <h3>Tipos de reportes disponibles:</h3>
+    
+    <h4>1. Reporte de Ingresos:</h4>
+    <ul>
+        <li>Ingresos totales por período</li>
+        <li>Desglose por tipo de equipo</li>
+        <li>Comparativas mensuales</li>
+        <li>Proyecciones</li>
+    </ul>
+    
+    <h4>2. Reporte de Equipos:</h4>
+    <ul>
+        <li>Utilización de cada equipo</li>
+        <li>Días alquilados vs. días disponibles</li>
+        <li>Tasa de ocupación</li>
+        <li>Equipos más rentables</li>
+    </ul>
+    
+    <h4>3. Reporte de Clientes:</h4>
+    <ul>
+        <li>Clientes más frecuentes</li>
+        <li>Valor total por cliente</li>
+        <li>Clientes con saldo pendiente</li>
+    </ul>
+    
+    <h3>Exportación de reportes:</h3>
+    <ul>
+        <li>Generar PDF imprimible</li>
+        <li>Exportar a Excel/CSV</li>
+        <li>Envío por correo electrónico</li>
+    </ul>
+</div>
+
+<h1>10. CONFIGURACIÓN DEL SISTEMA</h1>
+<div class="section">
+    <h3>Configuraciones disponibles:</h3>
+    
+    <h4>1. Información de la Empresa:</h4>
+    <ul>
+        <li>Nombre comercial</li>
+        <li>Cédula jurídica</li>
+        <li>Dirección física</li>
+        <li>Teléfonos de contacto</li>
+        <li>Correo electrónico</li>
+    </ul>
+    
+    <h4>2. Parámetros del Sistema:</h4>
+    <ul>
+        <li>Porcentaje de IVA (por defecto 13%)</li>
+        <li>Moneda (₡ Colones)</li>
+        <li>Formato de fechas</li>
+        <li>Zona horaria</li>
+    </ul>
+    
+    <h4>3. Respaldos:</h4>
+    <ul>
+        <li>Configurar respaldos automáticos</li>
+        <li>Frecuencia de respaldo</li>
+        <li>Ubicación de archivos de respaldo</li>
+        <li>Restaurar desde respaldo</li>
+    </ul>
+</div>
+
+<h1>11. MÓDULO DE RECURSOS HUMANOS</h1>
+<div class="section">
+    <h3>Roles del sistema:</h3>
+    
+    <div class="note">
+        <strong>1. Administrador (Rol 1):</strong>
+        <ul>
+            <li>Acceso completo a todos los módulos</li>
+            <li>Puede crear y eliminar usuarios</li>
+            <li>Acceso a configuración del sistema</li>
+        </ul>
+    </div>
+    
+    <div class="note">
+        <strong>2. Gerente (Rol 2):</strong>
+        <ul>
+            <li>Acceso a la mayoría de módulos</li>
+            <li>Puede aprobar solicitudes</li>
+            <li>Acceso a reportes gerenciales</li>
+        </ul>
+    </div>
+    
+    <div class="note">
+        <strong>3. Coordinador (Rol 3):</strong>
+        <ul>
+            <li>Gestión de solicitudes y contratos</li>
+            <li>Programación de hojas de ruta</li>
+            <li>Control de inventario</li>
+        </ul>
+    </div>
+    
+    <div class="note">
+        <strong>4. Contador (Rol 4):</strong>
+        <ul>
+            <li>SOLO VISUALIZACIÓN de facturación y pagos</li>
+            <li>Acceso de lectura a contratos</li>
+            <li>NO puede crear, editar ni eliminar</li>
+            <li>Rol diseñado para auditoría</li>
+        </ul>
+    </div>
+    
+    <div class="note">
+        <strong>5. Chofer (Rol 5):</strong>
+        <ul>
+            <li>Acceso solo a hojas de ruta asignadas</li>
+            <li>Puede marcar entregas/recolecciones</li>
+            <li>No tiene acceso a módulos financieros</li>
+        </ul>
+    </div>
+</div>
+
+<h1>12. PREGUNTAS FRECUENTES</h1>
+<div class="section">
+    <div class="faq-q">Q: ¿Puedo alquilar el mismo equipo a varios clientes simultáneamente?</div>
+    <div class="faq-r">R:</div> No. El sistema controla que cada equipo solo puede estar en un contrato activo a la vez.
+    
+    <div class="faq-q">Q: ¿Puedo agregar más equipos a un contrato que ya está activo?</div>
+    <div class="faq-r">R:</div> Sí, desde el módulo de contratos puedes agregar equipos adicionales en cualquier momento.
+    
+    <div class="faq-q">Q: ¿Cómo anulo una factura ya emitida?</div>
+    <div class="faq-r">R:</div> Desde el módulo de facturación, selecciona la factura y elige 'Anular'. Debes especificar el motivo.
+    
+    <div class="faq-q">Q: ¿Puedo eliminar un contrato?</div>
+    <div class="faq-r">R:</div> No se pueden eliminar contratos directamente. Si necesitas cancelar un contrato, debes anularlo.
+    
+    <div class="faq-q">Q: ¿Qué es la bitácora de equipo?</div>
+    <div class="faq-r">R:</div> Es un registro automático de todos los alquileres de cada equipo: fechas, clientes, contratos.
+</div>
+
+<h1>13. SOLUCIÓN DE PROBLEMAS</h1>
+<div class="section">
+    <h3>Problema: No puedo agregar un equipo a un contrato</h3>
+    <p><strong>Solución:</strong> Verifica que el equipo esté en estado 'Disponible' y que las fechas del contrato no se traslapen con otro contrato activo.</p>
+    
+    <h3>Problema: El sistema dice 'Error en el servidor' al registrar una factura</h3>
+    <p><strong>Solución:</strong> Verifica que el archivo database/rentall.db exista y tenga permisos de escritura.</p>
+    
+    <h3>Problema: No puedo iniciar sesión</h3>
+    <p><strong>Solución:</strong> Verifica usuario y contraseña. Después de 3 intentos fallidos, la cuenta se bloquea.</p>
+    
+    <h3>Problema: No puedo editar o eliminar información</h3>
+    <p><strong>Solución:</strong> Tu rol de usuario puede tener restricciones. Contacta al administrador.</p>
+</div>
+
+<h1>14. GLOSARIO DE TÉRMINOS</h1>
+<div class="section">
+    <ul>
+        <li><strong>Bitácora de Equipo:</strong> Registro histórico de todos los alquileres de un equipo</li>
+        <li><strong>Contrato:</strong> Acuerdo formal de alquiler entre la empresa y un cliente</li>
+        <li><strong>Estado de Equipo:</strong> Condición actual (Disponible, En Uso, Mantenimiento)</li>
+        <li><strong>Hoja de Ruta:</strong> Documento que agrupa entregas y recolecciones programadas</li>
+        <li><strong>IVA:</strong> Impuesto al Valor Agregado (13% en Costa Rica)</li>
+        <li><strong>Rol:</strong> Conjunto de permisos asignados a un tipo de usuario</li>
+        <li><strong>SIMPE Móvil:</strong> Sistema de pagos electrónicos de Costa Rica</li>
+        <li><strong>Solicitud de Equipo:</strong> Petición inicial de alquiler</li>
+    </ul>
+</div>
+
+<h1>15. CASOS DE USO COMUNES</h1>
+<div class="section">
+    <div class="case-title">CASO 1: Alquiler Completo - De Solicitud a Devolución</div>
+    <ol>
+        <li>Cliente llama solicitando un compactador para una semana</li>
+        <li>Operador crea una Solicitud de Equipo</li>
+        <li>Gerente revisa y aprueba la solicitud</li>
+        <li>Operador genera el Contrato</li>
+        <li>Sistema asigna número de contrato y reserva el equipo</li>
+        <li>Coordinador crea Hoja de Ruta para la entrega</li>
+        <li>Chofer entrega el equipo</li>
+        <li>Al cumplirse la semana, se programa recolección</li>
+        <li>Chofer recoge el equipo y marca como devuelto</li>
+        <li>Operador genera la factura</li>
+        <li>Cliente paga y se registra el pago</li>
+        <li>Contrato queda finalizado</li>
+    </ol>
+    
+    <div class="separator"></div>
+    
+    <div class="case-title">CASO 2: Auditoría por Contador (Rol de Solo Lectura)</div>
+    <ol>
+        <li>Usuario Contador inicia sesión</li>
+        <li>Accede a módulo de Facturación</li>
+        <li>Ve banner: 'Modo de Visualización'</li>
+        <li>No aparecen botones de edición</li>
+        <li>Puede ver todas las facturas y detalles</li>
+        <li>Accede a Control de Pagos</li>
+        <li>Puede ver historial completo de pagos</li>
+        <li>Genera reportes financieros</li>
+        <li>Exporta reportes a PDF</li>
+    </ol>
+</div>
+
+<h1>16. BUENAS PRÁCTICAS</h1>
+<div class="section">
+    <h3>1. Gestión de Clientes:</h3>
+    <ul>
+        <li>Verifica la información del cliente antes de crear un contrato</li>
+        <li>Mantén actualizado el teléfono y email</li>
+        <li>Registra observaciones importantes</li>
+    </ul>
+    
+    <h3>2. Facturación y Pagos:</h3>
+    <ul>
+        <li>Emite factura apenas finaliza el alquiler</li>
+        <li>Registra pagos el mismo día que se reciben</li>
+        <li>Guarda comprobantes de SIMPE y transferencias</li>
+        <li>Haz seguimiento de saldos pendientes</li>
+    </ul>
+    
+    <h3>3. Seguridad:</h3>
+    <ul>
+        <li>Nunca compartas tu contraseña</li>
+        <li>Cierra sesión al terminar tu turno</li>
+        <li>Configura respaldos automáticos diarios</li>
+    </ul>
+</div>
+
+<h1>17. SOPORTE TÉCNICO</h1>
+<div class="section">
+    <h3>Contacto para soporte técnico:</h3>
+    <p><strong>Email:</strong> soporte@rentall.cr</p>
+    <p><strong>Teléfono:</strong> +506 8888-8888</p>
+    <p><strong>Horario:</strong> Lunes a Viernes, 8:00 AM - 5:00 PM</p>
+    
+    <h3>Reportar Errores:</h3>
+    <p>Si encuentras un error, reporta:</p>
+    <ul>
+        <li>Descripción del error</li>
+        <li>Pasos para reproducirlo</li>
+        <li>Mensaje de error (si aparece)</li>
+        <li>Fecha y hora aproximada</li>
+    </ul>
+</div>
+
+<h1>18. CONCLUSIÓN</h1>
+<div class="section">
+    <p>RentAll es un sistema integral diseñado para optimizar la gestión de alquiler de equipos de construcción.</p>
+    
+    <h3>El sistema ofrece:</h3>
+    <ul>
+        <li>✓ Control total del inventario y estado de equipos</li>
+        <li>✓ Gestión eficiente de contratos y facturación</li>
+        <li>✓ Programación optimizada de entregas</li>
+        <li>✓ Seguimiento de pagos y cuentas por cobrar</li>
+        <li>✓ Reportes para toma de decisiones</li>
+        <li>✓ Sistema de roles para seguridad</li>
+    </ul>
+    
+    <h3>Con RentAll, tu empresa puede:</h3>
+    <ul>
+        <li>Incrementar la eficiencia operativa</li>
+        <li>Reducir errores en facturación</li>
+        <li>Mejorar la utilización de equipos</li>
+        <li>Ofrecer mejor servicio al cliente</li>
+        <li>Mantener control financiero estricto</li>
+    </ul>
+    
+    <div style="text-align: center; margin-top: 50px; padding: 30px; border-top: 2px solid #0070f3;">
+        <p><strong>¡Gracias por usar RentAll!</strong></p>
+        <p style="font-size: 0.9em; color: #666;">Sistema RentAll v1.0 © 2026</p>
+        <p style="font-size: 0.85em; color: #999;">Documento generado: Marzo 2026</p>
+    </div>
+</div>
+
+<script>
+// Función para imprimir el documento
+function imprimirManual() {
+    window.print();
+}
+
+// Agregar botón de impresión al cargar la página
+window.addEventListener('load', function() {
+    const btnImprimir = document.createElement('button');
+    btnImprimir.textContent = '🖨️ Imprimir / Guardar como PDF';
+    btnImprimir.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 15px 25px; background: #0070f3; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;';
+    btnImprimir.onclick = imprimirManual;
+    document.body.appendChild(btnImprimir);
+    
+    // Ocultar botón al imprimir
+    window.matchMedia('print').addListener(function(mql) {
+        if (mql.matches) {
+            btnImprimir.style.display = 'none';
+        } else {
+            btnImprimir.style.display = 'block';
+        }
+    });
+});
+</script>
+
+</body>
+</html>
