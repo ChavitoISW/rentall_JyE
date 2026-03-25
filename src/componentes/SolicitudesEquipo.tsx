@@ -2061,13 +2061,13 @@ const SolicitudesEquipo: React.FC = () => {
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EXTENDIDO
     },
     {
-      label: '�️',
+      label: '🖨️',
       onClick: handleImprimirSolicitudPDF,
       className: styles.btnPrintDoc,
       tooltip: 'Imprimir solicitud PDF'
     },
     {
-      label: '�📄',
+      label: '📄',
       onClick: handleVerPDF,
       className: styles.btnVerPDF,
       tooltip: 'Ver contrato PDF',
