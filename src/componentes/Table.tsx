@@ -241,7 +241,7 @@ function Table<T extends Record<string, any>>({
                 </th>
               ))}
               {actions && actions.length > 0 && (
-                <th style={{ width: '180px', maxWidth: '180px' }}>
+                <th style={{ width: '280px', maxWidth: '280px' }}>
                   <div className={styles.headerCell}>
                     <span>Acciones</span>
                   </div>
