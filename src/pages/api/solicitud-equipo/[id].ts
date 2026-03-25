@@ -78,7 +78,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
               continue;
             }
 
-            const cantidadLiberar = equipo.cantidad_equipo || 0;
+            const cantidadLiberar = item.cantidad_equipo || 0;
             // console.log(`Liberando equipo ${equipo.nombre_equipo} (ID: ${equipo.id_equipo}) - Cantidad: ${cantidadLiberar}`);
             
             db.prepare(`

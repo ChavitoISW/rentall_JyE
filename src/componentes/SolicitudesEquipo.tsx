@@ -1838,6 +1838,41 @@ const SolicitudesEquipo: React.FC = () => {
     }
   };
 
+  const handleImprimirSolicitudPDF = async (solicitud: EncabezadoSolicitudEquipo) => {
+    if (!solicitud.id_solicitud_equipo) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/solicitud-equipo/pdf?id_solicitud_equipo=${solicitud.id_solicitud_equipo}`);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      } else {
+        setConfirmDialog({
+          isOpen: true,
+          title: 'Error',
+          message: 'No se pudo cargar el PDF de la solicitud',
+          type: 'danger',
+          onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false })
+        });
+      }
+    } catch (error) {
+      console.error('Error al cargar PDF de solicitud:', error);
+      setConfirmDialog({
+        isOpen: true,
+        title: 'Error',
+        message: 'Error al cargar el PDF. Por favor, intenta de nuevo.',
+        type: 'danger',
+        onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false })
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const openModal = () => {
     const nuevoNumero = generarNumeroSolicitudEquipo();
     setCurrentSolicitudEquipo({
@@ -1927,7 +1962,7 @@ const SolicitudesEquipo: React.FC = () => {
   });
 
   const columns: Column<EncabezadoSolicitudEquipo>[] = [
-    { key: 'numero_solicitud_equipo', header: 'Número Solicitud', width: '190px' },
+    { key: 'numero_solicitud_equipo', header: 'Número Solicitud', width: '150px' },
     { 
       key: 'fecha_vencimiento', 
       header: 'Fecha Vencimiento', 
@@ -1962,7 +1997,7 @@ const SolicitudesEquipo: React.FC = () => {
     },
     { 
       key: 'telefono_cliente', 
-      header: 'Teléfono Cliente', width: '200px',
+      header: 'Teléfono Cliente', width: '140px',
       filterable: false,
       sortable: false,
       render: (c) => getClienteTelefono(c.id_cliente || 0)
@@ -2026,7 +2061,13 @@ const SolicitudesEquipo: React.FC = () => {
         solicitud.estado_solicitud_equipo !== EstadoSolicitudEquipo.EXTENDIDO
     },
     {
-      label: '📄',
+      label: '�️',
+      onClick: handleImprimirSolicitudPDF,
+      className: styles.btnPrintDoc,
+      tooltip: 'Imprimir solicitud PDF'
+    },
+    {
+      label: '�📄',
       onClick: handleVerPDF,
       className: styles.btnVerPDF,
       tooltip: 'Ver contrato PDF',
