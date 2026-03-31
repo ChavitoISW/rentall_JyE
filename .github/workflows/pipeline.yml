@@ -162,11 +162,11 @@ jobs:
           
           if [ "$BRANCH" = "main" ]; then
             ENV_FILE=".env.production"
-            CONTAINER_NAME="rentall-jyb-container"
+            CONTAINER_NAME="rentall-jye-container"
             ENV_NAME="PRODUCCIÓN"
             DB_DIR="database"
             BACKUP_DIR="backups"
-            HOST_PORT="3000"
+            HOST_PORT="3005"
             NODE_ENV="production"
           elif [ "$BRANCH" = "testqa" ]; then
             ENV_FILE=".env.testqa"
@@ -195,7 +195,7 @@ jobs:
           [ -f ~/.bashrc ] && source ~/.bashrc
           
           # Usar siempre el home del usuario logueado
-          DEPLOY_DIR="$HOME/rentall"
+          DEPLOY_DIR="/opt/jye/rentall"
           
           # Verificar si es un repositorio git válido
           if [ -d "$DEPLOY_DIR/.git" ]; then
@@ -292,7 +292,7 @@ jobs:
             BUILD_ENV="test"
           fi
           
-          podman build --build-arg NEXT_PUBLIC_ENV="$BUILD_ENV" -t "$IMAGE_TAG" .
+          podman build --build-arg NEXT_PUBLIC_ENV="$BUILD_ENV" --build-arg PORT="${HOST_PORT}" -t "$IMAGE_TAG" .
           echo "✅ Imagen $IMAGE_TAG construida"
           
           # Iniciar contenedor directamente con podman (sin compose)
@@ -301,13 +301,13 @@ jobs:
           # Construir comando podman run con todas las opciones
           podman run -d \
             --name "$CONTAINER_NAME" \
-            -p "${HOST_PORT}:3000" \
+            -p "${HOST_PORT}:${HOST_PORT}" \
             -v "$(pwd)/${DB_DIR}:/app/database" \
             -v "$(pwd)/${BACKUP_DIR}:/app/backups" \
             -e NODE_ENV="${NODE_ENV:-production}" \
             -e NEXT_PUBLIC_ENV="$BUILD_ENV" \
             -e NEXT_TELEMETRY_DISABLED=1 \
-            -e PORT=3000 \
+            -e PORT="${HOST_PORT}" \
             -e HOSTNAME=0.0.0.0 \
             -e TZ=America/Costa_Rica \
             -e DB_PATH=/app/database/rentall.db \

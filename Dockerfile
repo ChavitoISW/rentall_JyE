@@ -3,6 +3,9 @@ FROM node:20-alpine
 
 # Argumentos de build
 ARG NEXT_PUBLIC_ENV=production
+ARG PORT=3005
+# Para rama testqa usar: docker build --build-arg PORT=3002
+# Para producción: docker build (usa PORT=3005 por defecto)
 
 # Instalar dependencias del sistema necesarias para better-sqlite3 y healthcheck
 RUN apk add --no-cache \
@@ -43,15 +46,15 @@ RUN npm run build
 # Establecer variables de entorno
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    PORT=3000 \
+    PORT=${PORT} \
     HOSTNAME=0.0.0.0 \
     TZ=America/Costa_Rica \
     DB_PATH=/app/database/rentall.db
 
 VOLUME ["/app/database"]
 
-# Exponer puerto
-EXPOSE 3000
+# Exponer puertos (3005 para producción, 3002 para testqa)
+EXPOSE 3005 3002
 
 # Comando para ejecutar la aplicación
 CMD ["npm", "start"]

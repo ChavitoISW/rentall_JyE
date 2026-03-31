@@ -50,14 +50,14 @@ El sistema incluye las siguientes tablas:
 
 #### Crear un usuario
 ```bash
-curl -X POST http://localhost:3000/api/users \
+curl -X POST http://localhost:3005/api/users \
   -H "Content-Type: application/json" \
   -d '{"name": "Juan Pérez", "email": "juan@example.com", "phone": "1234567890"}'
 ```
 
 #### Crear un artículo
 ```bash
-curl -X POST http://localhost:3000/api/items \
+curl -X POST http://localhost:3005/api/items \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Taladro Eléctrico",
@@ -70,7 +70,7 @@ curl -X POST http://localhost:3000/api/items \
 
 #### Crear una renta
 ```bash
-curl -X POST http://localhost:3000/api/rentals \
+curl -X POST http://localhost:3005/api/rentals \
   -H "Content-Type: application/json" \
   -d '{
     "item_id": 1,
