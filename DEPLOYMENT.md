@@ -6,11 +6,11 @@ Este proyecto soporta múltiples ambientes de despliegue independientes.
 
 ### 🟢 Producción (main)
 - **Rama:** `main`
-- **Puerto:** `3000`
+- **Puerto:** `3005`
 - **Contenedor:** `rentall-jyb-container`
 - **Base de datos:** `./database/rentall.db` ⚠️ **BASE DE DATOS ACTUAL - NO SE MODIFICA**
 - **Backups:** `./backups/`
-- **URL:** `http://tu-servidor:3000`
+- **URL:** `http://tu-servidor:3005`
 
 ### 🟡 Pruebas (testqa)
 - **Rama:** `testqa`
@@ -59,12 +59,12 @@ Si necesitas levantar un ambiente manualmente:
 cd ~/rentall
 podman run -d \
   --name rentall-jyb-container \
-  -p 3000:3000 \
+  -p 3005:3005 \
   -v $(pwd)/database:/app/database \
   -v $(pwd)/backups:/app/backups \
   -e NODE_ENV=production \
   -e NEXT_TELEMETRY_DISABLED=1 \
-  -e PORT=3000 \
+  -e PORT=3005 \
   -e HOSTNAME=0.0.0.0 \
   -e TZ=America/Costa_Rica \
   -e DB_PATH=/app/database/rentall.db \
@@ -77,12 +77,12 @@ podman run -d \
 cd ~/rentall
 podman run -d \
   --name rentall-test-container \
-  -p 3002:3000 \
+  -p 3002:3002 \
   -v $(pwd)/database/test:/app/database \
   -v $(pwd)/backups/test:/app/backups \
   -e NODE_ENV=test \
   -e NEXT_TELEMETRY_DISABLED=1 \
-  -e PORT=3000 \
+  -e PORT=3002 \
   -e HOSTNAME=0.0.0.0 \
   -e TZ=America/Costa_Rica \
   -e DB_PATH=/app/database/rentall.db \
@@ -121,7 +121,7 @@ podman run -d \
    - 🧪 Tienes datos reales para validar cambios
 3. **Verificar** que todo funcione correctamente en puerto 3002
 4. **Merge** a `main` cuando esté listo
-5. **Deploy automático** a producción en puerto 3000
+5. **Deploy automático** a producción en puerto 3005
 
 **Ventaja:** Siempre pruebas con datos reales sin riesgo de dañar producción
 

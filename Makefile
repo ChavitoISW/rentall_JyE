@@ -14,7 +14,7 @@ up: ## Iniciar los contenedores
 	docker-compose up -d
 	@echo ""
 	@echo "✅ Contenedor iniciado!"
-	@echo "   http://localhost:3000"
+	@echo "   http://localhost:3005"
 
 down: ## Detener los contenedores
 	docker-compose down
