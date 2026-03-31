@@ -168,6 +168,7 @@ jobs:
             BACKUP_DIR="backups"
             HOST_PORT="3005"
             NODE_ENV="production"
+            DEPLOY_DIR="/opt/jye/rentall"
           elif [ "$BRANCH" = "testqa" ]; then
             ENV_FILE=".env.testqa"
             CONTAINER_NAME="rentall-test-container"
@@ -176,6 +177,7 @@ jobs:
             BACKUP_DIR="backups/test"
             HOST_PORT="3002"
             NODE_ENV="test"
+            DEPLOY_DIR="/opt/jye/pruebas/rentall"
           else
             echo "❌ Rama no configurada para deployment: $BRANCH"
             exit 1
@@ -186,6 +188,7 @@ jobs:
           echo "  - Rama: $BRANCH"
           echo "  - Contenedor: $CONTAINER_NAME"
           echo "  - Base de datos: $DB_DIR"
+          echo "  - Directorio: $DEPLOY_DIR"
           echo "  - Puerto: $HOST_PORT"
           
           # Asegurar que podman-compose esté en el PATH
@@ -193,13 +196,6 @@ jobs:
           
           # Cargar bashrc si existe
           [ -f ~/.bashrc ] && source ~/.bashrc
-          
-          # Establecer directorio de deployment según ambiente
-          if [ "$BRANCH" = "main" ]; then
-            DEPLOY_DIR="/opt/jye/rentall"
-          else
-            DEPLOY_DIR="/opt/jye/rentall/pruebas"
-          fi
           
           # Verificar si es un repositorio git válido
           if [ -d "$DEPLOY_DIR/.git" ]; then
