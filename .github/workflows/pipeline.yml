@@ -168,6 +168,7 @@ jobs:
             BACKUP_DIR="backups"
             HOST_PORT="3005"
             NODE_ENV="production"
+            DEPLOY_DIR="/opt/jye/rentall"
           elif [ "$BRANCH" = "testqa" ]; then
             ENV_FILE=".env.testqa"
             CONTAINER_NAME="rentall-test-container"
@@ -176,6 +177,7 @@ jobs:
             BACKUP_DIR="backups/test"
             HOST_PORT="3002"
             NODE_ENV="test"
+            DEPLOY_DIR="/opt/jye/pruebas/rentall"
           else
             echo "❌ Rama no configurada para deployment: $BRANCH"
             exit 1
@@ -186,6 +188,7 @@ jobs:
           echo "  - Rama: $BRANCH"
           echo "  - Contenedor: $CONTAINER_NAME"
           echo "  - Base de datos: $DB_DIR"
+          echo "  - Directorio: $DEPLOY_DIR"
           echo "  - Puerto: $HOST_PORT"
           
           # Asegurar que podman-compose esté en el PATH
@@ -193,9 +196,6 @@ jobs:
           
           # Cargar bashrc si existe
           [ -f ~/.bashrc ] && source ~/.bashrc
-          
-          # Usar siempre el home del usuario logueado
-          DEPLOY_DIR="/opt/jye/rentall"
           
           # Verificar si es un repositorio git válido
           if [ -d "$DEPLOY_DIR/.git" ]; then
@@ -227,24 +227,34 @@ jobs:
             mkdir -p database backups
           else
             echo "📁 Creando directorios para $ENV_NAME..."
-            mkdir -p "$DB_DIR" "$BACKUP_DIR"
+            mkdir -p "$DEPLOY_DIR/$DB_DIR" "$DEPLOY_DIR/$BACKUP_DIR"
             
             # Copiar base de datos de producción a pruebas
-            if [ -f "database/rentall.db" ]; then
+            PROD_DB_PATH="/opt/jye/rentall/database/rentall.db"
+            TEST_DB_PATH="$DEPLOY_DIR/$DB_DIR/rentall.db"
+            TEST_BACKUP_PATH="$DEPLOY_DIR/$BACKUP_DIR"
+            
+            if [ -f "$PROD_DB_PATH" ]; then
               echo "📋 Copiando base de datos de PRODUCCIÓN a PRUEBAS..."
+              echo "   Origen: $PROD_DB_PATH"
+              echo "   Destino: $TEST_DB_PATH"
+              
               echo "⚠️  Creando respaldo de DB actual de pruebas (si existe)..."
-              if [ -f "$DB_DIR/rentall.db" ]; then
+              if [ -f "$TEST_DB_PATH" ]; then
                 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-                cp "$DB_DIR/rentall.db" "$BACKUP_DIR/rentall-backup-before-copy-${TIMESTAMP}.db"
-                echo "✅ Backup guardado: $BACKUP_DIR/rentall-backup-before-copy-${TIMESTAMP}.db"
+                cp "$TEST_DB_PATH" "$TEST_BACKUP_PATH/rentall-backup-before-copy-${TIMESTAMP}.db"
+                echo "✅ Backup guardado: $TEST_BACKUP_PATH/rentall-backup-before-copy-${TIMESTAMP}.db"
               fi
               
-              echo "📦 Copiando database/rentall.db → $DB_DIR/rentall.db"
-              cp database/rentall.db "$DB_DIR/rentall.db"
+              echo "📦 Copiando base de datos..."
+              cp "$PROD_DB_PATH" "$TEST_DB_PATH"
               echo "✅ Base de datos copiada exitosamente"
+              echo "   Desde: $PROD_DB_PATH"
+              echo "   Hacia: $TEST_DB_PATH"
               echo "ℹ️  El ambiente de pruebas ahora tiene los datos actuales de producción"
             else
-              echo "⚠️  Base de datos de producción no encontrada, usando DB de pruebas existente"
+              echo "⚠️  Base de datos de producción no encontrada en: $PROD_DB_PATH"
+              echo "ℹ️  Usando DB de pruebas existente o se creará una nueva"
             fi
           fi
           
