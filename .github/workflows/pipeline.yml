@@ -230,8 +230,12 @@ jobs:
             mkdir -p "$DB_DIR" "$BACKUP_DIR"
             
             # Copiar base de datos de producción a pruebas
-            if [ -f "database/rentall.db" ]; then
+            PROD_DB_PATH="/opt/jye/rentall/database/rentall.db"
+            if [ -f "$PROD_DB_PATH" ]; then
               echo "📋 Copiando base de datos de PRODUCCIÓN a PRUEBAS..."
+              echo "   Origen: $PROD_DB_PATH"
+              echo "   Destino: $DB_DIR/rentall.db"
+              
               echo "⚠️  Creando respaldo de DB actual de pruebas (si existe)..."
               if [ -f "$DB_DIR/rentall.db" ]; then
                 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -239,12 +243,13 @@ jobs:
                 echo "✅ Backup guardado: $BACKUP_DIR/rentall-backup-before-copy-${TIMESTAMP}.db"
               fi
               
-              echo "📦 Copiando database/rentall.db → $DB_DIR/rentall.db"
-              cp database/rentall.db "$DB_DIR/rentall.db"
+              echo "📦 Copiando base de datos..."
+              cp "$PROD_DB_PATH" "$DB_DIR/rentall.db"
               echo "✅ Base de datos copiada exitosamente"
               echo "ℹ️  El ambiente de pruebas ahora tiene los datos actuales de producción"
             else
-              echo "⚠️  Base de datos de producción no encontrada, usando DB de pruebas existente"
+              echo "⚠️  Base de datos de producción no encontrada en: $PROD_DB_PATH"
+              echo "ℹ️  Usando DB de pruebas existente o se creará una nueva"
             fi
           fi
           
