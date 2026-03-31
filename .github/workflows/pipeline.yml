@@ -194,8 +194,12 @@ jobs:
           # Cargar bashrc si existe
           [ -f ~/.bashrc ] && source ~/.bashrc
           
-          # Usar siempre el home del usuario logueado
-          DEPLOY_DIR="/opt/jye/rentall"
+          # Establecer directorio de deployment según ambiente
+          if [ "$BRANCH" = "main" ]; then
+            DEPLOY_DIR="/opt/jye/rentall"
+          else
+            DEPLOY_DIR="/opt/jye/rentall/pruebas"
+          fi
           
           # Verificar si es un repositorio git válido
           if [ -d "$DEPLOY_DIR/.git" ]; then
