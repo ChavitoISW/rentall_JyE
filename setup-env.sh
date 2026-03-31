@@ -21,8 +21,8 @@ case $AMBIENTE in
         echo "🟢 Configurando ambiente de PRODUCCIÓN..."
         cp .env.production .env
         echo "✅ Ambiente configurado:"
-        echo "   - Puerto: 3000"
-        echo "   - Contenedor: rentall-jyb-container"
+        echo "   - Puerto: 3005"
+        echo "   - Contenedor: rentall-jye-container"
         echo "   - Base de datos: ./database/rentall.db (ACTUAL - NO SE MODIFICA)"
         ;;
     test|testqa|pruebas)

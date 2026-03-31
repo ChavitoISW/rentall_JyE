@@ -12,8 +12,8 @@ switch ($Ambiente) {
         Write-Host "🟢 Configurando ambiente de PRODUCCIÓN..." -ForegroundColor Green
         Copy-Item .env.production .env -Force
         Write-Host "✅ Ambiente configurado:" -ForegroundColor Green
-        Write-Host "   - Puerto: 3000"
-        Write-Host "   - Contenedor: rentall-jyb-container"
+        Write-Host "   - Puerto: 3005"
+        Write-Host "   - Contenedor: rentall-jye-container"
         Write-Host "   - Base de datos: ./database/rentall.db (ACTUAL - NO SE MODIFICA)"
     }
     {$_ -in 'test', 'testqa', 'pruebas'} {
