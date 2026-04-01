@@ -5,6 +5,7 @@ import Table, { Column, TableAction } from './Table';
 import SelectorDireccion, { DireccionSeleccionada } from './SelectorDireccion';
 import Spinner from './Spinner';
 import ConfirmDialog from './ConfirmDialog';
+import SearchableSelect from './SearchableSelect';
 import styles from '../styles/SolicitudEquipo.module.css';
 import { 
   EstadoSolicitudEquipo, 
@@ -2430,21 +2431,19 @@ const SolicitudesEquipo: React.FC = () => {
                             {detalleExtendido.nombre_equipo || 'Equipo no encontrado'}
                           </div>
                         ) : (
-                          <select
+                          <SearchableSelect
                             value={detalleExtendido.nombre_equipo || ''}
-                            onChange={(e) => actualizarDetalle(index, 'nombre_equipo', e.target.value)}
+                            onChange={(value) => actualizarDetalle(index, 'nombre_equipo', value)}
+                            options={equiposConsolidados
+                              .filter(eq => eq.cantidad_disponible > 0)
+                              .map(eq => ({
+                                value: eq.nombre_equipo,
+                                label: `${eq.nombre_equipo} (${eq.cantidad_disponible} disponible${eq.cantidad_disponible !== 1 ? 's' : ''})`
+                              }))}
+                            placeholder="Seleccione equipo"
                             disabled={camposDeshabilitados}
                             className={styles.selectEquipo}
-                          >
-                            <option value="" disabled>Seleccione equipo</option>
-                            {equiposConsolidados
-                              .filter(eq => eq.cantidad_disponible > 0)
-                              .map((eq, eqIndex) => (
-                                <option key={eqIndex} value={eq.nombre_equipo}>
-                                  {eq.nombre_equipo} ({eq.cantidad_disponible} disponible{eq.cantidad_disponible !== 1 ? 's' : ''})
-                                </option>
-                              ))}
-                          </select>
+                          />
                         )}
                         
                         <input
