@@ -371,8 +371,10 @@ export function generarPDFContrato(contratoData: ContratoData): Promise<Buffer> 
     const espacioEntreCampos = 20;
     let anchoTotal = 0;
     camposTotales.forEach((campo, index) => {
-      const anchoLabel = doc.widthOfString(campo.label, { font: 'Helvetica-Bold' });
-      const anchoValue = doc.widthOfString(campo.value, { font: 'Helvetica' });
+      doc.font('Helvetica-Bold');
+      const anchoLabel = doc.widthOfString(campo.label);
+      doc.font('Helvetica');
+      const anchoValue = doc.widthOfString(campo.value);
       anchoTotal += anchoLabel + anchoValue;
       if (index < camposTotales.length - 1) {
         anchoTotal += espacioEntreCampos;
@@ -392,8 +394,10 @@ export function generarPDFContrato(contratoData: ContratoData): Promise<Buffer> 
         .fillColor(campo.valueColor)
         .text(campo.value, { continued: false });
       
-      const anchoLabel = doc.widthOfString(campo.label, { font: 'Helvetica-Bold' });
-      const anchoValue = doc.widthOfString(campo.value, { font: 'Helvetica' });
+      doc.font('Helvetica-Bold');
+      const anchoLabel = doc.widthOfString(campo.label);
+      doc.font('Helvetica');
+      const anchoValue = doc.widthOfString(campo.value);
       currentX += anchoLabel + anchoValue + espacioEntreCampos;
     });
     
