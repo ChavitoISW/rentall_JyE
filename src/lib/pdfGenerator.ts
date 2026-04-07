@@ -315,6 +315,80 @@ export function generarPDFContrato(contratoData: ContratoData): Promise<Buffer> 
       currentY += rowHeight;
     }
 
+    // Sección de totales
+    currentY += 15;
+    const totalesLabelX = pageWidth - margin - 220; // Posición de las etiquetas
+    // Alinear valores con el borde derecho de la tabla (que termina en pageWidth - margin - 15)
+    const tablaBordeDerechoX = pageWidth - margin - 15;
+    const totalesValorWidth = 120; // Ancho del área para los valores
+    const totalesValorX = tablaBordeDerechoX - totalesValorWidth;
+    
+    if (contratoData.subtotal !== undefined) {
+      doc
+        .fontSize(9)
+        .font('Helvetica-Bold')
+        .fillColor('#081233')
+        .text('Subtotal:', totalesLabelX, currentY);
+      
+      doc
+        .font('Helvetica')
+        .fillColor('black')
+        .text(`¢ ${contratoData.subtotal.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, totalesValorX, currentY, { width: totalesValorWidth, align: 'right' });
+      currentY += 15;
+    }
+    
+    if (contratoData.descuento !== undefined && contratoData.descuento > 0) {
+      doc
+        .font('Helvetica-Bold')
+        .fillColor('#081233')
+        .text('Descuento:', totalesLabelX, currentY);
+      
+      doc
+        .font('Helvetica')
+        .fillColor('black')
+        .text(`¢ ${contratoData.descuento.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, totalesValorX, currentY, { width: totalesValorWidth, align: 'right' });
+      currentY += 15;
+    }
+    
+    if (contratoData.monto_envio !== undefined && contratoData.monto_envio > 0) {
+      doc
+        .font('Helvetica-Bold')
+        .fillColor('#081233')
+        .text('Envío:', totalesLabelX, currentY);
+      
+      doc
+        .font('Helvetica')
+        .fillColor('black')
+        .text(`¢ ${contratoData.monto_envio.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, totalesValorX, currentY, { width: totalesValorWidth, align: 'right' });
+      currentY += 15;
+    }
+    
+    if (contratoData.iva !== undefined && contratoData.iva > 0) {
+      doc
+        .font('Helvetica-Bold')
+        .fillColor('#081233')
+        .text('IVA (13%):', totalesLabelX, currentY);
+      
+      doc
+        .font('Helvetica')
+        .fillColor('black')
+        .text(`¢ ${contratoData.iva.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, totalesValorX, currentY, { width: totalesValorWidth, align: 'right' });
+      currentY += 15;
+    }
+    
+    if (contratoData.total !== undefined) {
+      doc
+        .fontSize(11)
+        .font('Helvetica-Bold')
+        .fillColor('#1E40AF')
+        .text('TOTAL:', totalesLabelX, currentY);
+      
+      doc
+        .fillColor('#CC0000')
+        .text(`¢ ${contratoData.total.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, totalesValorX, currentY, { width: totalesValorWidth, align: 'right' });
+      currentY += 15;
+    }
+
     // TÉRMINOS Y CONDICIONES
     currentY += 10;
     doc
