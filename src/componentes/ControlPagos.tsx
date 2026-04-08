@@ -205,6 +205,12 @@ const ControlPagos: React.FC = () => {
     { key: 'numero_solicitud_equipo', header: 'N° SE', width: '120px' },
     { key: 'nombre_cliente', header: 'Cliente', width: '220px' },
     {
+      key: 'fecha_inicio',
+      header: 'Fecha Inicio',
+      width: '190px',
+      render: (c) => c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString('es-CR') : '-'
+    },
+    {
       key: 'fecha_vencimiento',
       header: 'Vencimiento',
       width: '120px',
