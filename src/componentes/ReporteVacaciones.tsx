@@ -44,6 +44,14 @@ const ReporteVacaciones: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
+  // Función para formatear fecha sin ajuste de zona horaria
+  const formatearFecha = (fechaStr: string): string => {
+    if (!fechaStr) return '-';
+    const [year, month, day] = fechaStr.split('T')[0].split('-');
+    const fecha = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return fecha.toLocaleDateString('es-CR');
+  };
+
   useEffect(() => {
     if (usuario && usuario.usuario_rol !== 1) {
       router.push('/');
@@ -418,7 +426,7 @@ const ReporteVacaciones: React.FC = () => {
                                 Fecha Solicitud
                               </div>
                               <div style={{ fontWeight: '600', color: '#2c3e50' }}>
-                                {new Date(sol.fecha_solicitud).toLocaleDateString('es-CR')}
+                                {formatearFecha(sol.fecha_solicitud)}
                               </div>
                             </div>
                             <div>
@@ -426,7 +434,7 @@ const ReporteVacaciones: React.FC = () => {
                                 Inicio
                               </div>
                               <div style={{ fontWeight: '600', color: '#2c3e50' }}>
-                                {new Date(sol.fecha_inicio).toLocaleDateString('es-CR')}
+                                {formatearFecha(sol.fecha_inicio)}
                               </div>
                             </div>
                             <div>
@@ -434,7 +442,7 @@ const ReporteVacaciones: React.FC = () => {
                                 Fin
                               </div>
                               <div style={{ fontWeight: '600', color: '#2c3e50' }}>
-                                {new Date(sol.fecha_fin).toLocaleDateString('es-CR')}
+                                {formatearFecha(sol.fecha_fin)}
                               </div>
                             </div>
                             <div>

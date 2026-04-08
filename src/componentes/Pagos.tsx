@@ -136,6 +136,85 @@ const Pagos: React.FC = () => {
     return icons[tipo] || '💰';
   };
 
+  const imprimirPDF = async () => {
+    setIsLoading(true);
+    try {
+      const reporteData = {
+        todos: pagos,
+        porTipo: pagosPorTipo,
+        totales: totales,
+        rango: fechaInicio && fechaFin ? {
+          fecha_inicio: fechaInicio,
+          fecha_fin: fechaFin
+        } : undefined
+      };
+
+      const response = await fetch('/api/pdf/reporte-pagos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reporteData),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `reporte-pagos-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        setError('Error al generar el PDF');
+      }
+    } catch (error) {
+      console.error('Error al imprimir PDF:', error);
+      setError('Error al generar el PDF');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const descargarExcel = async () => {
+    setIsLoading(true);
+    try {
+      const reporteData = {
+        todos: pagos,
+        totales: totales
+      };
+
+      const response = await fetch('/api/excel/reporte-pagos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reporteData),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `reporte-pagos-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        setError('Error al generar el archivo Excel');
+      }
+    } catch (error) {
+      console.error('Error al descargar Excel:', error);
+      setError('Error al generar el archivo Excel');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const renderTablaPagos = (tipo: 'efectivo' | 'simpe' | 'transferencia', titulo: string, icon: string) => {
     const pagosDelTipo = pagosPorTipo[tipo];
     
@@ -235,6 +314,59 @@ const Pagos: React.FC = () => {
         {error && (
           <div className={styles.error}>
             ⚠️ {error}
+          </div>
+        )}
+
+        {/* Botones de exportación */}
+        {pagos.length > 0 && (
+          <div style={{ 
+            display: 'flex', 
+            gap: '1rem', 
+            justifyContent: 'flex-end', 
+            marginBottom: '1.5rem' 
+          }}>
+            <button
+              onClick={imprimirPDF}
+              className={styles.btnView}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 1.5rem',
+                background: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '0.95rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.3s',
+                boxShadow: '0 4px 12px rgba(231, 76, 60, 0.3)'
+              }}
+            >
+              🖨️ Imprimir PDF
+            </button>
+            <button
+              onClick={descargarExcel}
+              className={styles.btnView}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 1.5rem',
+                background: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '0.95rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.3s',
+                boxShadow: '0 4px 12px rgba(39, 174, 96, 0.3)'
+              }}
+            >
+              📊 Descargar Excel
+            </button>
           </div>
         )}
 

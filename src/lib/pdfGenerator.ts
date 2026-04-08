@@ -840,3 +840,499 @@ export function generarPDFSolicitudEquipo(solicitudData: SolicitudEquipoData): P
     doc.end();
   });
 }
+
+// Interfaz para el reporte de facturas
+interface FacturaReporte {
+  numero_factura: string;
+  numero_solicitud_equipo: string;
+  numero_contrato: string;
+  nombre_cliente: string;
+  fecha_emision: string;
+  monto_subtotal: number;
+  monto_iva: number;
+  monto_total: number;
+  estado_pago: string;
+}
+
+interface ReporteFacturasData {
+  facturas: FacturaReporte[];
+  totales: {
+    total_facturas: number;
+    total_subtotal: number;
+    total_iva: number;
+    total_general: number;
+    facturas_pagadas: number;
+    facturas_pendientes: number;
+    facturas_pago_parcial: number;
+  };
+  rango: {
+    fecha_inicio: string;
+    fecha_fin: string;
+  };
+}
+
+export function generarPDFReporteFacturas(reporteData: ReporteFacturasData): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 25, size: 'LETTER' });
+    const chunks: Buffer[] = [];
+
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const pageWidth = doc.page.width;
+    const pageHeight = doc.page.height;
+    const margin = 25;
+    const usableWidth = pageWidth - (margin * 2);
+
+    // Logo primero (esquina superior derecha)
+    const logoPath = path.join(process.cwd(), 'public', 'assets', 'logo.png');
+    if (fs.existsSync(logoPath)) {
+      const logoWidth = 80;
+      const logoHeight = 48;
+      const logoX = pageWidth - margin - logoWidth - 20;
+      const logoY = margin + 15;
+      doc.image(logoPath, logoX, logoY, { width: logoWidth, height: logoHeight });
+    }
+
+    // Encabezado (alineado a la izquierda para no solaparse con el logo)
+    doc
+      .fontSize(20)
+      .font('Helvetica-Bold')
+      .fillColor('#1E40AF')
+      .text('REPORTE DE FACTURAS', margin + 20, margin + 20, { align: 'left', width: pageWidth - margin - 200 });
+
+    // Información del reporte (debajo del logo)
+    let currentY = margin + 75; // Aumentado para estar debajo del logo
+    const fechaInicio = new Date(reporteData.rango.fecha_inicio).toLocaleDateString('es-CR');
+    const fechaFin = new Date(reporteData.rango.fecha_fin).toLocaleDateString('es-CR');
+    
+    doc
+      .fontSize(10)
+      .font('Helvetica')
+      .fillColor('black')
+      .text(`Período: ${fechaInicio} al ${fechaFin}`, margin + 20, currentY)
+      .text(`Fecha de generación: ${new Date().toLocaleDateString('es-CR')}`, pageWidth - margin - 200, currentY);
+
+    currentY += 25;
+
+    // Resumen de totales
+    doc
+      .fontSize(12)
+      .font('Helvetica-Bold')
+      .fillColor('#1E40AF')
+      .text('RESUMEN', margin + 20, currentY);
+
+    currentY += 18;
+
+    const colLabel = margin + 30;
+    const colValue = margin + 200;
+
+    doc
+      .fontSize(9)
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Total de Facturas:', colLabel, currentY)
+      .font('Helvetica')
+      .fillColor('black')
+      .text(reporteData.totales.total_facturas.toString(), colValue, currentY);
+
+    currentY += 13;
+
+    doc
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Facturas Pagadas:', colLabel, currentY)
+      .font('Helvetica')
+      .fillColor('#4caf50')
+      .text(reporteData.totales.facturas_pagadas.toString(), colValue, currentY);
+
+    currentY += 13;
+
+    doc
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Facturas Pago Parcial:', colLabel, currentY)
+      .font('Helvetica')
+      .fillColor('#ff9800')
+      .text(reporteData.totales.facturas_pago_parcial.toString(), colValue, currentY);
+
+    currentY += 13;
+
+    doc
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Facturas Pendientes:', colLabel, currentY)
+      .font('Helvetica')
+      .fillColor('#f44336')
+      .text(reporteData.totales.facturas_pendientes.toString(), colValue, currentY);
+
+    currentY += 20;
+
+    doc
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Total Subtotal:', colLabel, currentY)
+      .font('Helvetica')
+      .fillColor('black')
+      .text(`¢${reporteData.totales.total_subtotal.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
+
+    currentY += 13;
+
+    doc
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Total IVA:', colLabel, currentY)
+      .font('Helvetica')
+      .fillColor('black')
+      .text(`¢${reporteData.totales.total_iva.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
+
+    currentY += 13;
+
+    doc
+      .font('Helvetica-Bold')
+      .fillColor('#1E40AF')
+      .text('TOTAL GENERAL:', colLabel, currentY)
+      .fillColor('#1E40AF')
+      .text(`¢${reporteData.totales.total_general.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
+
+    currentY += 25;
+
+    // Tabla de facturas
+    doc
+      .fontSize(12)
+      .font('Helvetica-Bold')
+      .fillColor('#1E40AF')
+      .text('DETALLE DE FACTURAS', margin + 20, currentY);
+
+    currentY += 18;
+
+    // Encabezados de tabla (con tamaño de fuente reducido)
+    const colFactura = margin + 20;
+    const colSE = colFactura + 58;
+    const colContrato = colSE + 48;
+    const colCliente = colContrato + 48;
+    const colFecha = colCliente + 120;
+    const colSubtotal = colFecha + 50;
+    const colIVA = colSubtotal + 55;
+    const colTotal = colIVA + 50;
+    const colEstado = colTotal + 55;
+
+    doc.rect(margin + 15, currentY, usableWidth - 30, 15).fill('#f0f0f0');
+
+    doc
+      .fontSize(7)
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Factura', colFactura, currentY + 3, { width: 55 })
+      .text('SE', colSE, currentY + 3, { width: 45 })
+      .text('Contrato', colContrato, currentY + 3, { width: 45 })
+      .text('Cliente', colCliente, currentY + 3, { width: 115 })
+      .text('Fecha', colFecha, currentY + 3, { width: 47 })
+      .text('Subtotal', colSubtotal, currentY + 3, { width: 50 })
+      .text('IVA', colIVA, currentY + 3, { width: 47 })
+      .text('Total', colTotal, currentY + 3, { width: 50 })
+      .text('Estado', colEstado, currentY + 3, { width: 40 });
+
+    currentY += 15;
+
+    // Filas de facturas
+    doc.fontSize(7).font('Helvetica').fillColor('black');
+
+    reporteData.facturas.forEach((factura, index) => {
+      // Verificar si necesitamos una nueva página
+      if (currentY > pageHeight - 100) {
+        doc.addPage();
+        currentY = margin + 20;
+      }
+
+      const rowHeight = 12;
+      
+      // Fondo alternado
+      if (index % 2 === 0) {
+        doc.rect(margin + 15, currentY, usableWidth - 30, rowHeight).fill('#fafafa');
+      }
+
+      // Estado de pago con color
+      let estadoColor = 'black';
+      let estadoTexto = 'Pendiente';
+      if (factura.estado_pago === 'pagado') {
+        estadoColor = '#4caf50';
+        estadoTexto = 'Pagado';
+      } else if (factura.estado_pago === 'pago_parcial') {
+        estadoColor = '#ff9800';
+        estadoTexto = 'Parcial';
+      } else {
+        estadoColor = '#f44336';
+      }
+
+      doc
+        .fillColor('black')
+        .text(factura.numero_factura, colFactura, currentY + 2, { width: 55, lineBreak: false })
+        .text(factura.numero_solicitud_equipo, colSE, currentY + 2, { width: 45, lineBreak: false })
+        .text(factura.numero_contrato, colContrato, currentY + 2, { width: 45, lineBreak: false })
+        .text(factura.nombre_cliente.substring(0, 25), colCliente, currentY + 2, { width: 115, lineBreak: false })
+        .text(new Date(factura.fecha_emision).toLocaleDateString('es-CR'), colFecha, currentY + 2, { width: 47, lineBreak: false })
+        .text(`¢${factura.monto_subtotal.toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colSubtotal, currentY + 2, { width: 50, lineBreak: false })
+        .text(`¢${factura.monto_iva.toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colIVA, currentY + 2, { width: 47, lineBreak: false })
+        .text(`¢${factura.monto_total.toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colTotal, currentY + 2, { width: 50, lineBreak: false })
+        .fillColor(estadoColor)
+        .text(estadoTexto, colEstado, currentY + 2, { width: 40, lineBreak: false });
+
+      currentY += rowHeight;
+    });
+
+    // Pie de página
+    doc
+      .fontSize(8)
+      .font('Helvetica')
+      .fillColor('#666')
+      .text(
+        'MEZCLADORAS J & E - Teléfonos: 8851-1774 / 8394-4599',
+        margin + 20,
+        pageHeight - margin - 20,
+        { align: 'center', width: usableWidth - 40 }
+      );
+
+    doc.end();
+  });
+}
+
+// Interfaz para el reporte de pagos
+interface PagoReporte {
+  fecha_pago: string;
+  nombre_cliente: string;
+  numero_contrato: string;
+  tipo_pago: string;
+  monto: number;
+  numero_comprobante?: string;
+  banco?: string;
+  numero_transferencia?: string;
+  observaciones?: string;
+}
+
+interface ReportePagosData {
+  todos: PagoReporte[];
+  porTipo: {
+    efectivo: PagoReporte[];
+    simpe: PagoReporte[];
+    transferencia: PagoReporte[];
+  };
+  totales: {
+    efectivo: number;
+    simpe: number;
+    transferencia: number;
+    total: number;
+  };
+  rango?: {
+    fecha_inicio?: string;
+    fecha_fin?: string;
+  };
+}
+
+export function generarPDFReportePagos(reporteData: ReportePagosData): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 25, size: 'LETTER' });
+    const chunks: Buffer[] = [];
+
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const pageWidth = doc.page.width;
+    const pageHeight = doc.page.height;
+    const margin = 25;
+    const usableWidth = pageWidth - (margin * 2);
+
+    // Logo primero (esquina superior derecha)
+    const logoPath = path.join(process.cwd(), 'public', 'assets', 'logo.png');
+    if (fs.existsSync(logoPath)) {
+      const logoWidth = 80;
+      const logoHeight = 48;
+      const logoX = pageWidth - margin - logoWidth - 20;
+      const logoY = margin + 15;
+      doc.image(logoPath, logoX, logoY, { width: logoWidth, height: logoHeight });
+    }
+
+    // Encabezado
+    doc
+      .fontSize(20)
+      .font('Helvetica-Bold')
+      .fillColor('#1E40AF')
+      .text('REPORTE DE PAGOS', margin + 20, margin + 20, { align: 'left', width: pageWidth - margin - 200 });
+
+    // Información del reporte
+    let currentY = margin + 75;
+    
+    if (reporteData.rango?.fecha_inicio && reporteData.rango?.fecha_fin) {
+      const fechaInicio = new Date(reporteData.rango.fecha_inicio).toLocaleDateString('es-CR');
+      const fechaFin = new Date(reporteData.rango.fecha_fin).toLocaleDateString('es-CR');
+      
+      doc
+        .fontSize(10)
+        .font('Helvetica')
+        .fillColor('black')
+        .text(`Período: ${fechaInicio} al ${fechaFin}`, margin + 20, currentY);
+    }
+
+    doc
+      .fontSize(10)
+      .font('Helvetica')
+      .fillColor('black')
+      .text(`Fecha de generación: ${new Date().toLocaleDateString('es-CR')}`, pageWidth - margin - 200, currentY);
+
+    currentY += 25;
+
+    // Resumen de totales
+    doc
+      .fontSize(12)
+      .font('Helvetica-Bold')
+      .fillColor('#1E40AF')
+      .text('RESUMEN', margin + 20, currentY);
+
+    currentY += 18;
+
+    const colLabel = margin + 30;
+    const colValue = margin + 180;
+
+    doc
+      .fontSize(9)
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Total de Pagos:', colLabel, currentY)
+      .font('Helvetica')
+      .fillColor('black')
+      .text(reporteData.todos.length.toString(), colValue, currentY);
+
+    currentY += 13;
+
+    doc
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Pagos en Efectivo:', colLabel, currentY)
+      .font('Helvetica')
+      .fillColor('black')
+      .text(`${reporteData.porTipo.efectivo.length} pagos - ¢${reporteData.totales.efectivo.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
+
+    currentY += 13;
+
+    doc
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Pagos por SIMPE:', colLabel, currentY)
+      .font('Helvetica')
+      .fillColor('black')
+      .text(`${reporteData.porTipo.simpe.length} pagos - ¢${reporteData.totales.simpe.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
+
+    currentY += 13;
+
+    doc
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Pagos por Transferencia:', colLabel, currentY)
+      .font('Helvetica')
+      .fillColor('black')
+      .text(`${reporteData.porTipo.transferencia.length} pagos - ¢${reporteData.totales.transferencia.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
+
+    currentY += 18;
+
+    doc
+      .font('Helvetica-Bold')
+      .fillColor('#1E40AF')
+      .text('TOTAL GENERAL:', colLabel, currentY)
+      .fillColor('#1E40AF')
+      .text(`¢${reporteData.totales.total.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
+
+    currentY += 25;
+
+    // Tabla de pagos
+    doc
+      .fontSize(12)
+      .font('Helvetica-Bold')
+      .fillColor('#1E40AF')
+      .text('DETALLE DE PAGOS', margin + 20, currentY);
+
+    currentY += 18;
+
+    // Encabezados de tabla
+    const colFecha = margin + 20;
+    const colCliente = colFecha + 60;
+    const colContrato = colCliente + 140;
+    const colTipo = colContrato + 50;
+    const colMonto = colTipo + 70;
+    const colDetalles = colMonto + 60;
+
+    doc.rect(margin + 15, currentY, usableWidth - 30, 15).fill('#f0f0f0');
+
+    doc
+      .fontSize(7)
+      .font('Helvetica-Bold')
+      .fillColor('#081233')
+      .text('Fecha', colFecha, currentY + 3, { width: 55 })
+      .text('Cliente', colCliente, currentY + 3, { width: 135 })
+      .text('Contrato', colContrato, currentY + 3, { width: 45 })
+      .text('Tipo', colTipo, currentY + 3, { width: 65 })
+      .text('Monto', colMonto, currentY + 3, { width: 55 })
+      .text('Detalles', colDetalles, currentY + 3, { width: 80 });
+
+    currentY += 15;
+
+    // Filas de pagos
+    doc.fontSize(7).font('Helvetica').fillColor('black');
+
+    reporteData.todos.forEach((pago, index) => {
+      // Verificar si necesitamos una nueva página
+      if (currentY > pageHeight - 100) {
+        doc.addPage();
+        currentY = margin + 20;
+      }
+
+      const rowHeight = 12;
+      
+      // Fondo alternado
+      if (index % 2 === 0) {
+        doc.rect(margin + 15, currentY, usableWidth - 30, rowHeight).fill('#fafafa');
+      }
+
+      const tipoLabels: Record<string, string> = {
+        efectivo: 'Efectivo',
+        simpe: 'SIMPE',
+        transferencia: 'Transfer.'
+      };
+
+      let detalles = '';
+      if (pago.tipo_pago === 'simpe' && pago.numero_comprobante) {
+        detalles = pago.numero_comprobante;
+      } else if (pago.tipo_pago === 'transferencia') {
+        if (pago.banco) detalles += pago.banco;
+        if (pago.numero_transferencia) detalles += (detalles ? ' ' : '') + pago.numero_transferencia;
+      }
+
+      doc
+        .fillColor('black')
+        .text(new Date(pago.fecha_pago).toLocaleDateString('es-CR'), colFecha, currentY + 2, { width: 55, lineBreak: false })
+        .text(pago.nombre_cliente.substring(0, 30), colCliente, currentY + 2, { width: 135, lineBreak: false })
+        .text(pago.numero_contrato, colContrato, currentY + 2, { width: 45, lineBreak: false })
+        .text(tipoLabels[pago.tipo_pago] || pago.tipo_pago, colTipo, currentY + 2, { width: 65, lineBreak: false })
+        .text(`¢${pago.monto.toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colMonto, currentY + 2, { width: 55, lineBreak: false })
+        .text(detalles.substring(0, 20), colDetalles, currentY + 2, { width: 80, lineBreak: false });
+
+      currentY += rowHeight;
+    });
+
+    // Pie de página
+    doc
+      .fontSize(8)
+      .font('Helvetica')
+      .fillColor('#666')
+      .text(
+        'MEZCLADORAS J & E - Teléfonos: 8851-1774 / 8394-4599',
+        margin + 20,
+        pageHeight - margin - 20,
+        { align: 'center', width: usableWidth - 40 }
+      );
+
+    doc.end();
+  });
+}
+

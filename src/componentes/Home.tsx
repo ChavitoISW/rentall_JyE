@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Menu from './Menu';
 import Footer from './Footer';
 import Spinner from './Spinner';
+import { useAuth } from '../contexts/AuthContext';
 import styles from '../styles/Home.module.css';
 
 interface DashboardStats {
@@ -21,6 +22,7 @@ interface DashboardStats {
 }
 
 const Home: React.FC = () => {
+  const { usuario } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     equipos: 0,
     clientes: 0,
@@ -32,6 +34,9 @@ const Home: React.FC = () => {
     ocupacionPorCategoria: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+
+  // Verificar si el usuario es chofer (rol 5)
+  const esChofer = usuario?.usuario_rol === 5;
 
   useEffect(() => {
     fetchDashboardData();
@@ -138,7 +143,13 @@ const Home: React.FC = () => {
           <h2>Sistema de Gestión de Alquiler de Equipos</h2>
           <p>Administra tus equipos y clientes de manera eficiente</p>
           <div className={styles.heroButtons}>
-            <button className={styles.btnPrimary} onClick={() => window.location.href = '/solicitudes-equipos'}>
+            <button 
+              className={styles.btnPrimary} 
+              onClick={() => !esChofer && (window.location.href = '/solicitudes-equipos')}
+              disabled={esChofer}
+              style={esChofer ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+              title={esChofer ? 'No tienes permisos para acceder a esta sección' : 'Ir a Solicitudes de Equipo'}
+            >
               Comenzar
             </button>
             <button className={styles.btnSecondary} onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}>

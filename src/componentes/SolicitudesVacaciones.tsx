@@ -62,6 +62,14 @@ const SolicitudesVacaciones: React.FC = () => {
     onConfirm: () => {}
   });
 
+  // Función para formatear fecha sin ajuste de zona horaria
+  const formatearFecha = (fechaStr: string): string => {
+    if (!fechaStr) return '-';
+    const [year, month, day] = fechaStr.split('T')[0].split('-');
+    const fecha = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return fecha.toLocaleDateString('es-CR');
+  };
+
   useEffect(() => {
     if (usuario && usuario.usuario_rol !== 1) {
       router.push('/');
@@ -305,19 +313,19 @@ const SolicitudesVacaciones: React.FC = () => {
       key: 'fecha_solicitud', 
       header: 'Fecha Solicitud',
       width: '130px',
-      render: (s) => s.fecha_solicitud ? new Date(s.fecha_solicitud).toLocaleDateString('es-CR') : '-'
+      render: (s) => formatearFecha(s.fecha_solicitud)
     },
     { 
       key: 'fecha_inicio', 
       header: 'Fecha Inicio',
       width: '130px',
-      render: (s) => s.fecha_inicio ? new Date(s.fecha_inicio).toLocaleDateString('es-CR') : '-'
+      render: (s) => formatearFecha(s.fecha_inicio)
     },
     { 
       key: 'fecha_fin', 
       header: 'Fecha Fin',
       width: '130px',
-      render: (s) => s.fecha_fin ? new Date(s.fecha_fin).toLocaleDateString('es-CR') : '-'
+      render: (s) => formatearFecha(s.fecha_fin)
     },
     { 
       key: 'cantidad_dias', 
