@@ -33,13 +33,27 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
           data: facturas 
         });
       } else {
-        // Obtener todas las facturas
+        // Obtener todas las facturas con información del estado de pago del contrato
         const facturas = db.prepare(`
           SELECT 
             fc.*,
             c.numero_contrato,
+            ese.total_solicitud_equipo as total_contrato,
             ese.numero_solicitud_equipo,
-            (cl.nombre_cliente || ' ' || COALESCE(cl.apellidos_cliente, '')) as nombre_cliente
+            (cl.nombre_cliente || ' ' || COALESCE(cl.apellidos_cliente, '')) as nombre_cliente,
+            COALESCE(
+              (SELECT SUM(monto) FROM pago_contrato WHERE id_contrato = c.id_contrato),
+              0
+            ) as monto_pagado,
+            (ese.total_solicitud_equipo - COALESCE(
+              (SELECT SUM(monto) FROM pago_contrato WHERE id_contrato = c.id_contrato),
+              0
+            )) as monto_pendiente,
+            CASE
+              WHEN COALESCE((SELECT SUM(monto) FROM pago_contrato WHERE id_contrato = c.id_contrato), 0) = 0 THEN 'pendiente'
+              WHEN COALESCE((SELECT SUM(monto) FROM pago_contrato WHERE id_contrato = c.id_contrato), 0) >= ese.total_solicitud_equipo THEN 'pagado'
+              ELSE 'pago_parcial'
+            END as estado_pago
           FROM factura_contrato fc
           INNER JOIN contrato c ON fc.id_contrato = c.id_contrato
           INNER JOIN encabezado_solicitud_equipo ese ON fc.id_solicitud_equipo = ese.id_solicitud_equipo

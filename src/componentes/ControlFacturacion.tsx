@@ -7,11 +7,16 @@ import Spinner from './Spinner';
 import ConfirmDialog from './ConfirmDialog';
 import styles from '../styles/SolicitudEquipo.module.css';
 import { FacturaContrato, EstadoFactura, EstadoFacturaLabels } from '../types/facturaContrato';
+import { EstadoPagoContrato } from '../types/pagoContrato';
 
 interface FacturaExtendida extends FacturaContrato {
   numero_contrato?: string;
   numero_solicitud_equipo?: string;
   nombre_cliente?: string;
+  estado_pago?: string;
+  total_contrato?: number;
+  monto_pagado?: number;
+  monto_pendiente?: number;
 }
 
 interface ContratoConIVA {
@@ -325,6 +330,33 @@ const ControlFacturacion: React.FC = () => {
       header: 'Total',
       width: '130px',
       render: (f) => `₡${f.monto_total.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`
+    },
+    {
+      key: 'estado_pago',
+      header: 'Estado Pago',
+      width: '130px',
+      render: (f) => {
+        const estados = {
+          'pagado': { label: 'Pagado', color: '#4caf50', bg: '#e8f5e9' },
+          'pago_parcial': { label: 'Pago Parcial', color: '#ff9800', bg: '#fff3e0' },
+          'pendiente': { label: 'Pendiente', color: '#f44336', bg: '#ffebee' }
+        };
+        const estadoPago = f.estado_pago || 'pendiente';
+        const estado = estados[estadoPago as keyof typeof estados] || estados['pendiente'];
+        return (
+          <span style={{
+            padding: '4px 12px',
+            borderRadius: '12px',
+            backgroundColor: estado.bg,
+            color: estado.color,
+            fontSize: '0.85rem',
+            fontWeight: '600',
+            display: 'inline-block'
+          }}>
+            {estado.label}
+          </span>
+        );
+      }
     }
   ];
 
