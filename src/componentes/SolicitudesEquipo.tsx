@@ -119,6 +119,30 @@ const SolicitudesEquipo: React.FC = () => {
     onCancel: () => {}
   });
 
+  // Función helper para formatear fechas independiente del locale del navegador
+  // Formato: dd/mm/yyyy
+  const formatearFecha = (fechaStr: string): string => {
+    if (!fechaStr) return '';
+    
+    // Extraer solo la parte de la fecha (antes de 'T' o espacio)
+    const fechaParte = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr.split(' ')[0];
+    const partes = fechaParte.split('-');
+    
+    if (partes.length !== 3) return fechaStr;
+    
+    const [year, month, day] = partes;
+    const dayStr = day.padStart(2, '0');
+    const monthStr = month.padStart(2, '0');
+    return `${dayStr}/${monthStr}/${year}`;
+  };
+
+  // Función para validar que una fecha sea válida antes de usarla en cálculos
+  const esFechaValida = (fechaStr: string): boolean => {
+    if (!fechaStr) return false;
+    const fecha = new Date(fechaStr + 'T00:00:00');
+    return !isNaN(fecha.getTime());
+  };
+
   useEffect(() => {
     fetchSolicitudesEquipo();
     fetchClientes();
@@ -633,6 +657,12 @@ const SolicitudesEquipo: React.FC = () => {
   const handleFechaInicioChange = (nuevaFechaInicio: string) => {
     setCurrentSolicitudEquipo(prev => ({ ...prev, fecha_inicio: nuevaFechaInicio }));
     
+    // Validar que la fecha sea válida antes de recalcular
+    if (!esFechaValida(nuevaFechaInicio)) {
+      console.warn('Fecha de inicio inválida:', nuevaFechaInicio);
+      return;
+    }
+    
     // Recalcular todas las fechas de devolución de los detalles
     if (nuevaFechaInicio && detalles.length > 0) {
       const nuevosDetalles = detalles.map(detalle => {
@@ -879,29 +909,35 @@ const SolicitudesEquipo: React.FC = () => {
     
     // Calcular fecha de devolución automáticamente
     if ((campo === 'periodicidad' || campo === 'cantidad_periodicidad') && currentSolicitudEquipo.fecha_inicio) {
-      const fechaInicio = new Date(currentSolicitudEquipo.fecha_inicio + 'T00:00:00');
-      const cantidadPeriodos = Number(detalle.cantidad_periodicidad) || 0;
-      const periodicidad = Number(detalle.periodicidad);
+      // Validar que la fecha de inicio sea válida
+      if (!esFechaValida(currentSolicitudEquipo.fecha_inicio)) {
+        console.warn('Fecha de inicio inválida en actualizarDetalle:', currentSolicitudEquipo.fecha_inicio);
+        // No continuar con el cálculo si la fecha es inválida
+      } else {
+        const fechaInicio = new Date(currentSolicitudEquipo.fecha_inicio + 'T00:00:00');
+        const cantidadPeriodos = Number(detalle.cantidad_periodicidad) || 0;
+        const periodicidad = Number(detalle.periodicidad);
       
-      if (cantidadPeriodos > 0) {
-        let fechaDevolucion = new Date(fechaInicio);
+        if (cantidadPeriodos > 0) {
+          let fechaDevolucion = new Date(fechaInicio);
         
-        switch (periodicidad) {
-          case 0: // Día
-            fechaDevolucion.setDate(fechaDevolucion.getDate() + (cantidadPeriodos * 1));
-            break;
-          case 1: // Semana
-            fechaDevolucion.setDate(fechaDevolucion.getDate() + (cantidadPeriodos * 7));
-            break;
-          case 2: // Quincena
-            fechaDevolucion.setDate(fechaDevolucion.getDate() + (cantidadPeriodos * 14));
-            break;
-          case 4: // Mes
-            fechaDevolucion.setMonth(fechaDevolucion.getMonth() + cantidadPeriodos);
-            break;
+          switch (periodicidad) {
+            case 0: // Día
+              fechaDevolucion.setDate(fechaDevolucion.getDate() + (cantidadPeriodos * 1));
+              break;
+            case 1: // Semana
+              fechaDevolucion.setDate(fechaDevolucion.getDate() + (cantidadPeriodos * 7));
+              break;
+            case 2: // Quincena
+              fechaDevolucion.setDate(fechaDevolucion.getDate() + (cantidadPeriodos * 14));
+              break;
+            case 4: // Mes
+              fechaDevolucion.setMonth(fechaDevolucion.getMonth() + cantidadPeriodos);
+              break;
+          }
+        
+          nuevosDetalles[index].fecha_devolucion = fechaDevolucion.toISOString().split('T')[0];
         }
-        
-        nuevosDetalles[index].fecha_devolucion = fechaDevolucion.toISOString().split('T')[0];
       }
     }
     
@@ -1986,7 +2022,7 @@ const SolicitudesEquipo: React.FC = () => {
         
         return (
           <span className={className}>
-            {fechaVencimiento.toLocaleDateString('es-CR')}
+            {formatearFecha(fechaVencimiento.toISOString().split('T')[0])}
           </span>
         );
       }

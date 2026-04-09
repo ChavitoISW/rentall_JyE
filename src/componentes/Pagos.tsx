@@ -110,12 +110,20 @@ const Pagos: React.FC = () => {
     }).format(monto);
   };
 
+  // Formatear fecha sin depender del locale del navegador
+  // Formato: dd/mm/yyyy
   const formatearFecha = (fecha: string) => {
-    return new Date(fecha).toLocaleDateString('es-CR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    if (!fecha) return '';
+    
+    const fechaParte = fecha.includes('T') ? fecha.split('T')[0] : fecha.split(' ')[0];
+    const partes = fechaParte.split('-');
+    
+    if (partes.length !== 3) return fecha;
+    
+    const [year, month, day] = partes;
+    const dayStr = day.padStart(2, '0');
+    const monthStr = month.padStart(2, '0');
+    return `${dayStr}/${monthStr}/${year}`;
   };
 
   const getTipoPagoLabel = (tipo: string) => {

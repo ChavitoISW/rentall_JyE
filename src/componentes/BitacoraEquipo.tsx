@@ -78,7 +78,16 @@ const BitacoraEquipo: React.FC = () => {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('es-ES');
+    
+    const fechaParte = dateString.includes('T') ? dateString.split('T')[0] : dateString.split(' ')[0];
+    const partes = fechaParte.split('-');
+    
+    if (partes.length !== 3) return dateString;
+    
+    const [year, month, day] = partes;
+    const dayStr = day.padStart(2, '0');
+    const monthStr = month.padStart(2, '0');
+    return `${dayStr}/${monthStr}/${year}`;
   };
 
   const getEstadoBadge = (estado: string) => {
