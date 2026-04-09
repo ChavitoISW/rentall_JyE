@@ -39,11 +39,21 @@ interface ContratoData {
 }
 
 // Función helper para formatear fechas sin conversión UTC (evita el problema de -1 día)
+// Formato: dd/mm/yyyy
 function formatearFecha(fechaStr: string): string {
   if (!fechaStr) return '';
-  const [year, month, day] = fechaStr.split('T')[0].split('-');
-  const fecha = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  return fecha.toLocaleDateString('es-CR');
+  
+  // Extraer solo la parte de la fecha (antes de 'T' o espacio)
+  const fechaParte = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr.split(' ')[0];
+  const partes = fechaParte.split('-');
+  
+  if (partes.length !== 3) return fechaStr; // Retornar original si no tiene el formato esperado
+  
+  const [year, month, day] = partes;
+  // Asegurar que día y mes tengan 2 dígitos
+  const dayStr = day.padStart(2, '0');
+  const monthStr = month.padStart(2, '0');
+  return `${dayStr}/${monthStr}/${year}`;
 }
 
 export function generarPDFContrato(contratoData: ContratoData): Promise<Buffer> {
