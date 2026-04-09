@@ -38,6 +38,14 @@ interface ContratoData {
   }>;
 }
 
+// Función helper para formatear fechas sin conversión UTC (evita el problema de -1 día)
+function formatearFecha(fechaStr: string): string {
+  if (!fechaStr) return '';
+  const [year, month, day] = fechaStr.split('T')[0].split('-');
+  const fecha = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  return fecha.toLocaleDateString('es-CR');
+}
+
 export function generarPDFContrato(contratoData: ContratoData): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 25, size: 'LETTER' });
@@ -88,8 +96,9 @@ export function generarPDFContrato(contratoData: ContratoData): Promise<Buffer> 
     const contratoBoxY = margin + 10;
     doc.rect(contratoBoxX, contratoBoxY, 130, 75).stroke();
     
-    // Formatear fecha de elaboración
-    const fechaElaboracion = new Date(contratoData.fecha_creacion);
+    // Formatear fecha de elaboración (parsear manualmente para evitar conversión UTC)
+    const [year, month, day] = contratoData.fecha_creacion.split('T')[0].split('-');
+    const fechaElaboracion = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     const dia = fechaElaboracion.getDate();
     const mes = fechaElaboracion.getMonth() + 1;
     const año = fechaElaboracion.getFullYear();
@@ -306,8 +315,8 @@ export function generarPDFContrato(contratoData: ContratoData): Promise<Buffer> 
       doc
         .fontSize(8)
         .text(detalle.nombre_equipo, colDescripcion, rowY, { width: 230 })
-        .text(contratoData.fecha_inicio_solicitud ? new Date(contratoData.fecha_inicio_solicitud).toLocaleDateString('es-CR') : '', colDesde, rowY, { width: 50, align: 'center' })
-        .text(contratoData.fecha_fin_solicitud ? new Date(contratoData.fecha_fin_solicitud).toLocaleDateString('es-CR') : '', colHasta, rowY, { width: 50, align: 'center' })
+        .text(contratoData.fecha_inicio_solicitud ? formatearFecha(contratoData.fecha_inicio_solicitud) : '', colDesde, rowY, { width: 50, align: 'center' })
+        .text(contratoData.fecha_fin_solicitud ? formatearFecha(contratoData.fecha_fin_solicitud) : '', colHasta, rowY, { width: 50, align: 'center' })
         .text(detalle.cantidad.toString(), colCant, rowY, { width: 35, align: 'center' })
         .text(detalle.precio_unitario ? `¢ ${detalle.precio_unitario.toLocaleString('es-CR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : '', colPU, rowY, { width: 45, align: 'center' })
         .text(detalle.monto_final ? `¢ ${detalle.monto_final.toLocaleString('es-CR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : '', colPT, rowY, { width: 45, align: 'center' });
@@ -755,8 +764,8 @@ export function generarPDFSolicitudEquipo(solicitudData: SolicitudEquipoData): P
       doc
         .fontSize(8)
         .text(detalle.nombre_equipo, colDescripcion, rowY, { width: 230 })
-        .text(solicitudData.fecha_inicio ? new Date(solicitudData.fecha_inicio).toLocaleDateString('es-CR') : '', colDesde, rowY, { width: 50, align: 'center' })
-        .text(solicitudData.fecha_vencimiento ? new Date(solicitudData.fecha_vencimiento).toLocaleDateString('es-CR') : '', colHasta, rowY, { width: 50, align: 'center' })
+        .text(solicitudData.fecha_inicio ? formatearFecha(solicitudData.fecha_inicio) : '', colDesde, rowY, { width: 50, align: 'center' })
+        .text(solicitudData.fecha_vencimiento ? formatearFecha(solicitudData.fecha_vencimiento) : '', colHasta, rowY, { width: 50, align: 'center' })
         .text(detalle.cantidad.toString(), colCant, rowY, { width: 35, align: 'center' })
         .text(detalle.precio_unitario ? `¢ ${detalle.precio_unitario.toLocaleString('es-CR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : '', colPU, rowY, { width: 45, align: 'center' })
         .text(detalle.monto_final ? `¢ ${detalle.monto_final.toLocaleString('es-CR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : '', colPT, rowY, { width: 45, align: 'center' });
@@ -904,8 +913,8 @@ export function generarPDFReporteFacturas(reporteData: ReporteFacturasData): Pro
 
     // Información del reporte (debajo del logo)
     let currentY = margin + 75; // Aumentado para estar debajo del logo
-    const fechaInicio = new Date(reporteData.rango.fecha_inicio).toLocaleDateString('es-CR');
-    const fechaFin = new Date(reporteData.rango.fecha_fin).toLocaleDateString('es-CR');
+    const fechaInicio = formatearFecha(reporteData.rango.fecha_inicio);
+    const fechaFin = formatearFecha(reporteData.rango.fecha_fin);
     
     doc
       .fontSize(10)
@@ -1072,7 +1081,7 @@ export function generarPDFReporteFacturas(reporteData: ReporteFacturasData): Pro
         .text(factura.numero_solicitud_equipo, colSE, currentY + 2, { width: 45, lineBreak: false })
         .text(factura.numero_contrato, colContrato, currentY + 2, { width: 45, lineBreak: false })
         .text(factura.nombre_cliente.substring(0, 25), colCliente, currentY + 2, { width: 115, lineBreak: false })
-        .text(new Date(factura.fecha_emision).toLocaleDateString('es-CR'), colFecha, currentY + 2, { width: 47, lineBreak: false })
+        .text(formatearFecha(factura.fecha_emision), colFecha, currentY + 2, { width: 47, lineBreak: false })
         .text(`¢${factura.monto_subtotal.toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colSubtotal, currentY + 2, { width: 50, lineBreak: false })
         .text(`¢${factura.monto_iva.toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colIVA, currentY + 2, { width: 47, lineBreak: false })
         .text(`¢${factura.monto_total.toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colTotal, currentY + 2, { width: 50, lineBreak: false })
@@ -1165,8 +1174,8 @@ export function generarPDFReportePagos(reporteData: ReportePagosData): Promise<B
     let currentY = margin + 75;
     
     if (reporteData.rango?.fecha_inicio && reporteData.rango?.fecha_fin) {
-      const fechaInicio = new Date(reporteData.rango.fecha_inicio).toLocaleDateString('es-CR');
-      const fechaFin = new Date(reporteData.rango.fecha_fin).toLocaleDateString('es-CR');
+      const fechaInicio = formatearFecha(reporteData.rango.fecha_inicio);
+      const fechaFin = formatearFecha(reporteData.rango.fecha_fin);
       
       doc
         .fontSize(10)
@@ -1310,7 +1319,7 @@ export function generarPDFReportePagos(reporteData: ReportePagosData): Promise<B
 
       doc
         .fillColor('black')
-        .text(new Date(pago.fecha_pago).toLocaleDateString('es-CR'), colFecha, currentY + 2, { width: 55, lineBreak: false })
+        .text(formatearFecha(pago.fecha_pago), colFecha, currentY + 2, { width: 55, lineBreak: false })
         .text(pago.nombre_cliente.substring(0, 30), colCliente, currentY + 2, { width: 135, lineBreak: false })
         .text(pago.numero_contrato, colContrato, currentY + 2, { width: 45, lineBreak: false })
         .text(tipoLabels[pago.tipo_pago] || pago.tipo_pago, colTipo, currentY + 2, { width: 65, lineBreak: false })
