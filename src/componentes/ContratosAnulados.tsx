@@ -20,6 +20,22 @@ const ContratosAnulados: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Formatear fecha sin depender del locale del navegador
+  // Formato: dd/mm/yyyy
+  const formatearFecha = (fechaStr: string): string => {
+    if (!fechaStr) return 'N/A';
+    
+    const fechaParte = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr.split(' ')[0];
+    const partes = fechaParte.split('-');
+    
+    if (partes.length !== 3) return fechaStr;
+    
+    const [year, month, day] = partes;
+    const dayStr = day.padStart(2, '0');
+    const monthStr = month.padStart(2, '0');
+    return `${dayStr}/${monthStr}/${year}`;
+  };
+
   useEffect(() => {
     fetchContratosAnulados();
   }, []);
@@ -83,7 +99,7 @@ const ContratosAnulados: React.FC = () => {
       width: '140px',
       render: (contrato) => {
         if (!contrato.created_at) return 'N/A';
-        return new Date(contrato.created_at).toLocaleDateString('es-CR');
+        return formatearFecha(contrato.created_at);
       },
     },
     {
@@ -92,7 +108,7 @@ const ContratosAnulados: React.FC = () => {
       width: '140px',
       render: (contrato) => {
         if (!contrato.fecha_anulacion) return 'N/A';
-        return new Date(contrato.fecha_anulacion).toLocaleDateString('es-CR');
+        return formatearFecha(contrato.fecha_anulacion);
       },
     },
     {

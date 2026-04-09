@@ -34,6 +34,22 @@ const ControlPagos: React.FC = () => {
     onConfirm: () => {}
   });
 
+  // Formatear fecha sin depender del locale del navegador
+  // Formato: dd/mm/yyyy
+  const formatearFecha = (fechaStr: string): string => {
+    if (!fechaStr) return '';
+    
+    const fechaParte = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr.split(' ')[0];
+    const partes = fechaParte.split('-');
+    
+    if (partes.length !== 3) return fechaStr;
+    
+    const [year, month, day] = partes;
+    const dayStr = day.padStart(2, '0');
+    const monthStr = month.padStart(2, '0');
+    return `${dayStr}/${monthStr}/${year}`;
+  };
+
   useEffect(() => {
     fetchContratos();
   }, []);
@@ -208,7 +224,7 @@ const ControlPagos: React.FC = () => {
       key: 'fecha_inicio',
       header: 'Fecha Inicio',
       width: '190px',
-      render: (c) => c.fecha_inicio ? new Date(c.fecha_inicio).toLocaleDateString('es-CR') : '-'
+      render: (c) => c.fecha_inicio ? formatearFecha(c.fecha_inicio) : '-'
     },
     {
       key: 'fecha_vencimiento',
@@ -224,7 +240,7 @@ const ControlPagos: React.FC = () => {
         
         // No aplicar colores si está pagado
         if (c.estado_pago === EstadoPagoContrato.PAGADO) {
-          return fechaVencimiento.toLocaleDateString('es-CR');
+          return formatearFecha(c.fecha_vencimiento);
         }
         
         const diferenciaDias = Math.ceil((fechaVencimiento.getTime() - fechaActual.getTime()) / (1000 * 60 * 60 * 24));
@@ -238,7 +254,7 @@ const ControlPagos: React.FC = () => {
         
         return (
           <span className={className}>
-            {fechaVencimiento.toLocaleDateString('es-CR')}
+            {formatearFecha(c.fecha_vencimiento)}
           </span>
         );
       }
@@ -584,11 +600,7 @@ const ControlPagos: React.FC = () => {
                               color: '#666',
                               whiteSpace: 'nowrap'
                             }}>
-                              {new Date(pago.fecha_pago).toLocaleDateString('es-CR', { 
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric'
-                              })}
+                              {formatearFecha(pago.fecha_pago)}
                             </div>
                           </div>
 

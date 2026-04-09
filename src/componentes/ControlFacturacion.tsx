@@ -63,6 +63,22 @@ const ControlFacturacion: React.FC = () => {
     onConfirm: () => {}
   });
 
+  // Formatear fecha sin depender del locale del navegador
+  // Formato: dd/mm/yyyy
+  const formatearFecha = (fechaStr: string): string => {
+    if (!fechaStr) return '';
+    
+    const fechaParte = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr.split(' ')[0];
+    const partes = fechaParte.split('-');
+    
+    if (partes.length !== 3) return fechaStr;
+    
+    const [year, month, day] = partes;
+    const dayStr = day.padStart(2, '0');
+    const monthStr = month.padStart(2, '0');
+    return `${dayStr}/${monthStr}/${year}`;
+  };
+
   useEffect(() => {
     fetchFacturas();
     fetchContratosIVA();
@@ -311,7 +327,7 @@ const ControlFacturacion: React.FC = () => {
       key: 'fecha_emision',
       header: 'Fecha',
       width: '130px',
-      render: (f) => new Date(f.fecha_emision).toLocaleDateString('es-CR')
+      render: (f) => formatearFecha(f.fecha_emision)
     },
     {
       key: 'monto_subtotal',
