@@ -67,6 +67,24 @@ const Contratos: React.FC = () => {
     fetchContratos();
   }, []);
 
+  // Función para formatear fechas sin conversión UTC (evita el problema de -1 día)
+  // Formato: dd/mm/yyyy
+  const formatearFecha = (fechaStr: string): string => {
+    if (!fechaStr) return '';
+    
+    // Extraer solo la parte de la fecha (antes de 'T' o espacio)
+    const fechaParte = fechaStr.includes('T') ? fechaStr.split('T')[0] : fechaStr.split(' ')[0];
+    const partes = fechaParte.split('-');
+    
+    if (partes.length !== 3) return fechaStr; // Retornar original si no tiene el formato esperado
+    
+    const [year, month, day] = partes;
+    // Asegurar que día y mes tengan 2 dígitos
+    const dayStr = day.padStart(2, '0');
+    const monthStr = month.padStart(2, '0');
+    return `${dayStr}/${monthStr}/${year}`;
+  };
+
   const fetchContratos = async () => {
     setIsLoading(true);
     try {
@@ -92,7 +110,9 @@ const Contratos: React.FC = () => {
                   
                   for (const detalle of detallesResult.data) {
                     if (detalle.fecha_devolucion) {
-                      const fechaDevolucion = new Date(detalle.fecha_devolucion);
+                      // Parsear manualmente para evitar conversión UTC
+                      const [year, month, day] = detalle.fecha_devolucion.split('T')[0].split('-');
+                      const fechaDevolucion = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
                       fechaDevolucion.setHours(0, 0, 0, 0);
                       
                       const diferenciaDias = Math.ceil((fechaDevolucion.getTime() - fechaActual.getTime()) / (1000 * 60 * 60 * 24));
@@ -197,8 +217,6 @@ const Contratos: React.FC = () => {
       render: (c) => {
         if (!c.fecha_vencimiento) return '-';
         
-        const fechaVencimiento = new Date(c.fecha_vencimiento);
-        
         let className = '';
         if (c.estadoVencimiento === 'vencido') {
           className = styles.fechaVencida;
@@ -208,7 +226,7 @@ const Contratos: React.FC = () => {
         
         return (
           <span className={className}>
-            {fechaVencimiento.toLocaleDateString('es-CR')}
+            {formatearFecha(c.fecha_vencimiento)}
           </span>
         );
       }
@@ -217,7 +235,7 @@ const Contratos: React.FC = () => {
       key: 'created_at', 
       header: 'Creación',
       width: '150px',
-      render: (c) => c.created_at ? new Date(c.created_at).toLocaleDateString('es-CR') : '-'
+      render: (c) => c.created_at ? formatearFecha(c.created_at) : '-'
     }
   ];
 
@@ -693,7 +711,9 @@ const Contratos: React.FC = () => {
     }
 
     // Calcular fecha inicio (fecha vencimiento + 1 día)
-    const fechaVenc = new Date(contrato.fecha_vencimiento!);
+    // Parsear manualmente para evitar conversión UTC
+    const [year, month, day] = contrato.fecha_vencimiento!.split('T')[0].split('-');
+    const fechaVenc = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     fechaVenc.setDate(fechaVenc.getDate() + 1);
     const fechaInicioStr = fechaVenc.toISOString().split('T')[0];
     setFechaInicioExtension(fechaInicioStr);
