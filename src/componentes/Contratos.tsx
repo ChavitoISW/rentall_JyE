@@ -45,6 +45,7 @@ const Contratos: React.FC = () => {
   const [fechaInicioExtension, setFechaInicioExtension] = useState('');
   const [fechaVencimientoExtension, setFechaVencimientoExtension] = useState('');
   const [totalExtension, setTotalExtension] = useState(0);
+  const [descuentoExtension, setDescuentoExtension] = useState(0);
   const [usaFactura, setUsaFactura] = useState(false);
   
   // Estados para orden de cambio
@@ -694,8 +695,8 @@ const Contratos: React.FC = () => {
   };
 
   const recalcularTotalExtension = (equipos: DetalleEquipo[]) => {
-    const total = equipos.reduce((sum, eq) => sum + eq.monto_calculado, 0);
-    setTotalExtension(total);
+    const subtotal = equipos.reduce((sum, eq) => sum + eq.monto_calculado, 0);
+    setTotalExtension(subtotal - descuentoExtension);
   };
 
   const handleExtender = async (contrato: ContratoExtendido) => {
@@ -710,12 +711,10 @@ const Contratos: React.FC = () => {
       return;
     }
 
-    // Calcular fecha inicio (fecha vencimiento + 1 día)
-    // Parsear manualmente para evitar conversión UTC
-    const [year, month, day] = contrato.fecha_vencimiento!.split('T')[0].split('-');
-    const fechaVenc = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    fechaVenc.setDate(fechaVenc.getDate() + 1);
-    const fechaInicioStr = fechaVenc.toISOString().split('T')[0];
+    // REGLA DE NEGOCIO: La fecha de inicio de una extensión DEBE ser la misma
+    // que la fecha de vencimiento del contrato raíz
+    // Este campo es de solo lectura y no puede ser modificado por el usuario
+    const fechaInicioStr = contrato.fecha_vencimiento!.split('T')[0];
     setFechaInicioExtension(fechaInicioStr);
 
     // Obtener detalles de la SE original y precios actuales de equipos
@@ -804,6 +803,7 @@ const Contratos: React.FC = () => {
         );
         
         setEquiposExtension(equiposConPrecios);
+        setDescuentoExtension(0);
         recalcularTotalExtension(equiposConPrecios);
         
         // Calcular fecha de vencimiento inicial (fecha máxima de devolución)
@@ -905,8 +905,8 @@ const Contratos: React.FC = () => {
       });
       
       // Recalcular total y fecha de vencimiento
-      const total = nuevosEquipos.reduce((sum, eq) => sum + eq.monto_calculado, 0);
-      setTotalExtension(total);
+      const subtotal = nuevosEquipos.reduce((sum, eq) => sum + eq.monto_calculado, 0);
+      setTotalExtension(subtotal - descuentoExtension);
       
       // Calcular nueva fecha de vencimiento (fecha máxima de devolución)
       const fechasDevolucion = nuevosEquipos
@@ -961,7 +961,8 @@ const Contratos: React.FC = () => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              equipos: equiposExtension
+              equipos: equiposExtension,
+              descuento: descuentoExtension
             }),
           });
 
@@ -1162,7 +1163,7 @@ const Contratos: React.FC = () => {
                       type="date"
                       value={fechaInicioExtension}
                       readOnly
-                      title="Calculada automáticamente: Fecha vencimiento + 1 día"
+                      title="Fecha calculada automáticamente: Fecha de vencimiento del contrato + 1 día. Esta fecha no puede ser modificada según reglas de negocio."
                       style={{ background: '#f0f0f0', cursor: 'not-allowed' }}
                     />
                   </div>
@@ -1245,6 +1246,25 @@ const Contratos: React.FC = () => {
 
                 <div style={{ marginTop: '1rem', padding: '1rem', background: '#f0f7ff', border: '1px solid #b3d9ff', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      <label style={{ margin: 0, fontSize: '0.9rem', color: '#0066cc', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                        Descuento (₡):
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={descuentoExtension === 0 ? '' : descuentoExtension}
+                        placeholder="0"
+                        onChange={(e) => {
+                          const val = e.target.value === '' ? 0 : Math.max(0, Number(e.target.value));
+                          setDescuentoExtension(val);
+                          const subtotal = equiposExtension.reduce((sum, eq) => sum + eq.monto_calculado, 0);
+                          setTotalExtension(subtotal - val);
+                        }}
+                        style={{ width: '130px', padding: '4px 8px', borderRadius: '4px', border: '1px solid #b3d9ff', fontSize: '0.9rem' }}
+                      />
+                    </div>
                     <p style={{ margin: 0, fontSize: '0.9rem', color: '#0066cc', fontWeight: 500 }}>
                       <strong>Total Estimado:</strong> ₡{totalExtension.toLocaleString('es-CR', { minimumFractionDigits: 2 })}
                     </p>

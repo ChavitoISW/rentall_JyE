@@ -1954,7 +1954,7 @@ export const pagoContratoModel = {
     return db.prepare(`
       SELECT 
         pc.*,
-        c.numero_contrato,
+        COALESCE(c.numero_contrato, PRINTF('%05d', c.id_contrato)) as numero_contrato,
         s.numero_solicitud_equipo,
         cl.nombre_cliente || ' ' || cl.apellidos_cliente as nombre_cliente
       FROM pago_contrato pc
@@ -1969,7 +1969,7 @@ export const pagoContratoModel = {
     return db.prepare(`
       SELECT 
         pc.*,
-        c.numero_contrato,
+        COALESCE(c.numero_contrato, PRINTF('%05d', c.id_contrato)) as numero_contrato,
         s.numero_solicitud_equipo,
         cl.nombre_cliente || ' ' || cl.apellidos_cliente as nombre_cliente
       FROM pago_contrato pc
