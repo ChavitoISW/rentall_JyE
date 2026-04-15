@@ -207,7 +207,7 @@ const Pagos: React.FC = () => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `reporte-pagos-${new Date().toISOString().split('T')[0]}.csv`;
+        link.download = `reporte-pagos-${new Date().toISOString().split('T')[0]}.xlsx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

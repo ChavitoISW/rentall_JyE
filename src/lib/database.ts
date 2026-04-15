@@ -1,9 +1,13 @@
 import Database from 'better-sqlite3';
 import path from 'path';
+import fs from 'fs';
 
 // Configurar ruta de la base de datos según el entorno
 const dbPath = process.env.DB_PATH || path.join(process.cwd(), 'database', 'rentall.db');
 console.log('📁 Ruta de base de datos:', dbPath);
+
+// Crear el directorio si no existe
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
 const db = new Database(dbPath);
 
