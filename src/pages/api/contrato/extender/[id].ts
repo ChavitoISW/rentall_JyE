@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { id } = req.query;
-  const { equipos } = req.body; // Array de { id_equipo, periodicidad, cantidad_periodos, fecha_devolucion }
+  const { equipos, descuento } = req.body; // Array de { id_equipo, periodicidad, cantidad_periodos, fecha_devolucion } + descuento opcional
 
   if (!id || !equipos || !Array.isArray(equipos) || equipos.length === 0) {
     return res.status(400).json({ error: 'Datos inválidos' });
@@ -83,12 +83,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const nuevoNumeroSE = `${numeroSEBase}-EXT${numeroExtension}`;
 
       // 4. Calcular fechas
+      // REGLA DE NEGOCIO: La fecha de inicio de una extensión es la misma
+      // que la fecha de vencimiento del contrato raíz
       const fechaVencimiento = new Date(contratoOriginal.fecha_vencimiento);
+      const fechaVencimientoEsperada = new Date(fechaVencimiento);
+      fechaVencimientoEsperada.setHours(0, 0, 0, 0);
+      
       const nuevaFechaInicio = new Date(fechaVencimiento);
-      nuevaFechaInicio.setDate(nuevaFechaInicio.getDate() + 1);
+      nuevaFechaInicio.setHours(0, 0, 0, 0);
       const fechaInicioStr = nuevaFechaInicio.toISOString().split('T')[0];
 
+      // Validar que las fechas de devolución sean posteriores a la fecha de inicio de la extensión
       const fechasDevolucion = equipos.map(e => new Date(e.fecha_devolucion));
+      for (const fechaDevolucion of fechasDevolucion) {
+        if (fechaDevolucion < nuevaFechaInicio) {
+          throw new Error(
+            `Las fechas de devolución deben ser posteriores a la fecha de inicio de la extensión (${fechaInicioStr})`
+          );
+        }
+      }
+
       const maxFechaDevolucion = new Date(Math.max(...fechasDevolucion.map(f => f.getTime())));
       const fechaVencimientoStr = maxFechaDevolucion.toISOString().split('T')[0];
 
@@ -227,8 +241,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         contratoOriginal.monto_envio,
         contratoOriginal.usa_factura,
         subtotalGeneral,
-        0, // descuento_solicitud_equipo
-        subtotalGeneral + ivaGeneral,
+        descuento || 0, // descuento_solicitud_equipo
+        subtotalGeneral + ivaGeneral - (descuento || 0),
         ivaGeneral,
         4, // estado_solicitud_equipo: DONDE_CLIENTE (Contrato Activo)
         1, // es_extension: true
@@ -367,6 +381,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       `).run(nuevaSolicitudId);
 
       const nuevoContratoId = resultContrato.lastInsertRowid as number;
+
+      // Asignar numero_contrato igual al id generado (igual que contratos normales)
+      db.prepare(`
+        UPDATE contrato SET numero_contrato = ? WHERE id_contrato = ?
+      `).run(String(nuevoContratoId), nuevoContratoId);
 
       // 11. Actualizar bitácoras del contrato original (NO crear nuevas)
       // Las bitácoras se mantienen activas pero ahora asociadas a la extensión
