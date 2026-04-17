@@ -1092,9 +1092,9 @@ export function generarPDFReporteFacturas(reporteData: ReporteFacturasData): Pro
         .text(factura.numero_contrato, colContrato, currentY + 2, { width: 45, lineBreak: false })
         .text(factura.nombre_cliente.substring(0, 25), colCliente, currentY + 2, { width: 115, lineBreak: false })
         .text(formatearFecha(factura.fecha_emision), colFecha, currentY + 2, { width: 47, lineBreak: false })
-        .text(`¢${factura.monto_subtotal.toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colSubtotal, currentY + 2, { width: 50, lineBreak: false })
-        .text(`¢${factura.monto_iva.toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colIVA, currentY + 2, { width: 47, lineBreak: false })
-        .text(`¢${factura.monto_total.toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colTotal, currentY + 2, { width: 50, lineBreak: false })
+        .text(`¢${(factura.monto_subtotal ?? 0).toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colSubtotal, currentY + 2, { width: 50, lineBreak: false })
+        .text(`¢${(factura.monto_iva ?? 0).toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colIVA, currentY + 2, { width: 47, lineBreak: false })
+        .text(`¢${(factura.monto_total ?? 0).toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colTotal, currentY + 2, { width: 50, lineBreak: false })
         .fillColor(estadoColor)
         .text(estadoTexto, colEstado, currentY + 2, { width: 40, lineBreak: false });
 
@@ -1231,7 +1231,7 @@ export function generarPDFReportePagos(reporteData: ReportePagosData): Promise<B
       .text('Pagos en Efectivo:', colLabel, currentY)
       .font('Helvetica')
       .fillColor('black')
-      .text(`${reporteData.porTipo.efectivo.length} pagos - ¢${reporteData.totales.efectivo.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
+      .text(`${reporteData.porTipo.efectivo.length} pagos - ¢${(reporteData.totales.efectivo ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
 
     currentY += 13;
 
@@ -1241,7 +1241,7 @@ export function generarPDFReportePagos(reporteData: ReportePagosData): Promise<B
       .text('Pagos por SIMPE:', colLabel, currentY)
       .font('Helvetica')
       .fillColor('black')
-      .text(`${reporteData.porTipo.simpe.length} pagos - ¢${reporteData.totales.simpe.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
+      .text(`${reporteData.porTipo.simpe.length} pagos - ¢${(reporteData.totales.simpe ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
 
     currentY += 13;
 
@@ -1251,7 +1251,7 @@ export function generarPDFReportePagos(reporteData: ReportePagosData): Promise<B
       .text('Pagos por Transferencia:', colLabel, currentY)
       .font('Helvetica')
       .fillColor('black')
-      .text(`${reporteData.porTipo.transferencia.length} pagos - ¢${reporteData.totales.transferencia.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
+      .text(`${reporteData.porTipo.transferencia.length} pagos - ¢${(reporteData.totales.transferencia ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
 
     currentY += 18;
 
@@ -1260,7 +1260,7 @@ export function generarPDFReportePagos(reporteData: ReportePagosData): Promise<B
       .fillColor('#1E40AF')
       .text('TOTAL GENERAL:', colLabel, currentY)
       .fillColor('#1E40AF')
-      .text(`¢${reporteData.totales.total.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
+      .text(`¢${(reporteData.totales.total ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}`, colValue, currentY);
 
     currentY += 25;
 
@@ -1333,7 +1333,7 @@ export function generarPDFReportePagos(reporteData: ReportePagosData): Promise<B
         .text(pago.nombre_cliente.substring(0, 30), colCliente, currentY + 2, { width: 135, lineBreak: false })
         .text(pago.numero_contrato, colContrato, currentY + 2, { width: 45, lineBreak: false })
         .text(tipoLabels[pago.tipo_pago] || pago.tipo_pago, colTipo, currentY + 2, { width: 65, lineBreak: false })
-        .text(`¢${pago.monto.toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colMonto, currentY + 2, { width: 55, lineBreak: false })
+        .text(`¢${(pago.monto ?? 0).toLocaleString('es-CR', { maximumFractionDigits: 0 })}`, colMonto, currentY + 2, { width: 55, lineBreak: false })
         .text(detalles.substring(0, 20), colDetalles, currentY + 2, { width: 80, lineBreak: false });
 
       currentY += rowHeight;

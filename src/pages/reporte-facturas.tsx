@@ -425,13 +425,13 @@ const ReporteFacturas: React.FC = () => {
                             {new Date(factura.fecha_emision).toLocaleDateString('es-CR')}
                           </td>
                           <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right' }}>
-                            ¢{factura.monto_subtotal.toLocaleString('es-CR', { minimumFractionDigits: 2 })}
+                            ¢{(factura.monto_subtotal ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}
                           </td>
                           <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right' }}>
-                            ¢{factura.monto_iva.toLocaleString('es-CR', { minimumFractionDigits: 2 })}
+                            ¢{(factura.monto_iva ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}
                           </td>
                           <td style={{ padding: '1rem', fontSize: '0.9rem', textAlign: 'right', fontWeight: 600 }}>
-                            ¢{factura.monto_total.toLocaleString('es-CR', { minimumFractionDigits: 2 })}
+                            ¢{(factura.monto_total ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}
                           </td>
                           <td style={{ padding: '1rem', textAlign: 'center' }}>
                             <span style={{
