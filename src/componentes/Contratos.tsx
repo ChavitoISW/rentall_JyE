@@ -1021,13 +1021,7 @@ const Contratos: React.FC = () => {
       onClick: handleVistaPreviaPDF,
       className: styles.btnPrintDoc,
       tooltip: 'Imprimir contrato PDF'
-    },
-    {
-      label: '🖨️',
-      onClick: handleDescargarPDF,
-      className: styles.btnEdit,
-      tooltip: 'Descargar contrato PDF'
-    },
+    },   
     {
       label: '🔄',
       onClick: handleGenerarCambio,
