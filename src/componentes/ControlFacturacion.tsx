@@ -333,19 +333,19 @@ const ControlFacturacion: React.FC = () => {
       key: 'monto_subtotal',
       header: 'Subtotal',
       width: '130px',
-      render: (f) => `₡${f.monto_subtotal.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`
+      render: (f) => `₡${(f.monto_subtotal ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}`
     },
     {
       key: 'monto_iva',
       header: 'IVA',
       width: '130px',
-      render: (f) => `₡${f.monto_iva.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`
+      render: (f) => `₡${(f.monto_iva ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}`
     },
     {
       key: 'monto_total',
       header: 'Total',
       width: '130px',
-      render: (f) => `₡${f.monto_total.toLocaleString('es-CR', { minimumFractionDigits: 2 })}`
+      render: (f) => `₡${(f.monto_total ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}`
     },
     {
       key: 'estado_pago',
@@ -548,10 +548,10 @@ const ControlFacturacion: React.FC = () => {
                                 </div>
                                 <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', color: '#666' }}>
                                   <div>
-                                    <strong>Total:</strong> ₡{contrato.total_solicitud_equipo.toLocaleString('es-CR', { minimumFractionDigits: 2 })}
+                                    <strong>Total:</strong> ₡{(contrato.total_solicitud_equipo ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}
                                   </div>
                                   <div>
-                                    <strong>IVA:</strong> ₡{contrato.iva_solicitud_equipo.toLocaleString('es-CR', { minimumFractionDigits: 2 })}
+                                    <strong>IVA:</strong> ₡{(contrato.iva_solicitud_equipo ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}
                                   </div>
                                 </div>
                               </div>
@@ -816,7 +816,7 @@ const ControlFacturacion: React.FC = () => {
                             </div>
                           </div>
                           <span style={{ fontSize: '1.75rem', fontWeight: 'bold', letterSpacing: '-0.5px' }}>
-                            ₡{currentFactura.monto_total.toLocaleString('es-CR', { minimumFractionDigits: 2 })}
+                            ₡{(currentFactura.monto_total ?? 0).toLocaleString('es-CR', { minimumFractionDigits: 2 })}
                           </span>
                         </div>
                       </div>

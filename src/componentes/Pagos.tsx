@@ -107,7 +107,7 @@ const Pagos: React.FC = () => {
       style: 'currency',
       currency: 'CRC',
       minimumFractionDigits: 0
-    }).format(monto);
+    }).format(monto ?? 0);
   };
 
   // Formatear fecha sin depender del locale del navegador
