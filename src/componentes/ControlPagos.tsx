@@ -159,7 +159,7 @@ const ControlPagos: React.FC = () => {
     setConfirmDialog({
       isOpen: true,
       title: '¿Eliminar pago?',
-      message: `¿Está seguro de eliminar el pago de ₡${pago.monto.toLocaleString()}?`,
+      message: `¿Está seguro de eliminar el pago de ₡${(pago.monto ?? 0).toLocaleString()}?`,
       type: 'danger',
       onConfirm: async () => {
         setIsLoading(true);
@@ -263,7 +263,7 @@ const ControlPagos: React.FC = () => {
       key: 'total_contrato',
       header: 'Monto Contrato',
       width: '150px',
-      render: (c) => `₡${c.total_contrato.toLocaleString()}`
+      render: (c) => `₡${(c.total_contrato ?? 0).toLocaleString()}`
     },
     {
       key: 'usa_factura',
@@ -275,19 +275,19 @@ const ControlPagos: React.FC = () => {
       key: 'iva_contrato',
       header: 'IVA',
       width: '120px',
-      render: (c) => c.iva_contrato > 0 ? `₡${c.iva_contrato.toLocaleString()}` : '-'
+      render: (c) => (c.iva_contrato ?? 0) > 0 ? `₡${(c.iva_contrato ?? 0).toLocaleString()}` : '-'
     },
     {
       key: 'monto_pagado',
       header: 'Pagado',
       width: '130px',
-      render: (c) => `₡${c.monto_pagado.toLocaleString()}`
+      render: (c) => `₡${(c.monto_pagado ?? 0).toLocaleString()}`
     },
     {
       key: 'monto_pendiente',
       header: 'Pendiente',
       width: '130px',
-      render: (c) => `₡${c.monto_pendiente.toLocaleString()}`
+      render: (c) => `₡${(c.monto_pendiente ?? 0).toLocaleString()}`
     },
     {
       key: 'estado_pago',
@@ -381,9 +381,9 @@ const ControlPagos: React.FC = () => {
                 <div className={styles.section}>
                   <div style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
                     <div><strong>Cliente:</strong> {contratoSeleccionado.nombre_cliente}</div>
-                    <div><strong>Total Contrato:</strong> ₡{contratoSeleccionado.total_contrato.toLocaleString()}</div>
-                    <div><strong>Pagado:</strong> ₡{contratoSeleccionado.monto_pagado.toLocaleString()}</div>
-                    <div><strong>Pendiente:</strong> ₡{contratoSeleccionado.monto_pendiente.toLocaleString()}</div>
+                    <div><strong>Total Contrato:</strong> ₡{(contratoSeleccionado.total_contrato ?? 0).toLocaleString()}</div>
+                    <div><strong>Pagado:</strong> ₡{(contratoSeleccionado.monto_pagado ?? 0).toLocaleString()}</div>
+                    <div><strong>Pendiente:</strong> ₡{(contratoSeleccionado.monto_pendiente ?? 0).toLocaleString()}</div>
                   </div>
 
                   <div className={styles.formRow}>
@@ -522,7 +522,7 @@ const ControlPagos: React.FC = () => {
                   }}>
                     <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Total Contrato</div>
                     <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#333' }}>
-                      ₡{contratoSeleccionado.total_contrato.toLocaleString()}
+                      ₡{(contratoSeleccionado.total_contrato ?? 0).toLocaleString()}
                     </div>
                   </div>
 
@@ -534,7 +534,7 @@ const ControlPagos: React.FC = () => {
                   }}>
                     <div style={{ fontSize: '0.85rem', color: '#155724', marginBottom: '0.25rem' }}>Total Pagado</div>
                     <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#155724' }}>
-                      ₡{contratoSeleccionado.monto_pagado.toLocaleString()}
+                      ₡{(contratoSeleccionado.monto_pagado ?? 0).toLocaleString()}
                     </div>
                   </div>
 
@@ -556,7 +556,7 @@ const ControlPagos: React.FC = () => {
                       fontSize: '1.1rem', 
                       color: contratoSeleccionado.monto_pendiente > 0 ? '#856404' : '#155724' 
                     }}>
-                      ₡{contratoSeleccionado.monto_pendiente.toLocaleString()}
+                      ₡{(contratoSeleccionado.monto_pendiente ?? 0).toLocaleString()}
                     </div>
                   </div>
                 </div>
@@ -617,7 +617,7 @@ const ControlPagos: React.FC = () => {
                                 fontSize: '1.1rem',
                                 color: '#28a745'
                               }}>
-                                ₡{pago.monto.toLocaleString()}
+                                ₡{(pago.monto ?? 0).toLocaleString()}
                               </span>
                               <span style={{
                                 fontSize: '0.85rem',
