@@ -281,16 +281,32 @@ const Contratos: React.FC = () => {
   };
 
   const handleVistaPreviaPDF = async (contrato: ContratoExtendido) => {
+    if (!contrato.id_solicitud_equipo) return;
+
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const url = `/api/contrato/pdf?id_solicitud_equipo=${contrato.id_solicitud_equipo}`;
-      window.open(url, '_blank');
+      const response = await fetch(`/api/contrato/pdf?id_solicitud_equipo=${contrato.id_solicitud_equipo}`);
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      } else {
+        setConfirmDialog({
+          isOpen: true,
+          title: 'Error',
+          message: 'No se pudo cargar el PDF del contrato',
+          type: 'danger',
+          onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false })
+        });
+      }
     } catch (error) {
-      console.error('Error al abrir vista previa:', error);
+      console.error('Error al cargar PDF:', error);
       setConfirmDialog({
         isOpen: true,
         title: 'Error',
-        message: 'No se pudo abrir la vista previa del PDF',
+        message: 'Error al cargar el PDF. Por favor, intenta de nuevo.',
         type: 'danger',
         onConfirm: () => setConfirmDialog({ ...confirmDialog, isOpen: false })
       });
@@ -1003,8 +1019,14 @@ const Contratos: React.FC = () => {
     {
       label: '📄',
       onClick: handleVistaPreviaPDF,
+      className: styles.btnPrintDoc,
+      tooltip: 'Imprimir contrato PDF'
+    },
+    {
+      label: '🖨️',
+      onClick: handleDescargarPDF,
       className: styles.btnEdit,
-      tooltip: 'Vista previa PDF'
+      tooltip: 'Descargar contrato PDF'
     },
     {
       label: '🔄',
