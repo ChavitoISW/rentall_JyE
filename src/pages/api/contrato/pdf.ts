@@ -90,11 +90,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       fecha_inicio_solicitud: encabezado.fecha_inicio,
       fecha_fin_solicitud: encabezado.fecha_vencimiento,
       observaciones: encabezado.observaciones_solicitud_equipo,
-      subtotal: encabezado.subtotal_solicitud_equipo,
-      descuento: encabezado.descuento_solicitud_equipo,
-      monto_envio: encabezado.monto_envio,
-      iva: encabezado.iva_solicitud_equipo,
-      total: encabezado.total_solicitud_equipo,
+      subtotal: encabezado.subtotal_solicitud_equipo ?? 0,
+      descuento: encabezado.descuento_solicitud_equipo ?? 0,
+      monto_envio: encabezado.monto_envio ?? 0,
+      iva: encabezado.iva_solicitud_equipo ?? 0,
+      total: encabezado.total_solicitud_equipo ?? 0,
       valor_estimado_equipo: valorEstimado,
       detalles: detalles.map((d: any) => {
         // Obtener información adicional del equipo si existe
