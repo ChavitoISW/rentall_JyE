@@ -41,6 +41,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       LEFT  JOIN categoria_equipo ce ON e.id_equipo_categoria = ce.id
       WHERE DATE(pc.fecha_pago) BETWEEN DATE(?) AND DATE(?)
         AND co.estado != 0
+        AND ese.estado_solicitud_equipo NOT IN (1, 7, 8)
       GROUP BY e.id_equipo
       HAVING monto_cobrado > 0
       ORDER BY monto_cobrado DESC
@@ -70,6 +71,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       LEFT  JOIN categoria_equipo ce ON e.id_equipo_categoria = ce.id
       WHERE DATE(co.created_at) BETWEEN DATE(?) AND DATE(?)
         AND co.estado != 0
+        AND ese.estado_solicitud_equipo NOT IN (1, 7, 8)
       GROUP BY e.id_equipo
       HAVING monto_pendiente > 0
       ORDER BY monto_pendiente DESC
@@ -83,6 +85,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       FROM contrato co
       INNER JOIN encabezado_solicitud_equipo ese ON co.id_solicitud_equipo = ese.id_solicitud_equipo
       WHERE co.estado != 0
+        AND ese.estado_solicitud_equipo NOT IN (1, 7, 8)
         AND EXISTS (
           SELECT 1 FROM pago_contrato pc
           WHERE pc.id_contrato = co.id_contrato
@@ -99,6 +102,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       INNER JOIN encabezado_solicitud_equipo ese ON co.id_solicitud_equipo = ese.id_solicitud_equipo
       WHERE DATE(co.created_at) BETWEEN DATE(?) AND DATE(?)
         AND co.estado != 0
+        AND ese.estado_solicitud_equipo NOT IN (1, 7, 8)
         AND (ese.total_solicitud_equipo - COALESCE((
           SELECT SUM(monto) FROM pago_contrato pc2
           WHERE pc2.id_contrato = co.id_contrato
