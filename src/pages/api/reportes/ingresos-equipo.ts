@@ -68,7 +68,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       INNER JOIN detalle_solicitud_equipo dse ON ese.numero_solicitud_equipo = dse.numero_solicitud_equipo
       INNER JOIN equipo e ON dse.id_equipo = e.id_equipo
       LEFT  JOIN categoria_equipo ce ON e.id_equipo_categoria = ce.id
-      WHERE DATE(ese.fecha_elaboracion) BETWEEN DATE(?) AND DATE(?)
+      WHERE DATE(co.created_at) BETWEEN DATE(?) AND DATE(?)
         AND co.estado != 0
       GROUP BY e.id_equipo
       HAVING monto_pendiente > 0
@@ -97,7 +97,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         COALESCE(SUM(COALESCE(ese.descuento_solicitud_equipo, 0)), 0) as total_descuento
       FROM contrato co
       INNER JOIN encabezado_solicitud_equipo ese ON co.id_solicitud_equipo = ese.id_solicitud_equipo
-      WHERE DATE(ese.fecha_elaboracion) BETWEEN DATE(?) AND DATE(?)
+      WHERE DATE(co.created_at) BETWEEN DATE(?) AND DATE(?)
         AND co.estado != 0
         AND (ese.total_solicitud_equipo - COALESCE((
           SELECT SUM(monto) FROM pago_contrato pc2
