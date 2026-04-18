@@ -19,7 +19,9 @@ interface ReporteData {
     total_cobrado: number;
     total_pendiente: number;
     total_envio_cobrado: number;
+    total_descuento_cobrado: number;
     total_envio_pendiente: number;
+    total_descuento_pendiente: number;
   };
   rango: {
     fecha_inicio: string;
@@ -163,17 +165,20 @@ const ReporteIngresosEquipo: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
               <div style={cardStyle('#27ae60')}>
                 <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.4rem' }}>Total Cobrado</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{fmt(reporteData.totales.total_cobrado + reporteData.totales.total_envio_cobrado)}</div>
-                <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '0.4rem' }}>{reporteData.cobrado.length} equipos{reporteData.totales.total_envio_cobrado > 0 ? ' + envío' : ''}</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{fmt(reporteData.totales.total_cobrado + reporteData.totales.total_envio_cobrado - reporteData.totales.total_descuento_cobrado)}</div>
+                <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '0.4rem' }}>{reporteData.cobrado.length} equipos</div>
               </div>
               <div style={cardStyle('#e67e22')}>
                 <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.4rem' }}>Total Pendiente</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{fmt(reporteData.totales.total_pendiente + reporteData.totales.total_envio_pendiente)}</div>
-                <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '0.4rem' }}>{reporteData.pendiente.length} equipos{reporteData.totales.total_envio_pendiente > 0 ? ' + envío' : ''}</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{fmt(reporteData.totales.total_pendiente + reporteData.totales.total_envio_pendiente - reporteData.totales.total_descuento_pendiente)}</div>
+                <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '0.4rem' }}>{reporteData.pendiente.length} equipos</div>
               </div>
               <div style={cardStyle('#4a90e2')}>
                 <div style={{ fontSize: '0.85rem', opacity: 0.9, marginBottom: '0.4rem' }}>Total General</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{fmt(reporteData.totales.total_cobrado + reporteData.totales.total_envio_cobrado + reporteData.totales.total_pendiente + reporteData.totales.total_envio_pendiente)}</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{fmt(
+                  reporteData.totales.total_cobrado + reporteData.totales.total_envio_cobrado - reporteData.totales.total_descuento_cobrado +
+                  reporteData.totales.total_pendiente + reporteData.totales.total_envio_pendiente - reporteData.totales.total_descuento_pendiente
+                )}</div>
                 <div style={{ fontSize: '0.8rem', opacity: 0.8, marginTop: '0.4rem' }}>
                   {new Date(reporteData.rango.fecha_inicio + 'T00:00:00').toLocaleDateString('es-CR')} —{' '}
                   {new Date(reporteData.rango.fecha_fin + 'T00:00:00').toLocaleDateString('es-CR')}
@@ -223,11 +228,23 @@ const ReporteIngresosEquipo: React.FC = () => {
                             <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#1565c0' }}>{fmt(reporteData.totales.total_envio_cobrado)}</td>
                           </tr>
                         )}
+                        {reporteData.totales.total_descuento_cobrado > 0 && (
+                          <tr style={{ background: '#fce4ec', borderTop: '2px dashed #f48fb1' }}>
+                            <td style={tdStyle}>
+                              <div style={{ fontWeight: 600, color: '#c62828' }}>🏷️ Descuentos</div>
+                            </td>
+                            <td style={tdStyle}><span style={{ background: '#fce4ec', color: '#c62828', padding: '2px 8px', borderRadius: '10px', fontSize: '0.8rem' }}>Descuento</span></td>
+                            <td style={{ ...tdStyle, textAlign: 'center' }}>—</td>
+                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#c62828' }}>- {fmt(reporteData.totales.total_descuento_cobrado)}</td>
+                          </tr>
+                        )}
                       </tbody>
                       <tfoot>
                         <tr style={{ background: '#e8f5e9' }}>
                           <td colSpan={3} style={{ ...tdStyle, fontWeight: 700, color: '#27ae60' }}>TOTAL</td>
-                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#27ae60', fontSize: '1rem' }}>{fmt(reporteData.totales.total_cobrado + reporteData.totales.total_envio_cobrado)}</td>
+                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#27ae60', fontSize: '1rem' }}>
+                            {fmt(reporteData.totales.total_cobrado + reporteData.totales.total_envio_cobrado - reporteData.totales.total_descuento_cobrado)}
+                          </td>
                         </tr>
                       </tfoot>
                     </table>
@@ -274,11 +291,23 @@ const ReporteIngresosEquipo: React.FC = () => {
                             <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#1565c0' }}>{fmt(reporteData.totales.total_envio_pendiente)}</td>
                           </tr>
                         )}
+                        {reporteData.totales.total_descuento_pendiente > 0 && (
+                          <tr style={{ background: '#fce4ec', borderTop: '2px dashed #f48fb1' }}>
+                            <td style={tdStyle}>
+                              <div style={{ fontWeight: 600, color: '#c62828' }}>🏷️ Descuentos</div>
+                            </td>
+                            <td style={tdStyle}><span style={{ background: '#fce4ec', color: '#c62828', padding: '2px 8px', borderRadius: '10px', fontSize: '0.8rem' }}>Descuento</span></td>
+                            <td style={{ ...tdStyle, textAlign: 'center' }}>—</td>
+                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#c62828' }}>- {fmt(reporteData.totales.total_descuento_pendiente)}</td>
+                          </tr>
+                        )}
                       </tbody>
                       <tfoot>
                         <tr style={{ background: '#fff3e0' }}>
                           <td colSpan={3} style={{ ...tdStyle, fontWeight: 700, color: '#e67e22' }}>TOTAL</td>
-                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e67e22', fontSize: '1rem' }}>{fmt(reporteData.totales.total_pendiente + reporteData.totales.total_envio_pendiente)}</td>
+                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e67e22', fontSize: '1rem' }}>
+                            {fmt(reporteData.totales.total_pendiente + reporteData.totales.total_envio_pendiente - reporteData.totales.total_descuento_pendiente)}
+                          </td>
                         </tr>
                       </tfoot>
                     </table>

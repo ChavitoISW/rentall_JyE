@@ -75,50 +75,43 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       ORDER BY monto_pendiente DESC
     `).all(fecha_inicio, fecha_fin) as any[];
 
-    // Envío cobrado: proporción del pago que corresponde al envío (pago × monto_envio / total)
-    const envioCobradobRow = db.prepare(`
-      SELECT COALESCE(SUM(
-        pc.monto * ese.monto_envio / NULLIF(ese.total_solicitud_equipo, 0)
-      ), 0) as envio_cobrado
-      FROM pago_contrato pc
-      INNER JOIN contrato co ON pc.id_contrato = co.id_contrato
+    // Envío y descuentos cobrados: suma directa de los contratos que tienen pagos en el período
+    const extraCobradoRow = db.prepare(`
+      SELECT
+        COALESCE(SUM(CASE WHEN ese.pago_envio = 1 THEN COALESCE(ese.monto_envio, 0) ELSE 0 END), 0) as total_envio,
+        COALESCE(SUM(COALESCE(ese.descuento_solicitud_equipo, 0)), 0) as total_descuento
+      FROM contrato co
       INNER JOIN encabezado_solicitud_equipo ese ON co.id_solicitud_equipo = ese.id_solicitud_equipo
-      WHERE DATE(pc.fecha_pago) BETWEEN DATE(?) AND DATE(?)
-        AND co.estado != 0
-        AND ese.pago_envio = 1
+      WHERE co.estado != 0
+        AND EXISTS (
+          SELECT 1 FROM pago_contrato pc
+          WHERE pc.id_contrato = co.id_contrato
+            AND DATE(pc.fecha_pago) BETWEEN DATE(?) AND DATE(?)
+        )
     `).get(fecha_inicio, fecha_fin) as any;
 
-    // Envío pendiente: proporción del saldo pendiente que corresponde al envío
-    const envioPendienteRow = db.prepare(`
-      SELECT COALESCE(SUM(
-        (ese.total_solicitud_equipo - COALESCE((
-          SELECT SUM(monto) FROM pago_contrato pc2
-          WHERE pc2.id_contrato = co.id_contrato
-        ), 0))
-        * ese.monto_envio / NULLIF(ese.total_solicitud_equipo, 0)
-      ), 0) as envio_pendiente
+    // Envío y descuentos pendientes: suma directa de contratos del período con saldo > 0
+    const extraPendienteRow = db.prepare(`
+      SELECT
+        COALESCE(SUM(CASE WHEN ese.pago_envio = 1 THEN COALESCE(ese.monto_envio, 0) ELSE 0 END), 0) as total_envio,
+        COALESCE(SUM(COALESCE(ese.descuento_solicitud_equipo, 0)), 0) as total_descuento
       FROM contrato co
       INNER JOIN encabezado_solicitud_equipo ese ON co.id_solicitud_equipo = ese.id_solicitud_equipo
       WHERE DATE(ese.fecha_elaboracion) BETWEEN DATE(?) AND DATE(?)
         AND co.estado != 0
-        AND ese.pago_envio = 1
-        AND (
-          (ese.total_solicitud_equipo - COALESCE((
-            SELECT SUM(monto) FROM pago_contrato pc2
-            WHERE pc2.id_contrato = co.id_contrato
-          ), 0))
-          * ese.monto_envio / NULLIF(ese.total_solicitud_equipo, 0)
-        ) > 0
+        AND (ese.total_solicitud_equipo - COALESCE((
+          SELECT SUM(monto) FROM pago_contrato pc2
+          WHERE pc2.id_contrato = co.id_contrato
+        ), 0)) > 0
     `).get(fecha_inicio, fecha_fin) as any;
 
-    const envioCobrado  = envioCobradobRow?.envio_cobrado  ?? 0;
-    const envioPendiente = envioPendienteRow?.envio_pendiente ?? 0;
-
     const totales = {
-      total_cobrado:         cobradoRows.reduce((s: number, r: any) => s + (r.monto_cobrado || 0), 0),
-      total_pendiente:       pendienteRows.reduce((s: number, r: any) => s + (r.monto_pendiente || 0), 0),
-      total_envio_cobrado:   envioCobrado,
-      total_envio_pendiente: envioPendiente,
+      total_cobrado:           cobradoRows.reduce((s: number, r: any) => s + (r.monto_cobrado || 0), 0),
+      total_pendiente:         pendienteRows.reduce((s: number, r: any) => s + (r.monto_pendiente || 0), 0),
+      total_envio_cobrado:     extraCobradoRow?.total_envio    ?? 0,
+      total_descuento_cobrado: extraCobradoRow?.total_descuento ?? 0,
+      total_envio_pendiente:     extraPendienteRow?.total_envio    ?? 0,
+      total_descuento_pendiente: extraPendienteRow?.total_descuento ?? 0,
     };
 
     return res.status(200).json({
