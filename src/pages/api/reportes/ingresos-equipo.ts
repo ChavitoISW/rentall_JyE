@@ -20,7 +20,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     const cobradoRows = db.prepare(`
       SELECT
         e.nombre_equipo,
-        e.codigo_equipo,
         COALESCE(ce.nombre, 'Sin categoría') as categoria,
         COUNT(DISTINCT co.id_contrato)    as cantidad_contratos,
         SUM(pc.monto)                     as monto_cobrado
@@ -32,9 +31,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       LEFT  JOIN categoria_equipo ce ON e.id_equipo_categoria = ce.id
       WHERE DATE(pc.fecha_pago) BETWEEN DATE(?) AND DATE(?)
         AND co.estado != 0
-        AND NOT EXISTS (
-          SELECT 1 FROM anulacion_contrato ac WHERE ac.id_contrato = co.id_contrato
-        )
       GROUP BY e.id_equipo
       ORDER BY monto_cobrado DESC
     `).all(fecha_inicio, fecha_fin) as any[];
@@ -43,7 +39,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     const pendienteRows = db.prepare(`
       SELECT
         e.nombre_equipo,
-        e.codigo_equipo,
         COALESCE(ce.nombre, 'Sin categoría') as categoria,
         COUNT(DISTINCT co.id_contrato) as cantidad_contratos,
         SUM(
@@ -60,9 +55,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       LEFT  JOIN categoria_equipo ce ON e.id_equipo_categoria = ce.id
       WHERE DATE(ese.fecha_elaboracion) BETWEEN DATE(?) AND DATE(?)
         AND co.estado != 0
-        AND NOT EXISTS (
-          SELECT 1 FROM anulacion_contrato ac WHERE ac.id_contrato = co.id_contrato
-        )
         AND (
           ese.total_solicitud_equipo
           - COALESCE((
