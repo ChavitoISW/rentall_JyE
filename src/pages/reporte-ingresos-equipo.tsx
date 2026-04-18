@@ -6,7 +6,6 @@ import styles from '../styles/SolicitudEquipo.module.css';
 
 interface EquipoIngreso {
   nombre_equipo: string;
-  codigo_equipo: string;
   categoria: string;
   cantidad_contratos: number;
   monto_cobrado?: number;
@@ -206,7 +205,6 @@ const ReporteIngresosEquipo: React.FC = () => {
                           <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#f9fafb' }}>
                             <td style={tdStyle}>
                               <div style={{ fontWeight: 600, color: '#2c3e50' }}>{row.nombre_equipo}</div>
-                              {row.codigo_equipo && <div style={{ fontSize: '0.78rem', color: '#999' }}>{row.codigo_equipo}</div>}
                             </td>
                             <td style={tdStyle}><span style={{ background: '#e8f5e9', color: '#27ae60', padding: '2px 8px', borderRadius: '10px', fontSize: '0.8rem' }}>{row.categoria}</span></td>
                             <td style={{ ...tdStyle, textAlign: 'center' }}>{row.cantidad_contratos}</td>
@@ -248,7 +246,6 @@ const ReporteIngresosEquipo: React.FC = () => {
                           <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fdf8f3' }}>
                             <td style={tdStyle}>
                               <div style={{ fontWeight: 600, color: '#2c3e50' }}>{row.nombre_equipo}</div>
-                              {row.codigo_equipo && <div style={{ fontSize: '0.78rem', color: '#999' }}>{row.codigo_equipo}</div>}
                             </td>
                             <td style={tdStyle}><span style={{ background: '#fff3e0', color: '#e67e22', padding: '2px 8px', borderRadius: '10px', fontSize: '0.8rem' }}>{row.categoria}</span></td>
                             <td style={{ ...tdStyle, textAlign: 'center' }}>{row.cantidad_contratos}</td>
