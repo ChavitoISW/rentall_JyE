@@ -12,9 +12,6 @@ interface CategoriaIngreso {
 
 interface ReporteData {
   categorias: CategoriaIngreso[];
-  total_envio: number;
-  total_descuento: number;
-  subtotal: number;
   total: number;
   rango: { fecha_inicio: string; fecha_fin: string };
 }
@@ -136,20 +133,7 @@ const ReporteIngresosEquipo: React.FC = () => {
                       <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#27ae60' }}>{fmt(row.total_pagado)}</td>
                     </tr>
                   ))}
-                  {reporteData.total_envio > 0 && (
-                    <tr style={{ background: '#e3f2fd', borderTop: '2px dashed #90caf9' }}>
-                      <td style={{ ...tdStyle, fontWeight: 600, color: '#1565c0' }}>🚚 Envío</td>
-                      <td style={{ ...tdStyle, textAlign: 'center', color: '#1565c0' }}>—</td>
-                      <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#1565c0' }}>{fmt(reporteData.total_envio)}</td>
-                    </tr>
-                  )}
-                  {reporteData.total_descuento > 0 && (
-                    <tr style={{ background: '#fce4ec', borderTop: '2px dashed #f48fb1' }}>
-                      <td style={{ ...tdStyle, fontWeight: 600, color: '#c62828' }}>🏷️ Descuentos</td>
-                      <td style={{ ...tdStyle, textAlign: 'center', color: '#c62828' }}>—</td>
-                      <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#c62828' }}>- {fmt(reporteData.total_descuento)}</td>
-                    </tr>
-                  )}
+
                 </tbody>
                 <tfoot>
                   <tr style={{ background: '#e8f5e9' }}>
@@ -158,7 +142,7 @@ const ReporteIngresosEquipo: React.FC = () => {
                   </tr>
                 </tfoot>
               </table>
-              {reporteData.categorias.length === 0 && reporteData.total_envio === 0 && (
+              {reporteData.categorias.length === 0 && (
                 <p style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>No hay pagos en este periodo</p>
               )}
             </div>

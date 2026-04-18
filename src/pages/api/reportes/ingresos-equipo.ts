@@ -39,34 +39,13 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       ORDER BY total_pagado DESC
     `).all(fecha_inicio, fecha_fin) as any[];
 
-    // Envío y descuento: suma directa de contratos con pagos en el período
-    const extrasRow = db.prepare(`
-      SELECT
-        COALESCE(SUM(CASE WHEN ese.pago_envio = 1 THEN COALESCE(ese.monto_envio, 0) ELSE 0 END), 0) as total_envio,
-        COALESCE(SUM(COALESCE(ese.descuento_solicitud_equipo, 0)), 0) as total_descuento
-      FROM contrato co
-      INNER JOIN encabezado_solicitud_equipo ese ON co.id_solicitud_equipo = ese.id_solicitud_equipo
-      WHERE co.estado != 0
-        AND ese.estado_solicitud_equipo NOT IN (1, 7, 8)
-        AND EXISTS (
-          SELECT 1 FROM pago_contrato pc
-          WHERE pc.id_contrato = co.id_contrato
-            AND DATE(pc.fecha_pago) BETWEEN DATE(?) AND DATE(?)
-        )
-    `).get(fecha_inicio, fecha_fin) as any;
-
-    const subtotal        = categoriaRows.reduce((s: number, r: any) => s + (r.total_pagado || 0), 0);
-    const total_envio     = extrasRow?.total_envio     ?? 0;
-    const total_descuento = extrasRow?.total_descuento ?? 0;
+    const total = categoriaRows.reduce((s: number, r: any) => s + (r.total_pagado || 0), 0);
 
     return res.status(200).json({
       success: true,
       data: {
         categorias: categoriaRows,
-        total_envio,
-        total_descuento,
-        subtotal,
-        total: subtotal + total_envio - total_descuento,
+        total,
         rango: { fecha_inicio, fecha_fin }
       }
     });
