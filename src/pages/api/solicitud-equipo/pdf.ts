@@ -89,8 +89,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       iva: encabezado.iva_solicitud_equipo ?? 0,
       total: encabezado.total_solicitud_equipo ?? 0,
       estado_solicitud: estadoLabel,
-      pago_envio: encabezado.pago_envio === 1,
-      usa_factura: encabezado.usa_factura === 1,
+      pago_envio: !!encabezado.pago_envio,
+      usa_factura: !!encabezado.usa_factura,
       detalles: detalles.map((d: any) => ({
         codigo_equipo: d.codigo_equipo,
         nombre_equipo: d.nombre_equipo,

@@ -717,11 +717,11 @@ const SolicitudesEquipo: React.FC = () => {
   ) => {
     const subtotal = detallesActuales.reduce((sum, d) => sum + (d.subtotal_detalle || 0), 0);
     const usaFactura = usaFacturaParam !== undefined ? usaFacturaParam : currentSolicitudEquipo.usa_factura;
-    const iva = usaFactura ? subtotal * 0.13 : 0;
     const descuento = descuentoParam !== undefined ? descuentoParam : (currentSolicitudEquipo.descuento_solicitud_equipo || 0);
     const pagoEnvio = pagoEnvioParam !== undefined ? pagoEnvioParam : currentSolicitudEquipo.pago_envio;
     const montoEnvio = montoEnvioParam !== undefined ? montoEnvioParam : (currentSolicitudEquipo.monto_envio || 0);
     const envio = pagoEnvio ? montoEnvio : 0;
+    const iva = usaFactura ? (subtotal + envio) * 0.13 : 0;
     const total = subtotal + iva - descuento + envio;
 
     setCurrentSolicitudEquipo(prev => ({
@@ -1385,9 +1385,6 @@ const SolicitudesEquipo: React.FC = () => {
           // Calcular proporción de este grupo respecto al total
           const proporcion = montoTotalOriginal > 0 ? subtotalGrupo / montoTotalOriginal : 0;
           
-          // Calcular IVA si aplica
-          const ivaGrupo = currentSolicitudEquipo.usa_factura ? subtotalGrupo * 0.13 : 0;
-          
           // Calcular descuento proporcional
           const descuentoOriginal = currentSolicitudEquipo.descuento_solicitud_equipo || 0;
           const descuentoGrupo = descuentoOriginal * proporcion;
@@ -1395,6 +1392,9 @@ const SolicitudesEquipo: React.FC = () => {
           // Calcular envío proporcional
           const montoEnvioOriginal = currentSolicitudEquipo.pago_envio ? (currentSolicitudEquipo.monto_envio || 0) : 0;
           const montoEnvioGrupo = montoEnvioOriginal * proporcion;
+
+          // Calcular IVA si aplica (incluye envío en la base cuando cobra factura)
+          const ivaGrupo = currentSolicitudEquipo.usa_factura ? (subtotalGrupo + montoEnvioGrupo) * 0.13 : 0;
           
           // Calcular total
           const totalGrupo = subtotalGrupo + ivaGrupo - descuentoGrupo + montoEnvioGrupo;
@@ -2377,12 +2377,13 @@ const SolicitudesEquipo: React.FC = () => {
                             onChange={(e) => {
                               const checked = e.target.checked;
                               const subtotal = currentSolicitudEquipo.subtotal_solicitud_equipo || 0;
-                              const iva = currentSolicitudEquipo.usa_factura ? (currentSolicitudEquipo.iva_solicitud_equipo || 0) : 0;
                               const descuento = currentSolicitudEquipo.descuento_solicitud_equipo || 0;
                               const envio = checked ? (currentSolicitudEquipo.monto_envio || 0) : 0;
+                              const iva = currentSolicitudEquipo.usa_factura ? (subtotal + envio) * 0.13 : 0;
                               setCurrentSolicitudEquipo({
                                 ...currentSolicitudEquipo,
                                 pago_envio: checked,
+                                iva_solicitud_equipo: iva,
                                 total_solicitud_equipo: subtotal + iva - descuento + envio
                               });
                             }}
@@ -2600,11 +2601,12 @@ const SolicitudesEquipo: React.FC = () => {
                             onChange={(e) => {
                               const envio = Number(e.target.value) || 0;
                               const subtotal = currentSolicitudEquipo.subtotal_solicitud_equipo || 0;
-                              const iva = currentSolicitudEquipo.iva_solicitud_equipo || 0;
                               const descuento = currentSolicitudEquipo.descuento_solicitud_equipo || 0;
+                              const iva = currentSolicitudEquipo.usa_factura ? (subtotal + envio) * 0.13 : 0;
                               setCurrentSolicitudEquipo(prev => ({
                                 ...prev,
                                 monto_envio: e.target.value === '' ? 0 : Number(e.target.value),
+                                iva_solicitud_equipo: iva,
                                 total_solicitud_equipo: subtotal + iva - descuento + envio
                               }));
                             }}
