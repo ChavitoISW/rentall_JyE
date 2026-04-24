@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Menu from './Menu';
 import Footer from './Footer';
 import Table, { Column, TableAction } from './Table';
@@ -30,6 +31,7 @@ interface DetalleEquipo {
 }
 
 const Contratos: React.FC = () => {
+  const router = useRouter();
   const [contratos, setContratos] = useState<ContratoExtendido[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -67,6 +69,13 @@ const Contratos: React.FC = () => {
   useEffect(() => {
     fetchContratos();
   }, []);
+
+  // Pre-poblar búsqueda desde URL param ?buscar=
+  useEffect(() => {
+    if (router.isReady && router.query.buscar) {
+      setSearchTerm(String(router.query.buscar));
+    }
+  }, [router.isReady, router.query.buscar]);
 
   // Función para formatear fechas sin conversión UTC (evita el problema de -1 día)
   // Formato: dd/mm/yyyy
