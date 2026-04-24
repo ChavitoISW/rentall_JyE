@@ -21,6 +21,13 @@ interface DashboardStats {
   }>;
 }
 
+interface ContratoAlerta {
+  id_contrato: number;
+  numero_solicitud_equipo: string;
+  nombre_cliente: string;
+  fecha_vencimiento: string;
+}
+
 const Home: React.FC = () => {
   const { usuario } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
@@ -34,9 +41,13 @@ const Home: React.FC = () => {
     ocupacionPorCategoria: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [contratosPorVencerList, setContratosPorVencerList] = useState<ContratoAlerta[]>([]);
+  const [contratosVencidosList, setContratosVencidosList] = useState<ContratoAlerta[]>([]);
+  const [modalAbierto, setModalAbierto] = useState<'porVencer' | 'vencidos' | null>(null);
 
   // Verificar si el usuario es chofer (rol 5)
   const esChofer = usuario?.usuario_rol === 5;
+  const sinAccesoContratos = usuario?.usuario_rol === 4 || usuario?.usuario_rol === 5;
 
   useEffect(() => {
     fetchDashboardData();
@@ -97,24 +108,39 @@ const Home: React.FC = () => {
       // Calcular contratos que vencen en los próximos 3 días y contratos vencidos
       let contratosPorVencer = 0;
       let contratosVencidos = 0;
+      const listaPorVencer: ContratoAlerta[] = [];
+      const listaVencidos: ContratoAlerta[] = [];
       if (Array.isArray(contratos.data)) {
         const fechaActual = new Date();
         fechaActual.setHours(0, 0, 0, 0);
         
         contratos.data.forEach((contrato: any) => {
           if (contrato.fecha_vencimiento && contrato.estado === 1) { // Solo contratos generados
-            const fechaVencimiento = new Date(contrato.fecha_vencimiento);
+            const [year, month, day] = contrato.fecha_vencimiento.split('T')[0].split('-');
+            const fechaVencimiento = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
             fechaVencimiento.setHours(0, 0, 0, 0);
             const diferenciaDias = Math.ceil((fechaVencimiento.getTime() - fechaActual.getTime()) / (1000 * 60 * 60 * 24));
             
+            const alerta: ContratoAlerta = {
+              id_contrato: contrato.id_contrato,
+              numero_solicitud_equipo: contrato.numero_solicitud_equipo || '',
+              nombre_cliente: contrato.nombre_cliente || 'Sin cliente',
+              fecha_vencimiento: contrato.fecha_vencimiento,
+            };
+
             if (diferenciaDias < 0) {
               contratosVencidos++;
+              listaVencidos.push(alerta);
             } else if (diferenciaDias <= 3) {
               contratosPorVencer++;
+              listaPorVencer.push(alerta);
             }
           }
         });
       }
+
+      setContratosPorVencerList(listaPorVencer);
+      setContratosVencidosList(listaVencidos);
 
       setStats({
         equipos: Array.isArray(equipos.data) ? equipos.data.length : 0,
@@ -160,7 +186,16 @@ const Home: React.FC = () => {
 
         <section className={styles.features}>
           {/* Card de Contratos por Vencer */}
-          <div className={styles.featureCard} style={{ backgroundColor: stats.contratosPorVencer > 0 ? '#fff3e0' : undefined, borderLeft: stats.contratosPorVencer > 0 ? '4px solid #ff9800' : undefined }}>
+          <div
+            className={styles.featureCard}
+            style={{
+              backgroundColor: stats.contratosPorVencer > 0 ? '#fff3e0' : undefined,
+              borderLeft: stats.contratosPorVencer > 0 ? '4px solid #ff9800' : undefined,
+              cursor: (stats.contratosPorVencer > 0 && !sinAccesoContratos) ? 'pointer' : 'default',
+            }}
+            onClick={() => !sinAccesoContratos && stats.contratosPorVencer > 0 && setModalAbierto('porVencer')}
+            title={!sinAccesoContratos && stats.contratosPorVencer > 0 ? 'Ver contratos próximos a vencer' : undefined}
+          >
             <div className={styles.icon}>⚠️</div>
             <h3>Contratos por Vencer</h3>
             <p className={styles.statNumber} style={{ color: stats.contratosPorVencer > 0 ? '#ff9800' : undefined }}>{stats.contratosPorVencer}</p>
@@ -168,7 +203,16 @@ const Home: React.FC = () => {
           </div>
           
           {/* Card de Contratos Vencidos */}
-          <div className={styles.featureCard} style={{ backgroundColor: stats.contratosVencidos > 0 ? '#ffebee' : undefined, borderLeft: stats.contratosVencidos > 0 ? '4px solid #f44336' : undefined }}>
+          <div
+            className={styles.featureCard}
+            style={{
+              backgroundColor: stats.contratosVencidos > 0 ? '#ffebee' : undefined,
+              borderLeft: stats.contratosVencidos > 0 ? '4px solid #f44336' : undefined,
+              cursor: (stats.contratosVencidos > 0 && !sinAccesoContratos) ? 'pointer' : 'default',
+            }}
+            onClick={() => !sinAccesoContratos && stats.contratosVencidos > 0 && setModalAbierto('vencidos')}
+            title={!sinAccesoContratos && stats.contratosVencidos > 0 ? 'Ver contratos vencidos' : undefined}
+          >
             <div className={styles.icon}>🛑</div>
             <h3>Contratos Vencidos</h3>
             <p className={styles.statNumber} style={{ color: stats.contratosVencidos > 0 ? '#f44336' : undefined }}>{stats.contratosVencidos}</p>
@@ -229,6 +273,96 @@ const Home: React.FC = () => {
           </div>
         </section>
       </main>
+
+      {/* Modal Contratos por Vencer */}
+      {modalAbierto === 'porVencer' && (
+        <div className={styles.modalOverlay} onClick={() => setModalAbierto(null)}>
+          <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader} style={{ borderBottom: '3px solid #ff9800' }}>
+              <h3>⚠️ Contratos por Vencer</h3>
+              <p className={styles.modalSubtitle}>Próximos 3 días</p>
+              <button className={styles.modalClose} onClick={() => setModalAbierto(null)}>✕</button>
+            </div>
+            <div className={styles.modalBody}>
+              <table className={styles.modalTable}>
+                <thead>
+                  <tr>
+                    <th># Contrato</th>
+                    <th>Solicitud</th>
+                    <th>Cliente</th>
+                    <th>Vencimiento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contratosPorVencerList.map((c) => (
+                    <tr key={c.id_contrato}>
+                      <td>
+                        <a
+                          href={`/contratos?buscar=${encodeURIComponent(c.numero_solicitud_equipo)}`}
+                          className={styles.modalLink}
+                          style={{ color: '#ff9800' }}
+                        >
+                          #{c.id_contrato}
+                        </a>
+                      </td>
+                      <td>{c.numero_solicitud_equipo}</td>
+                      <td>{c.nombre_cliente}</td>
+                      <td style={{ color: '#ff9800', fontWeight: 700 }}>
+                        {c.fecha_vencimiento.split('T')[0].split('-').reverse().join('/')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Contratos Vencidos */}
+      {modalAbierto === 'vencidos' && (
+        <div className={styles.modalOverlay} onClick={() => setModalAbierto(null)}>
+          <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader} style={{ borderBottom: '3px solid #f44336' }}>
+              <h3>🛑 Contratos Vencidos</h3>
+              <p className={styles.modalSubtitle}>Requieren atención inmediata</p>
+              <button className={styles.modalClose} onClick={() => setModalAbierto(null)}>✕</button>
+            </div>
+            <div className={styles.modalBody}>
+              <table className={styles.modalTable}>
+                <thead>
+                  <tr>
+                    <th># Contrato</th>
+                    <th>Solicitud</th>
+                    <th>Cliente</th>
+                    <th>Vencimiento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contratosVencidosList.map((c) => (
+                    <tr key={c.id_contrato}>
+                      <td>
+                        <a
+                          href={`/contratos?buscar=${encodeURIComponent(c.numero_solicitud_equipo)}`}
+                          className={styles.modalLink}
+                          style={{ color: '#f44336' }}
+                        >
+                          #{c.id_contrato}
+                        </a>
+                      </td>
+                      <td>{c.numero_solicitud_equipo}</td>
+                      <td>{c.nombre_cliente}</td>
+                      <td style={{ color: '#f44336', fontWeight: 700 }}>
+                        {c.fecha_vencimiento.split('T')[0].split('-').reverse().join('/')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
