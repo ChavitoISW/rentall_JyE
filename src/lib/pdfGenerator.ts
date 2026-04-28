@@ -432,7 +432,7 @@ export function generarPDFContrato(contratoData: ContratoData): Promise<Buffer> 
       ? contratoData.direccion_entrega.split(',')[0].trim() 
       : '_________________________';
     
-    const terminos = `El presente contrato de alquiler de mezcladoras de concreto, se regirá por las siguientes cláusulas y condiciones:
+const terminos = `El presente contrato de alquiler de mezcladoras de concreto y/o equipos de construcción, se regirá por las siguientes cláusulas y condiciones:
 
 DENOMINACIONES:
 Propietario - Arrendador: Johnny Viques Loría, mayor, casado, empresario, cédula 2-469-410, vecino de Tuetal de Alajuela, 300 metros Este de la escuela.
@@ -440,7 +440,7 @@ Cliente - Arrendatario: Aquella persona que arrienda una mezcladora de concreto 
 
 CONDICIONES:
 1.- El arrendador se compromete a entregar todos los equipos en perfectas condiciones para ser usados según los requerimientos de trabajo, garantizado el perfecto funcionamiento de los mismos. Para efectos de lo anterior, el arrendatario deberá probar los mismos antes de que el responsable abandone el lugar donde se entregue la mezcladora alquilada. Una vez que se retire la responsable (previa prueba de arranque y funcionamiento), se exonera de toda responsabilidad al Arrendador.
-2.- El Arrendatario será responsable a partir de que la mezcladora llegue al lugar desigando, por el buen uso que se le otorgue a dicho equipo y asumirá el costo de los daños y perjuicios que se le causaren, sea por mal uso, descuido, negligencia, pérdida o robo, incendio o desastres. En caso de presentarse alguno de estos hechos, se compromete el Arrendatario en forma incondicional a cancelar el costo de la maquinaria, cuyo precio deberá fijarse o estimarse en este mismo documento, a más tardar una semana después de vencido el plazo del alquiler, o bien, una semana después de la fecha en que se dejo de hacer alguno de los pagos por concepto de alquiler, en rázon de haber acontecido alguna de estas posibilidades. 
+2.- El Arrendatario será responsable a partir de que el equipo llegue al lugar desigando, por el buen uso que se le otorgue a dicho equipo y asumirá el costo de los daños y perjuicios que se le causaren, sea por mal uso, descuido, negligencia, pérdida o robo, incendio o desastres. En caso de presentarse alguno de estos hechos, se compromete el Arrendatario en forma incondicional a cancelar el costo de la maquinaria, cuyo precio deberá fijarse o estimarse en este mismo documento, a más tardar una semana después de vencido el plazo del alquiler, o bien, una semana después de la fecha en que se dejo de hacer alguno de los pagos por concepto de alquiler, en rázon de haber acontecido alguna de estas posibilidades. 
 3.- El plazo del alquiler se fijará dentro de este contrato. En caso de que el Arrendatario al vencimiento del plazo no comunique (personalmente, telefónicamente) que el equipo está a dispocisión del arrendador para que sea retirado, deberá reconocer el pago de los dias que permanezca en su pocesión.
 4.- El Arrendador no se hace responsable por daños a la propiedad ajena, ni accidentes en perjuicio de los arrendtarios, sus trabajadores o terceros  que ocurran debido a defectos de instalación de equipos o uso impropios de los mismos.
 5.- El Arrendatario deberá permitir el acceso al equipo o maquinaria, de empleados del Arrendador, para hacer inspecciones o trabajos de mantenimiento rutinarios necesarios para el buen funcionamiento del mismo.

@@ -85,6 +85,9 @@ const HojaRuta: React.FC = () => {
     // Si el usuario es chofer (rol 5), filtrar por hojas activas por defecto
     if (usuario?.usuario_rol === 5) {
       setEstadoFiltro(EstadoHojaRuta.ACTIVA);
+    } else if (usuario?.usuario_rol === 4) {
+      // Contador (rol 4) solo puede ver hojas completadas
+      setEstadoFiltro(EstadoHojaRuta.COMPLETADA);
     }
   }, [usuario]);
 
@@ -288,7 +291,7 @@ const HojaRuta: React.FC = () => {
       if (paradaActual.tipo_operacion === TipoOperacionRuta.ENTREGA) {
         if (estadoFinal === EstadoDetalleRuta.COMPLETADO || estadoFinal === EstadoDetalleRuta.COMPLETADO_PARCIAL) {
           // Actualizar estado del detalle
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -311,7 +314,7 @@ const HojaRuta: React.FC = () => {
           });
         } else if (estadoFinal === EstadoDetalleRuta.NO_EJECUTADA) {
           // Actualizar estado del detalle
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -338,7 +341,7 @@ const HojaRuta: React.FC = () => {
         } else if (estadoFinal === EstadoDetalleRuta.FALLIDO) {
           // Fallido: eliminar detalle de hoja de ruta, revertir SE y liberar inventario
           // para que pueda ser reasignada a otra ruta
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'DELETE'
           });
           
@@ -415,7 +418,7 @@ const HojaRuta: React.FC = () => {
           }
           
           // Fallido: eliminar detalle de hoja de ruta para que pueda ser reasignada
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'DELETE'
           });
           
@@ -514,7 +517,7 @@ const HojaRuta: React.FC = () => {
           
           // NO_EJECUTADA: No se mueve el inventario a mantenimiento
           // El equipo permanece en cantidad_en_recoleccion
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -566,7 +569,7 @@ const HojaRuta: React.FC = () => {
           const fechaGestionParada = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
           
           // Actualizar estado del detalle
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -691,7 +694,7 @@ const HojaRuta: React.FC = () => {
       } else if (paradaActual.tipo_operacion === TipoOperacionRuta.CAMBIO) {
         if (estadoFinal === EstadoDetalleRuta.FALLIDO) {
           // Fallido: eliminar detalle de hoja de ruta para que pueda ser reasignada
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'DELETE'
           });
           
@@ -718,7 +721,7 @@ const HojaRuta: React.FC = () => {
           }
         } else if (estadoFinal === EstadoDetalleRuta.NO_EJECUTADA) {
           // Actualizar estado del detalle
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -751,7 +754,7 @@ const HojaRuta: React.FC = () => {
           }
         } else if (estadoFinal === EstadoDetalleRuta.COMPLETADO) {
           // Actualizar estado del detalle
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1118,7 +1121,11 @@ const HojaRuta: React.FC = () => {
       estadoFiltro === 'todos' ? true :
       hoja.estado === estadoFiltro;
 
-    return matchesSearch && matchesEstado;
+    // Contador (rol 4) solo puede ver hojas completadas
+    const matchesRolRestriction =
+      usuario?.usuario_rol !== 4 || hoja.estado === EstadoHojaRuta.COMPLETADA;
+
+    return matchesSearch && matchesEstado && matchesRolRestriction;
   }).sort((a, b) => {
     const numA = a.numero_hoja_ruta || '';
     const numB = b.numero_hoja_ruta || '';
@@ -1181,28 +1188,28 @@ const HojaRuta: React.FC = () => {
       onClick: handleActivar,
       className: styles.btnContrato,
       tooltip: 'Activar hoja de ruta',
-      condition: (hoja) => usuario?.usuario_rol !== 5 && hoja.estado === EstadoHojaRuta.BORRADOR
+      condition: (hoja) => usuario?.usuario_rol !== 5 && usuario?.usuario_rol !== 4 && hoja.estado === EstadoHojaRuta.BORRADOR
     },
     {
       label: '📋',
       onClick: handleAbrirGestionParadas,
       className: styles.btnContrato,
       tooltip: 'Gestionar paradas',
-      condition: (hoja) => hoja.estado === EstadoHojaRuta.ACTIVA
+      condition: (hoja) => usuario?.usuario_rol !== 4 && hoja.estado === EstadoHojaRuta.ACTIVA
     },
     {
       label: '✅',
       onClick: handleCompletar,
       className: styles.btnEdit,
       tooltip: 'Completar hoja de ruta',
-      condition: (hoja) => usuario?.usuario_rol !== 5 && hoja.estado === EstadoHojaRuta.ACTIVA
+      condition: (hoja) => usuario?.usuario_rol !== 5 && usuario?.usuario_rol !== 4 && hoja.estado === EstadoHojaRuta.ACTIVA
     },
     {
       label: '🗑️',
       onClick: handleEliminar,
       className: styles.btnAnular,
       tooltip: 'Eliminar hoja de ruta',
-      condition: (hoja) => usuario?.usuario_rol !== 5 && hoja.estado === EstadoHojaRuta.BORRADOR
+      condition: (hoja) => usuario?.usuario_rol !== 5 && usuario?.usuario_rol !== 4 && hoja.estado === EstadoHojaRuta.BORRADOR
     }
   ];
 
@@ -1214,7 +1221,7 @@ const HojaRuta: React.FC = () => {
       <main className={styles.main}>
         <div className={styles.header}>
           <h1>Gestión de Hojas de Ruta</h1>
-          {usuario?.usuario_rol !== 5 && (
+          {usuario?.usuario_rol !== 5 && usuario?.usuario_rol !== 4 && (
             <button className={styles.btnAdd} onClick={openCrearModal}>
               + Nueva Hoja de Ruta
             </button>
@@ -1229,17 +1236,19 @@ const HojaRuta: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
-          <select
-            value={estadoFiltro}
-            onChange={(e) => setEstadoFiltro(e.target.value === 'todos' ? 'todos' : Number(e.target.value))}
-            className={styles.searchInput}
-            style={{ width: '220px', marginLeft: '1rem' }}
-          >
-            <option value="todos">Todos los estados</option>
-            {Object.entries(EstadoHojaRutaLabels).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
+          {usuario?.usuario_rol !== 4 && (
+            <select
+              value={estadoFiltro}
+              onChange={(e) => setEstadoFiltro(e.target.value === 'todos' ? 'todos' : Number(e.target.value))}
+              className={styles.searchInput}
+              style={{ width: '220px', marginLeft: '1rem' }}
+            >
+              <option value="todos">Todos los estados</option>
+              {Object.entries(EstadoHojaRutaLabels).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          )}
         </div>
 
         <Table
@@ -1272,6 +1281,11 @@ const HojaRuta: React.FC = () => {
                       <h1 style={{ margin: 0 }}>HOJA DE RUTA N° {currentHoja.numero_hoja_ruta}</h1>
                       <p style={{ margin: '0.5rem 0 0 0' }}>Fecha de impresión: {new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
+                    {currentHoja.observaciones && (
+                      <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #ccc' }}>
+                        <strong>Comentarios:</strong> {currentHoja.observaciones}
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className={styles.section}>
@@ -1488,7 +1502,7 @@ const HojaRuta: React.FC = () => {
                 )}
 
                 {isViewing && (
-                  <div className="print-only" style={{ display: 'none', marginTop: '3rem', padding: '2rem 0', borderTop: '2px solid #000' }}>
+                  <div className="print-only" style={{ display: 'none', marginTop: '3rem', padding: '2rem 0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-around' }}>
                       <div style={{ textAlign: 'center', width: '40%' }}>
                         <div style={{ borderBottom: '1px solid #000', marginBottom: '0.5rem', paddingBottom: '2rem' }}></div>
@@ -1500,9 +1514,7 @@ const HojaRuta: React.FC = () => {
                         <p style={{ margin: 0, fontWeight: 'bold' }}>Firma del Supervisor</p>
                       </div>
                     </div>
-                    <div style={{ marginTop: '2rem', textAlign: 'center', fontSize: '0.85rem', color: '#666' }}>
-                      <p>Este documento es un registro oficial de las entregas, recolecciones y cambios de equipo realizados.</p>
-                    </div>
+                    
                   </div>
                 )}
 

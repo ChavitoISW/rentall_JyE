@@ -206,8 +206,8 @@ const Menu: React.FC = () => {
             </li>
           )}
 
-          {/* Hojas de Ruta - visible para rol 5 (Chofer) */}
-          {usuario?.usuario_rol === 5 && (
+          {/* Hojas de Ruta - visible para rol 5 (Chofer) y rol 4 (Contador, solo completadas) */}
+          {(usuario?.usuario_rol === 5 || usuario?.usuario_rol === 4) && (
             <li className={styles.menuItem}>
               <Link href="/hojas-ruta">Hojas de Ruta</Link>
             </li>
