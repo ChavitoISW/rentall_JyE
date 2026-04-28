@@ -1124,9 +1124,7 @@
   }
 
   .modalHeader {
-    border-bottom: 1px solid #000 !important;
-    padding: 0.25rem 0 !important;
-    margin: 0 !important;
+    display: none !important;
   }
 
   .modalHeader h2 {
@@ -1145,8 +1143,8 @@
     display: flex !important;
   }
 
-  /* Ocultar todos los elementos excepto la sección de paradas */
-  .form > *:not(:global(.seccion-paradas)) {
+  /* Ocultar todos los elementos excepto la sección de paradas y el encabezado de impresión */
+  .form > *:not(:global(.seccion-paradas)):not(:global(.print-only)) {
     display: none !important;
   }
 
