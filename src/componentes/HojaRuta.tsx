@@ -291,7 +291,7 @@ const HojaRuta: React.FC = () => {
       if (paradaActual.tipo_operacion === TipoOperacionRuta.ENTREGA) {
         if (estadoFinal === EstadoDetalleRuta.COMPLETADO || estadoFinal === EstadoDetalleRuta.COMPLETADO_PARCIAL) {
           // Actualizar estado del detalle
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -314,7 +314,7 @@ const HojaRuta: React.FC = () => {
           });
         } else if (estadoFinal === EstadoDetalleRuta.NO_EJECUTADA) {
           // Actualizar estado del detalle
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -341,7 +341,7 @@ const HojaRuta: React.FC = () => {
         } else if (estadoFinal === EstadoDetalleRuta.FALLIDO) {
           // Fallido: eliminar detalle de hoja de ruta, revertir SE y liberar inventario
           // para que pueda ser reasignada a otra ruta
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'DELETE'
           });
           
@@ -418,7 +418,7 @@ const HojaRuta: React.FC = () => {
           }
           
           // Fallido: eliminar detalle de hoja de ruta para que pueda ser reasignada
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'DELETE'
           });
           
@@ -517,7 +517,7 @@ const HojaRuta: React.FC = () => {
           
           // NO_EJECUTADA: No se mueve el inventario a mantenimiento
           // El equipo permanece en cantidad_en_recoleccion
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -569,7 +569,7 @@ const HojaRuta: React.FC = () => {
           const fechaGestionParada = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
           
           // Actualizar estado del detalle
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -694,7 +694,7 @@ const HojaRuta: React.FC = () => {
       } else if (paradaActual.tipo_operacion === TipoOperacionRuta.CAMBIO) {
         if (estadoFinal === EstadoDetalleRuta.FALLIDO) {
           // Fallido: eliminar detalle de hoja de ruta para que pueda ser reasignada
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'DELETE'
           });
           
@@ -721,7 +721,7 @@ const HojaRuta: React.FC = () => {
           }
         } else if (estadoFinal === EstadoDetalleRuta.NO_EJECUTADA) {
           // Actualizar estado del detalle
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -754,7 +754,7 @@ const HojaRuta: React.FC = () => {
           }
         } else if (estadoFinal === EstadoDetalleRuta.COMPLETADO) {
           // Actualizar estado del detalle
-          const response = await fetch(`/api/hoja-ruta/detalle/${paradaActual.id_detalle_hoja_ruta}`, {
+          const response = await fetch(`/api/hoja-ruta-detalle/${paradaActual.id_detalle_hoja_ruta}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
