@@ -190,11 +190,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ivaGeneral += iva;
       }
 
-      // Si cobra factura y hay envío, incluir el IVA del envío
-      const montoEnvioSE = contratoOriginal.pago_envio ? (contratoOriginal.monto_envio || 0) : 0;
-      if (contratoOriginal.usa_factura && montoEnvioSE > 0) {
-        ivaGeneral += montoEnvioSE * 0.13;
-      }
+      // Las extensiones NO cobran envío (el equipo ya está donde el cliente)
+      const montoEnvioSE = 0;
 
       // 6. Crear NUEVA SE de extensión (no modificar la original)
       const observacionExtension = `Extensión del contrato #${id} (SE origen: ${numeroSEBase})`;
@@ -243,8 +240,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         contratoOriginal.distrito_solicitud_equipo,
         contratoOriginal.otras_senas_solicitud_equipo,
         observacionExtension,
-        contratoOriginal.pago_envio,
-        contratoOriginal.monto_envio,
+        0, // pago_envio: extensiones no cobran envío
+        0, // monto_envio: extensiones no cobran envío
         contratoOriginal.usa_factura,
         subtotalGeneral,
         descuento || 0, // descuento_solicitud_equipo
