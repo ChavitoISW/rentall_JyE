@@ -102,55 +102,7 @@ const Contratos: React.FC = () => {
       if (response.ok) {
         const result = await response.json();
         const contratosData = Array.isArray(result.data) ? result.data : [];
-        
-        // Para cada contrato en estado GENERADO, verificar el estado de vencimiento de los detalles
-        const contratosConEstado = await Promise.all(
-          contratosData.map(async (contrato: ContratoExtendido) => {
-            if (contrato.estado === EstadoContrato.GENERADO && contrato.numero_solicitud_equipo) {
-              try {
-                const detallesResponse = await fetch(`/api/detalle-solicitud-equipo?numero_solicitud_equipo=${contrato.numero_solicitud_equipo}`);
-                const detallesResult = await detallesResponse.json();
-                
-                if (Array.isArray(detallesResult.data) && detallesResult.data.length > 0) {
-                  const fechaActual = new Date();
-                  fechaActual.setHours(0, 0, 0, 0);
-                  
-                  let hayVencido = false;
-                  let hayPorVencer = false;
-                  
-                  for (const detalle of detallesResult.data) {
-                    if (detalle.fecha_devolucion) {
-                      // Parsear manualmente para evitar conversión UTC
-                      const [year, month, day] = detalle.fecha_devolucion.split('T')[0].split('-');
-                      const fechaDevolucion = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                      fechaDevolucion.setHours(0, 0, 0, 0);
-                      
-                      const diferenciaDias = Math.ceil((fechaDevolucion.getTime() - fechaActual.getTime()) / (1000 * 60 * 60 * 24));
-                      
-                      if (diferenciaDias <= 1) {
-                        hayVencido = true;
-                        break;
-                      } else if (diferenciaDias <= 3) {
-                        hayPorVencer = true;
-                      }
-                    }
-                  }
-                  
-                  return {
-                    ...contrato,
-                    estadoVencimiento: hayVencido ? 'vencido' : hayPorVencer ? 'porVencer' : 'normal'
-                  };
-                }
-              } catch (error) {
-                console.error('Error al verificar detalles de contrato:', error);
-              }
-            }
-            
-            return { ...contrato, estadoVencimiento: 'normal' };
-          })
-        );
-        
-        setContratos(contratosConEstado);
+        setContratos(contratosData);
       }
     } catch (error) {
       console.error('Error al cargar contratos:', error);
