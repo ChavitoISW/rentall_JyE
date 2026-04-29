@@ -1910,10 +1910,15 @@ export const contratoModel = {
         CASE 
           WHEN cl.nombre_cliente IS NOT NULL THEN cl.nombre_cliente || ' ' || cl.apellidos_cliente
           ELSE 'Sin cliente'
-        END as nombre_cliente
+        END as nombre_cliente,
+        cl.telefono_cliente,
+        GROUP_CONCAT(e.nombre_equipo, ', ') as equipos
       FROM contrato c
       LEFT JOIN encabezado_solicitud_equipo s ON c.id_solicitud_equipo = s.id_solicitud_equipo
       LEFT JOIN cliente cl ON s.id_cliente = cl.id_cliente
+      LEFT JOIN detalle_solicitud_equipo dse ON s.numero_solicitud_equipo = dse.numero_solicitud_equipo
+      LEFT JOIN equipo e ON dse.id_equipo = e.id_equipo
+      GROUP BY c.id_contrato
       ORDER BY c.created_at DESC
     `).all();
   },
