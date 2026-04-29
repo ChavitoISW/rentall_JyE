@@ -25,7 +25,10 @@ interface ContratoAlerta {
   id_contrato: number;
   numero_solicitud_equipo: string;
   nombre_cliente: string;
+  telefono_cliente: string;
+  equipos: string;
   fecha_vencimiento: string;
+  estado_pago: string;
 }
 
 const Home: React.FC = () => {
@@ -62,7 +65,7 @@ const Home: React.FC = () => {
         fetch('/api/usuario'),
         fetch('/api/categoria-equipo'),
         fetch('/api/solicitud-equipo'),
-        fetch('/api/contrato'),
+        fetch('/api/contrato/con-pagos'),
       ]);
 
       const [equipos, clientes, usuarios, catEquipo, solicitudesEquipo, contratos] = await Promise.all([
@@ -115,7 +118,7 @@ const Home: React.FC = () => {
         fechaActual.setHours(0, 0, 0, 0);
         
         contratos.data.forEach((contrato: any) => {
-          if (contrato.fecha_vencimiento && contrato.estado === 1) { // Solo contratos generados
+          if (contrato.fecha_vencimiento && contrato.estado !== 0) { // Solo contratos no anulados
             const [year, month, day] = contrato.fecha_vencimiento.split('T')[0].split('-');
             const fechaVencimiento = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
             fechaVencimiento.setHours(0, 0, 0, 0);
@@ -125,7 +128,10 @@ const Home: React.FC = () => {
               id_contrato: contrato.id_contrato,
               numero_solicitud_equipo: contrato.numero_solicitud_equipo || '',
               nombre_cliente: contrato.nombre_cliente || 'Sin cliente',
+              telefono_cliente: contrato.telefono_cliente || '',
+              equipos: contrato.equipos || '',
               fecha_vencimiento: contrato.fecha_vencimiento,
+              estado_pago: contrato.estado_pago || 'pendiente',
             };
 
             if (diferenciaDias < 0) {
@@ -288,8 +294,10 @@ const Home: React.FC = () => {
                 <thead>
                   <tr>
                     <th># Contrato</th>
-                    <th>Solicitud</th>
                     <th>Cliente</th>
+                    <th>Teléfono</th>
+                    <th>Equipos</th>
+                    <th>Estado Pago</th>
                     <th>Vencimiento</th>
                   </tr>
                 </thead>
@@ -305,8 +313,26 @@ const Home: React.FC = () => {
                           #{c.id_contrato}
                         </a>
                       </td>
-                      <td>{c.numero_solicitud_equipo}</td>
                       <td>{c.nombre_cliente}</td>
+                      <td>{c.telefono_cliente}</td>
+                      <td>{c.equipos}</td>
+                      <td>
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                          backgroundColor:
+                            c.estado_pago === 'pagado' ? '#e8f5e9' :
+                            c.estado_pago === 'pago_parcial' ? '#fff3e0' : '#ffebee',
+                          color:
+                            c.estado_pago === 'pagado' ? '#388e3c' :
+                            c.estado_pago === 'pago_parcial' ? '#e65100' : '#c62828',
+                        }}>
+                          {c.estado_pago === 'pagado' ? 'Pagado' :
+                           c.estado_pago === 'pago_parcial' ? 'Parcial' : 'Pendiente'}
+                        </span>
+                      </td>
                       <td style={{ color: '#ff9800', fontWeight: 700 }}>
                         {c.fecha_vencimiento.split('T')[0].split('-').reverse().join('/')}
                       </td>
@@ -333,8 +359,10 @@ const Home: React.FC = () => {
                 <thead>
                   <tr>
                     <th># Contrato</th>
-                    <th>Solicitud</th>
                     <th>Cliente</th>
+                    <th>Teléfono</th>
+                    <th>Equipos</th>
+                    <th>Estado Pago</th>
                     <th>Vencimiento</th>
                   </tr>
                 </thead>
@@ -350,8 +378,26 @@ const Home: React.FC = () => {
                           #{c.id_contrato}
                         </a>
                       </td>
-                      <td>{c.numero_solicitud_equipo}</td>
                       <td>{c.nombre_cliente}</td>
+                      <td>{c.telefono_cliente}</td>
+                      <td>{c.equipos}</td>
+                      <td>
+                        <span style={{
+                          padding: '2px 8px',
+                          borderRadius: '12px',
+                          fontSize: '0.78rem',
+                          fontWeight: 600,
+                          backgroundColor:
+                            c.estado_pago === 'pagado' ? '#e8f5e9' :
+                            c.estado_pago === 'pago_parcial' ? '#fff3e0' : '#ffebee',
+                          color:
+                            c.estado_pago === 'pagado' ? '#388e3c' :
+                            c.estado_pago === 'pago_parcial' ? '#e65100' : '#c62828',
+                        }}>
+                          {c.estado_pago === 'pagado' ? 'Pagado' :
+                           c.estado_pago === 'pago_parcial' ? 'Parcial' : 'Pendiente'}
+                        </span>
+                      </td>
                       <td style={{ color: '#f44336', fontWeight: 700 }}>
                         {c.fecha_vencimiento.split('T')[0].split('-').reverse().join('/')}
                       </td>
