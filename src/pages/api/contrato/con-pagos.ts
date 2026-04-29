@@ -12,6 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const query = `
       SELECT 
         co.id_contrato,
+        co.estado,
         PRINTF('%05d', co.id_contrato) as numero_contrato,
         se.numero_solicitud_equipo,
         COALESCE(cli.nombre_cliente || ' ' || cli.apellidos_cliente, se.nombre_recibe) as nombre_cliente,
@@ -36,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       LEFT JOIN detalle_solicitud_equipo dse ON se.numero_solicitud_equipo = dse.numero_solicitud_equipo
       LEFT JOIN equipo e ON dse.id_equipo = e.id_equipo
       WHERE co.estado != 0
-      GROUP BY co.id_contrato, se.total_solicitud_equipo, se.usa_factura, se.iva_solicitud_equipo,
+      GROUP BY co.id_contrato, co.estado, se.total_solicitud_equipo, se.usa_factura, se.iva_solicitud_equipo,
                se.numero_solicitud_equipo, nombre_cliente, cli.telefono_cliente, se.fecha_inicio, se.fecha_vencimiento
       ORDER BY co.id_contrato DESC
     `;
