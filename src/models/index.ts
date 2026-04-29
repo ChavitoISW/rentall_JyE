@@ -1912,7 +1912,23 @@ export const contratoModel = {
           ELSE 'Sin cliente'
         END as nombre_cliente,
         cl.telefono_cliente,
-        GROUP_CONCAT(e.nombre_equipo, ', ') as equipos
+        GROUP_CONCAT(e.nombre_equipo, ', ') as equipos,
+        CASE
+          WHEN c.estado != 1 THEN 'normal'
+          WHEN EXISTS (
+            SELECT 1 FROM detalle_solicitud_equipo dse2
+            WHERE dse2.numero_solicitud_equipo = s.numero_solicitud_equipo
+            AND dse2.fecha_devolucion IS NOT NULL
+            AND (julianday(substr(dse2.fecha_devolucion, 1, 10)) - julianday('now')) <= 1
+          ) THEN 'vencido'
+          WHEN EXISTS (
+            SELECT 1 FROM detalle_solicitud_equipo dse2
+            WHERE dse2.numero_solicitud_equipo = s.numero_solicitud_equipo
+            AND dse2.fecha_devolucion IS NOT NULL
+            AND (julianday(substr(dse2.fecha_devolucion, 1, 10)) - julianday('now')) <= 3
+          ) THEN 'porVencer'
+          ELSE 'normal'
+        END as estadoVencimiento
       FROM contrato c
       LEFT JOIN encabezado_solicitud_equipo s ON c.id_solicitud_equipo = s.id_solicitud_equipo
       LEFT JOIN cliente cl ON s.id_cliente = cl.id_cliente
