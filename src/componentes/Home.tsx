@@ -118,7 +118,7 @@ const Home: React.FC = () => {
         fechaActual.setHours(0, 0, 0, 0);
         
         contratos.data.forEach((contrato: any) => {
-          if (contrato.fecha_vencimiento && contrato.estado === 1) { // Solo contratos en estado GENERADO
+          if (contrato.fecha_vencimiento && contrato.estado === 1 && contrato.estado_solicitud_equipo === 4) { // Solo contratos GENERADO con SE en Contrato Activo
             const [year, month, day] = contrato.fecha_vencimiento.split('T')[0].split('-');
             const fechaVencimiento = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
             fechaVencimiento.setHours(0, 0, 0, 0);
