@@ -87,6 +87,26 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
           if (equipos.length > 0) {
             equiposInfo = equipos.map((e: any) => `${e.nombre_equipo} (${e.cantidad_equipo})`).join(', ');
           }
+
+          // Obtener datos del receptor y cliente para mostrar ambos si difieren
+          const seInfo = db.prepare(
+            `SELECT se.nombre_recibe, se.cedula_recibe, se.telefono_recibe,
+                    c.nombre_cliente || ' ' || c.apellidos_cliente as nombre_cliente_real,
+                    c.documento_identidad_cliente as cedula_cliente,
+                    c.telefono_cliente as telefono_cliente_real
+             FROM encabezado_solicitud_equipo se
+             LEFT JOIN cliente c ON se.id_cliente = c.id_cliente
+             WHERE se.id_solicitud_equipo = ?`
+          ).get(detalle.id_referencia) as any;
+
+          if (seInfo) {
+            detalle.nombre_recibe = seInfo.nombre_recibe;
+            detalle.cedula_recibe = seInfo.cedula_recibe;
+            detalle.telefono_recibe = seInfo.telefono_recibe;
+            detalle.nombre_cliente_real = seInfo.nombre_cliente_real;
+            detalle.cedula_cliente = seInfo.cedula_cliente;
+            detalle.telefono_cliente_real = seInfo.telefono_cliente_real;
+          }
         } else if (detalle.tipo_operacion === 1) { // RECOLECCION
           // Obtener equipo de la orden de recolección
           const orden = db.prepare(

@@ -1455,7 +1455,14 @@ const HojaRuta: React.FC = () => {
                               )}
                             </div>
                             <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.25rem' }}>
-                              Cliente: {detalle.nombre_cliente} | {detalle.telefono_cliente}
+                              {detalle.nombre_recibe && detalle.nombre_cliente_real && detalle.nombre_recibe !== detalle.nombre_cliente_real ? (
+                                <>
+                                  <div><strong>Cliente:</strong> {detalle.nombre_cliente_real}{detalle.cedula_cliente ? ` | Cédula: ${detalle.cedula_cliente}` : ''}{detalle.telefono_cliente_real ? ` | Tel: ${detalle.telefono_cliente_real}` : ''}</div>
+                                  <div><strong>Recibe:</strong> {detalle.nombre_recibe}{detalle.cedula_recibe ? ` | Cédula: ${detalle.cedula_recibe}` : ''}{detalle.telefono_recibe ? ` | Tel: ${detalle.telefono_recibe}` : ''}</div>
+                                </>
+                              ) : (
+                                <span>Cliente: {detalle.nombre_cliente} | {detalle.telefono_cliente}</span>
+                              )}
                             </div>
                             {detalle.equipos_info && (
                               <div style={{ fontSize: '0.9rem', color: '#333', marginBottom: '0.25rem', fontWeight: 500 }}>
@@ -1599,7 +1606,14 @@ const HojaRuta: React.FC = () => {
                             )}
                           </div>
                           <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.25rem' }}>
-                            Cliente: {detalle.nombre_cliente} | {detalle.telefono_cliente}
+                            {detalle.nombre_recibe && detalle.nombre_cliente_real && detalle.nombre_recibe !== detalle.nombre_cliente_real ? (
+                              <>
+                                <div><strong>Cliente:</strong> {detalle.nombre_cliente_real}{detalle.cedula_cliente ? ` | Cédula: ${detalle.cedula_cliente}` : ''}{detalle.telefono_cliente_real ? ` | Tel: ${detalle.telefono_cliente_real}` : ''}</div>
+                                <div><strong>Recibe:</strong> {detalle.nombre_recibe}{detalle.cedula_recibe ? ` | Cédula: ${detalle.cedula_recibe}` : ''}{detalle.telefono_recibe ? ` | Tel: ${detalle.telefono_recibe}` : ''}</div>
+                              </>
+                            ) : (
+                              <span>Cliente: {detalle.nombre_cliente} | {detalle.telefono_cliente}</span>
+                            )}
                           </div>
                           {detalle.equipos_info && (
                             <div style={{ fontSize: '0.9rem', color: '#333', marginBottom: '0.25rem', fontWeight: 500 }}>
@@ -1679,8 +1693,17 @@ const HojaRuta: React.FC = () => {
                     <strong>Referencia:</strong> {paradaActual.numero_referencia}
                   </div>
                   <div style={{ marginBottom: '0.5rem' }}>
-                    <strong>Cliente:</strong> {paradaActual.nombre_cliente}
+                    <strong>Cliente:</strong> {paradaActual.nombre_cliente_real || paradaActual.nombre_cliente}
+                    {paradaActual.cedula_cliente ? <span style={{ marginLeft: '0.5rem', color: '#666' }}>| Cédula: {paradaActual.cedula_cliente}</span> : null}
+                    {paradaActual.telefono_cliente_real ? <span style={{ marginLeft: '0.5rem', color: '#666' }}>| Tel: {paradaActual.telefono_cliente_real}</span> : null}
                   </div>
+                  {paradaActual.nombre_recibe && paradaActual.nombre_cliente_real && paradaActual.nombre_recibe !== paradaActual.nombre_cliente_real && (
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <strong>Recibe:</strong> {paradaActual.nombre_recibe}
+                      {paradaActual.cedula_recibe ? <span style={{ marginLeft: '0.5rem', color: '#666' }}>| Cédula: {paradaActual.cedula_recibe}</span> : null}
+                      {paradaActual.telefono_recibe ? <span style={{ marginLeft: '0.5rem', color: '#666' }}>| Tel: {paradaActual.telefono_recibe}</span> : null}
+                    </div>
+                  )}
                   <div style={{ marginBottom: '0.5rem' }}>
                     <strong>Dirección:</strong> {paradaActual.provincia}, {paradaActual.canton}, {paradaActual.distrito}
                   </div>

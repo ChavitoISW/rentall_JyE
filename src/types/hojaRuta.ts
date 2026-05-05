@@ -69,6 +69,12 @@ export interface DetalleHojaRuta {
   otras_senas?: string;
   nombre_cliente?: string;
   telefono_cliente?: string;
+  nombre_recibe?: string;
+  cedula_recibe?: string;
+  telefono_recibe?: string;
+  nombre_cliente_real?: string;
+  cedula_cliente?: string;
+  telefono_cliente_real?: string;
   estado_detalle?: EstadoDetalleRuta;
   estado?: EstadoDetalleRuta;
   hora_estimada?: string;
