@@ -109,17 +109,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const fechaActual = new Date().toISOString().split('T')[0];
 
       // 5. Calcular totales para la nueva SE
-      // 5. Calcular totales para la nueva SE
       let subtotalGeneral = 0;
       let ivaGeneral = 0;
 
       for (const equipo of equipos) {
-        // Obtener datos del equipo y su categoría
+        // Obtener nombre del equipo para mensajes de error
         const datosEquipo = db.prepare(`
-          SELECT e.nombre_equipo, e.id_equipo_categoria, e.cantidad_equipo, 
-                 e.id_equipo_especifico, c.nombre as nombre_categoria
+          SELECT e.nombre_equipo
           FROM equipo e
-          LEFT JOIN categoria_equipo c ON e.id_equipo_categoria = c.id
           WHERE e.id_equipo = ?
         `).get(equipo.id_equipo) as any;
 
@@ -127,64 +124,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           throw new Error(`No se encontró el equipo ${equipo.id_equipo}`);
         }
 
-        // Obtener precio actual según periodicidad y tabla específica
+        // Usar precios enviados desde el frontend (ya consultados con /api/equipo/precios)
         let precioUnitario = 0;
-        
-        if (datosEquipo.id_equipo_especifico) {
-          const categoria = datosEquipo.nombre_categoria?.toLowerCase() || '';
-          let tablaNombre = '';
-          let idColumna = '';
-          let campoPeriodicidad = '';
-
-          // Mapear periodicidad numérica a nombre de columna
-          switch (equipo.periodicidad) {
-            case 0: campoPeriodicidad = 'precio_dia'; break;
-            case 1: campoPeriodicidad = 'precio_semana'; break;
-            case 2: campoPeriodicidad = 'precio_quincena'; break;
-            case 4: campoPeriodicidad = 'precio_mes'; break;
-            default: campoPeriodicidad = 'precio_mes';
-          }
-
-          if (categoria.includes('mezcladora')) {
-            tablaNombre = 'mezcladora';
-            idColumna = 'id_mezcladora';
-          } else if (categoria.includes('andamio')) {
-            tablaNombre = 'andamio';
-            idColumna = 'id_andamio';
-          } else if (categoria.includes('compactador')) {
-            tablaNombre = 'compactador';
-            idColumna = 'id_compactador';
-          } else if (categoria.includes('rompedor')) {
-            tablaNombre = 'rompedor';
-            idColumna = 'id_rompedor';
-          } else if (categoria.includes('vibrador')) {
-            tablaNombre = 'vibrador';
-            idColumna = 'id_vibrador';
-          } else if (categoria.includes('puntal')) {
-            tablaNombre = 'puntal';
-            idColumna = 'id_puntal';
-          }
-
-          if (tablaNombre) {
-            const precioEquipo = db.prepare(`
-              SELECT ${campoPeriodicidad} as precio
-              FROM ${tablaNombre}
-              WHERE ${idColumna} = ?
-            `).get(datosEquipo.id_equipo_especifico) as any;
-
-            precioUnitario = precioEquipo?.precio || 0;
-          }
-        }
-
-        if (precioUnitario === 0) {
-          throw new Error(`No se encontró precio para el equipo ${datosEquipo.nombre_equipo}`);
+        const per = Number(equipo.periodicidad);
+        switch (per) {
+          case 0: precioUnitario = Number(equipo.precio_dia) || 0; break;
+          case 1: precioUnitario = Number(equipo.precio_semana) || 0; break;
+          case 2: precioUnitario = Number(equipo.precio_quincena) || 0; break;
+          case 4: precioUnitario = Number(equipo.precio_mes) || 0; break;
+          default: precioUnitario = Number(equipo.precio_mes) || 0;
         }
 
         // Calcular montos
         const cantidad = equipo.cantidad_equipo || 1;
         const subtotal = precioUnitario * equipo.cantidad_periodos * cantidad;
         const iva = contratoOriginal.usa_factura ? subtotal * 0.13 : 0;
-        const total = subtotal + iva;
 
         subtotalGeneral += subtotal;
         ivaGeneral += iva;
@@ -257,15 +211,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const nuevaSolicitudId = resultSE.lastInsertRowid as number;
 
       // 7. Insertar detalles en la NUEVA SE
-
-      // 7. Insertar detalles en la NUEVA SE
       for (const equipo of equipos) {
-        // Obtener datos del equipo y su categoría
+        // Obtener nombre del equipo para mensajes de error
         const datosEquipo = db.prepare(`
-          SELECT e.nombre_equipo, e.id_equipo_categoria, e.cantidad_equipo, 
-                 e.id_equipo_especifico, c.nombre as nombre_categoria
+          SELECT e.nombre_equipo
           FROM equipo e
-          LEFT JOIN categoria_equipo c ON e.id_equipo_categoria = c.id
           WHERE e.id_equipo = ?
         `).get(equipo.id_equipo) as any;
 
@@ -273,57 +223,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           throw new Error(`No se encontró el equipo ${equipo.id_equipo}`);
         }
 
-        // Obtener precio actual según periodicidad y tabla específica
+        // Usar precios enviados desde el frontend
         let precioUnitario = 0;
-        
-        if (datosEquipo.id_equipo_especifico) {
-          const categoria = datosEquipo.nombre_categoria?.toLowerCase() || '';
-          let tablaNombre = '';
-          let idColumna = '';
-          let campoPeriodicidad = '';
-
-          // Mapear periodicidad numérica a nombre de columna
-          switch (equipo.periodicidad) {
-            case 0: campoPeriodicidad = 'precio_dia'; break;
-            case 1: campoPeriodicidad = 'precio_semana'; break;
-            case 2: campoPeriodicidad = 'precio_quincena'; break;
-            case 4: campoPeriodicidad = 'precio_mes'; break;
-            default: campoPeriodicidad = 'precio_mes';
-          }
-
-          if (categoria.includes('mezcladora')) {
-            tablaNombre = 'mezcladora';
-            idColumna = 'id_mezcladora';
-          } else if (categoria.includes('andamio')) {
-            tablaNombre = 'andamio';
-            idColumna = 'id_andamio';
-          } else if (categoria.includes('compactador')) {
-            tablaNombre = 'compactador';
-            idColumna = 'id_compactador';
-          } else if (categoria.includes('rompedor')) {
-            tablaNombre = 'rompedor';
-            idColumna = 'id_rompedor';
-          } else if (categoria.includes('vibrador')) {
-            tablaNombre = 'vibrador';
-            idColumna = 'id_vibrador';
-          } else if (categoria.includes('puntal')) {
-            tablaNombre = 'puntal';
-            idColumna = 'id_puntal';
-          }
-
-          if (tablaNombre) {
-            const precioEquipo = db.prepare(`
-              SELECT ${campoPeriodicidad} as precio
-              FROM ${tablaNombre}
-              WHERE ${idColumna} = ?
-            `).get(datosEquipo.id_equipo_especifico) as any;
-
-            precioUnitario = precioEquipo?.precio || 0;
-          }
-        }
-
-        if (precioUnitario === 0) {
-          throw new Error(`No se encontró precio para el equipo ${datosEquipo.nombre_equipo}`);
+        const per = Number(equipo.periodicidad);
+        switch (per) {
+          case 0: precioUnitario = Number(equipo.precio_dia) || 0; break;
+          case 1: precioUnitario = Number(equipo.precio_semana) || 0; break;
+          case 2: precioUnitario = Number(equipo.precio_quincena) || 0; break;
+          case 4: precioUnitario = Number(equipo.precio_mes) || 0; break;
+          default: precioUnitario = Number(equipo.precio_mes) || 0;
         }
 
         // Calcular montos
