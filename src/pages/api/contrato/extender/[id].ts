@@ -135,10 +135,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           default: precioUnitario = Number(equipo.precio_mes) || 0;
         }
 
-        if (precioUnitario === 0) {
-          throw new Error(`No se encontró precio para el equipo ${datosEquipo.nombre_equipo}`);
-        }
-
         // Calcular montos
         const cantidad = equipo.cantidad_equipo || 1;
         const subtotal = precioUnitario * equipo.cantidad_periodos * cantidad;
@@ -236,10 +232,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           case 2: precioUnitario = Number(equipo.precio_quincena) || 0; break;
           case 4: precioUnitario = Number(equipo.precio_mes) || 0; break;
           default: precioUnitario = Number(equipo.precio_mes) || 0;
-        }
-
-        if (precioUnitario === 0) {
-          throw new Error(`No se encontró precio para el equipo ${datosEquipo.nombre_equipo}`);
         }
 
         // Calcular montos
