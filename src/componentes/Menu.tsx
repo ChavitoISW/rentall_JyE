@@ -354,6 +354,9 @@ const Menu: React.FC = () => {
                   <li className={styles.dropdownItem}>
                     <Link href="/ajuste-inventario">Ajuste Manual de Inventario</Link>
                   </li>
+                  <li className={styles.dropdownItem}>
+                    <Link href="/ajuste-estado-se">Ajuste Estado de SE</Link>
+                  </li>
                   
                 </ul>
               )}
