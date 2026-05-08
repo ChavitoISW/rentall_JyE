@@ -508,6 +508,16 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
        )`
     );
 
+    // Regresar entregas (contratos) a estado CONTRATO_GENERADO (2) para que vuelvan a la cola
+    const updateEntregas = db.prepare(
+      `UPDATE encabezado_solicitud_equipo
+       SET estado_solicitud_equipo = 2
+       WHERE id_solicitud_equipo IN (
+         SELECT id_referencia FROM detalle_hoja_ruta
+         WHERE id_hoja_ruta = ? AND tipo_operacion = 0
+       )`
+    );
+
     const deleteDetalles = db.prepare('DELETE FROM detalle_hoja_ruta WHERE id_hoja_ruta = ?');
     const deleteHoja = db.prepare('DELETE FROM hoja_ruta WHERE id_hoja_ruta = ?');
     const selectHoja = db.prepare('SELECT * FROM hoja_ruta WHERE id_hoja_ruta = ?');
@@ -522,6 +532,7 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
       // Liberar las órdenes asociadas (volver a estado Pendiente)
       updateRecoleccion.run(id);
       updateCambio.run(id);
+      updateEntregas.run(id);
 
       // Eliminar detalles primero (por foreign key constraint)
       deleteDetalles.run(id);
