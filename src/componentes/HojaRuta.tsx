@@ -63,7 +63,7 @@ const HojaRuta: React.FC = () => {
 
   const [currentHoja, setCurrentHoja] = useState<HojaRutaExtendida>({
     fecha_creacion: new Date().toISOString().split('T')[0],
-    conductor: 'Allan Núñez Madrigal',
+    conductor: '',
     vehiculo: 'CL272368',
     estado: EstadoHojaRuta.BORRADOR,
     observaciones: ''
@@ -1008,7 +1008,7 @@ const HojaRuta: React.FC = () => {
     await fetchOrdenesDisponibles();
     setCurrentHoja({
       fecha_creacion: new Date().toISOString().split('T')[0],
-      conductor: 'Allan Núñez Madrigal',
+      conductor: '',
       vehiculo: 'CL272368',
       estado: EstadoHojaRuta.BORRADOR,
       observaciones: ''
